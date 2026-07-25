@@ -483,7 +483,7 @@ Expected: `"ok"` or `"healthy"`
 **Step 3: Test the profile endpoint against production**
 
 ```bash
-curl -s -H "X-API-Key: ff_enterprise_5b60525878baa197d01169e615c73e06e5a9464d" \
+curl -s -H "X-API-Key: $FUFIRE_API_KEY" \
   "https://bafe-production.up.railway.app/api/profile/TEST_USER_ID" | jq .
 ```
 
