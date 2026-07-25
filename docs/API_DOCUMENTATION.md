@@ -644,9 +644,11 @@ Ordered by impact. All verified live on 2026-07-25.
 ### 7.0 🔴 One unauthenticated request killed the BFF *(fixed, PR #95)*
 
 ```console
+# $TOKEN can be any syntactically-shaped bearer value — it is never validated,
+# because the process dies while constructing the client that would check it.
 $ curl -s -o /dev/null -w '%{http_code}\n' \
     https://astro.fufire.space/api/v1/keys/list \
-    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2d1cyJ9.notreal"
+    -H "Authorization: Bearer $TOKEN"
 502
 ```
 
