@@ -37,7 +37,7 @@ documentation disagree, this file follows the deployment and says so.
 | Host | `api.fufire.space` | `astro.fufire.space` |
 | Repo | `DYAI2025/FUFIRE_API_lunar` (public) | `DYAI2025/FuFire_API_LIVE` (private) |
 | Base path | `/v1/…` | `/api/v1/…` |
-| Auth header | `X-API-Key: ff_<tier>_<hex>` | `X-API-Key: ff_live_<base62>` (optional today — see §7.1) |
+| Auth | `X-API-Key: ff_<tier>_<hex>` | `Authorization: Bearer ff_live_<base62>` (optional today — see §7.1) |
 | Paths | 69 | 22 |
 
 **The `/api/v1` prefix is load-bearing.** `astro.fufire.space/v1/anything`
@@ -83,13 +83,27 @@ production.
 ### 2.2 BFF (`astro.fufire.space`)
 
 Customer keys are `ff_live_<40 base62 chars>` — a different format from the
-engine's. Lookup path (`src/server/dev-key-auth.ts`):
+engine's.
+
+> **The BFF does NOT read `X-API-Key`.** `presentedCredential()` in
+> `src/server/dev-key-auth.ts` looks at exactly two places, in order:
+>
+> 1. `Authorization: Bearer ff_live_…`
+> 2. `customKey` in the JSON body
+>
+> A customer key sent as `X-API-Key` is **silently ignored** — the request then
+> falls through to the anonymous path (§7.1) and is served with the shared
+> enterprise key. It looks like the key worked; it did not. This trap is the
+> single easiest way to be billed nothing and enforce nothing.
+
+Lookup path (`src/server/dev-key-auth.ts`):
 
 ```
-X-API-Key: ff_live_… ──► sha256(secret) ──► RPC lookup_active_api_key(hash)
-                                              │
-              valid ◄───────────────────────── revoked_at IS NULL
-                                              OR revoked_at > now()   ← DB clock
+Authorization: Bearer ff_live_…  ─┐
+   (or body.customKey)            ├─► sha256(secret) ──► RPC lookup_active_api_key(hash)
+                                  ┘                        │
+                    valid ◄────────────────────────────────  revoked_at IS NULL
+                                                           OR revoked_at > now()  ← DB clock
 ```
 
 The customer key is **never forwarded upstream**. On success the BFF strips it
@@ -101,6 +115,11 @@ A key that carries the `ff_live_` prefix but is unknown, revoked or past its
 grace window yields `401` with **zero** upstream calls — it never silently
 falls through to the shared key. A request with **no** `ff_live_` prefix at all
 does fall through (§7.1).
+
+> Until PR #95, that `401` was in practice a **`500 auth_lookup_failed`**: the
+> Supabase client could not even be constructed on Node 20 (§7.0), so the lookup
+> never ran. Fail-closed, so nothing leaked — but the observable status was
+> wrong.
 
 ### 2.3 Admin token
 
@@ -622,6 +641,44 @@ RLS is enabled **and forced** on all four tables. `anon` has no privileges
 
 Ordered by impact. All verified live on 2026-07-25.
 
+### 7.0 🔴 One unauthenticated request killed the BFF *(fixed, PR #95)*
+
+```console
+$ curl -s -o /dev/null -w '%{http_code}\n' \
+    https://astro.fufire.space/api/v1/keys/list \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2d1cyJ9.notreal"
+502
+```
+
+`502 Application failed to respond` — the process died and the container
+restarted. No valid credential was required; any bearer token did it.
+
+From the production stack trace:
+
+```
+Error: Node.js 20 detected without native WebSocket support.
+    at new RealtimeClient → createClient → userClient → requireUser
+```
+
+`@supabase/supabase-js` constructs a `RealtimeClient` inside every
+`createClient()`, and `realtime-js` throws when the runtime has no global
+`WebSocket`. That global landed in Node 22; the image is `node:20-slim`. The
+throw escaped an async Express 4 handler — which does not route rejections to
+error middleware — became an unhandled rejection, and Node exited.
+
+The whole Supabase key plane was therefore non-functional in production: the
+`ff_live_` dev-key path returned `500 auth_lookup_failed` (that one is caught),
+and the dashboard routes crashed the process.
+
+**1400 green tests missed it because tests run on Node 24, where the global
+exists.** The regression test now deletes `globalThis.WebSocket` so the guard
+holds on any Node version.
+
+Fixed by supplying `ws` as the realtime transport (version-independent), plus
+an `asyncRoute()` wrapper so a future throw degrades one request rather than
+dropping the process. Node 20 is also EOL since April 2026 — moving to
+`node:22-slim` is tracked separately.
+
 ### 7.1 🔴 The proxy is open to the internet
 
 ```console
@@ -779,9 +836,11 @@ curl -X POST https://api.fufire.space/v1/calculate/bazi \
   -d '{"date":"2024-02-10T14:30:00","tz":"Europe/Berlin",
        "lon":13.405,"lat":52.52}'
 
-# …or through the BFF proxy
+# …or through the BFF proxy.
+# NOTE the header: the BFF reads Authorization, NOT X-API-Key. A key sent as
+# X-API-Key is ignored and the call is served anonymously (§2.2, §7.1).
 curl -X POST https://astro.fufire.space/api/v1/proxy \
-  -H "X-API-Key: $FUFIRE_LIVE_KEY" \
+  -H "Authorization: Bearer $FUFIRE_LIVE_KEY" \
   -H 'content-type: application/json' \
   -d '{"path":"/v1/calculate/bazi","body":{"date":"2024-02-10T14:30:00",
        "tz":"Europe/Berlin","lon":13.405,"lat":52.52}}'
@@ -790,15 +849,18 @@ curl -X POST https://astro.fufire.space/api/v1/proxy \
 **Integration checklist**
 
 1. Use `/v1/*` on `api.fufire.space`, `/api/v1/*` on `astro.fufire.space`. Never mix.
-2. Send `date` as a local ISO-8601 string with **no** offset; `tz` carries the zone.
-3. Handle `422` by reading `detail.errors[].loc` — it names the exact field path.
-4. Handle both error envelopes (engine: flat JSON; BFF: `problem+json`).
-5. Log `X-Request-ID` on every call. It is the only correlation handle in support.
-6. Set `include_trace: false` unless you need the derivation — payloads shrink a lot.
-7. Check `quality_flags.ephemeris_mode`: `MOSEPH` means degraded precision.
-8. Check `precision.provisional_fields[]` when `birth_time_known` is false.
-9. Do not build on `X-RateLimit-Remaining` until Redis lands (§7.4).
-10. Treat a key as write-once: only a hash is stored, so it can never be resent.
+2. Different auth headers per host: `X-API-Key` on the engine,
+   `Authorization: Bearer` on the BFF. Sending the BFF an `X-API-Key` does not
+   fail — it is ignored, and you get an anonymous response that looks fine.
+3. Send `date` as a local ISO-8601 string with **no** offset; `tz` carries the zone.
+4. Handle `422` by reading `detail.errors[].loc` — it names the exact field path.
+5. Handle both error envelopes (engine: flat JSON; BFF: `problem+json`).
+6. Log `X-Request-ID` on every call. It is the only correlation handle in support.
+7. Set `include_trace: false` unless you need the derivation — payloads shrink a lot.
+8. Check `quality_flags.ephemeris_mode`: `MOSEPH` means degraded precision.
+9. Check `precision.provisional_fields[]` when `birth_time_known` is false.
+10. Do not build on `X-RateLimit-Remaining` until Redis lands (§7.4).
+11. Treat a key as write-once: only a hash is stored, so it can never be resent.
 
 ---
 
