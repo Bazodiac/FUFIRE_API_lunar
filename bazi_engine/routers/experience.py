@@ -310,6 +310,21 @@ def _birth_to_iso(birth: BirthInput) -> str:
     return f"{birth.date}T{birth.time}"
 
 
+def _select_profile_harmony(fusion: Dict[str, Any]) -> float:
+    """Select the user-facing harmony value from a fusion result (FUF-147).
+
+    Fail-closed: only the calibrated value may drive user-facing output. If
+    ``h_calibrated`` is missing, fall back to the neutral 0.5 — never to the
+    raw harmony index (raw H is empirically always ≥ 0.5 and would silently
+    reintroduce positive-judgment values).
+    """
+    cal = fusion.get("calibration", {})
+    harmony_index = cal.get("h_calibrated", 0.5)
+    if not isinstance(harmony_index, (int, float)):
+        harmony_index = 0.5
+    return max(0.0, min(1.0, float(harmony_index)))
+
+
 def _compute_astro_profile(birth: BirthInput) -> Dict[str, Any]:
     """Run BaZi + Western + Fusion calculations from birth data.
 
@@ -426,11 +441,7 @@ def _compute_astro_profile(birth: BirthInput) -> Dict[str, Any]:
         b = wuxing_bazi.get(elem, 0.2)
         wuxing_vector[elem] = round((w + b) / 2, 4)
 
-    # Harmony index (calibrated if available, else raw)
-    cal = fusion.get("calibration", {})
-    harmony_raw = fusion.get("harmony_index", {})
-    harmony_index = cal.get("h_calibrated", harmony_raw.get("harmony_index", 0.5) if isinstance(harmony_raw, dict) else 0.5)
-    harmony_index = max(0.0, min(1.0, harmony_index))
+    harmony_index = _select_profile_harmony(fusion)
 
     return {
         "bazi_result": bazi_result,

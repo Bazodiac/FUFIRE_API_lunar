@@ -178,20 +178,21 @@ class TestHarmonyIndex:
 class TestInterpretHarmony:
     """Tests for harmony interpretation."""
 
-    def test_strong_resonance(self):
-        assert "Starke Resonanz" in interpret_harmony(0.85)
+    def test_high_value_is_diagnostic_only(self):
+        # FUF-147: raw values must never map to judgment prose.
+        result = interpret_harmony(0.85)
+        assert "Rohwert" in result
+        assert "kein Nutzerurteil" in result
+        assert "Starke Resonanz" not in result
 
-    def test_good_harmony(self):
-        assert "Gute Harmonie" in interpret_harmony(0.65)
+    def test_mid_value_is_diagnostic_only(self):
+        result = interpret_harmony(0.45)
+        assert "Rohwert" in result
+        assert "0.45" in result
 
-    def test_moderate_balance(self):
-        assert "Moderate Balance" in interpret_harmony(0.45)
-
-    def test_tense_harmony(self):
-        assert "Gespannte Harmonie" in interpret_harmony(0.25)
-
-    def test_divergence(self):
-        assert "Divergenz" in interpret_harmony(0.1)
+    def test_low_value_is_diagnostic_only(self):
+        result = interpret_harmony(0.1)
+        assert "kein Nutzerurteil" in result
 
 
 class TestEquationOfTime:
@@ -393,16 +394,21 @@ class TestGenerateFusionInterpretation:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    def test_high_harmony_message(self):
+    def test_high_raw_value_yields_no_judgment_prose(self):
+        # FUF-147: without a calibration result the output is fail-closed.
         western = WuXingVector(1.0, 1.0, 1.0, 1.0, 1.0)
         bazi = WuXingVector(1.0, 1.0, 1.0, 1.0, 1.0)
         comparison = {}
         result = generate_fusion_interpretation(0.8, comparison, western, bazi)
-        assert "starker Resonanz" in result or "harmonisch" in result
+        assert "starker Resonanz" not in result
+        assert "harmonisch" not in result
+        assert "kein Nutzerurteil" in result
+        assert "fail-closed" in result
 
-    def test_low_harmony_message(self):
+    def test_low_raw_value_yields_no_judgment_prose(self):
         western = WuXingVector(1.0, 0.0, 0.0, 0.0, 0.0)
         bazi = WuXingVector(0.0, 1.0, 0.0, 0.0, 0.0)
         comparison = {}
         result = generate_fusion_interpretation(0.2, comparison, western, bazi)
-        assert "unterschiedliche Richtungen" in result or "Integration" in result
+        assert "unterschiedliche Richtungen" not in result
+        assert "kein Nutzerurteil" in result

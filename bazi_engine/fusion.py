@@ -33,7 +33,7 @@ from .wuxing import (  # noqa: F401
     is_night_chart,
     planet_to_wuxing,
 )
-from .wuxing.calibration import calibrate_harmony
+from .wuxing.calibration import CalibrationResult, calibrate_harmony
 
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -159,7 +159,8 @@ def compute_fusion_analysis(
         "elemental_comparison": elemental_comparison,
         "cosmic_state": round(cosmic_state, 4),
         "fusion_interpretation": generate_fusion_interpretation(
-            harmony["harmony_index"], elemental_comparison, western_wuxing, bazi_wuxing
+            harmony["harmony_index"], elemental_comparison, western_wuxing, bazi_wuxing,
+            calibration=cal,
         ),
         "contribution_ledger": {
             "western": western_ledger,
@@ -174,30 +175,42 @@ def generate_fusion_interpretation(
     comparison: Dict[str, Dict[str, float]],
     western: WuXingVector,
     bazi: WuXingVector,
+    calibration: Optional[CalibrationResult] = None,
 ) -> str:
-    """Generate a text interpretation of the fusion analysis."""
+    """Generate a claim-safe text interpretation of the fusion analysis.
+
+    FUF-147 fail-closed containment: the raw harmony value must never drive
+    user-facing judgment prose (raw H is empirically always ≥ 0.5, so the old
+    thresholds emitted positive resonance claims for nearly every chart).
+
+    - With a calibration result (quality != "degenerate"): report the
+      calibrated coherence and its interpretation band.
+    - Without calibration, or degenerate input: fully reduced diagnostic
+      output — no coherence band, no judgment sentence.
+    - The raw value appears only under an explicit expert-diagnostics label.
+    """
     w_dict = western.to_dict()
     b_dict = bazi.to_dict()
     w_dominant = max(w_dict, key=lambda k: w_dict[k])
     b_dominant = max(b_dict, key=lambda k: b_dict[k])
 
+    if calibration is not None and calibration.quality != "degenerate":
+        coherence_lines = [
+            f"Kalibrierte Kohärenz: {calibration.h_calibrated:.2%} "
+            f"({calibration.interpretation_band})",
+            f"Datenqualität: {calibration.quality}",
+        ]
+    else:
+        coherence_lines = [
+            "Kalibrierte Kohärenz: nicht verfügbar — Ausgabe fail-closed reduziert.",
+        ]
+
     lines = [
-        f"Harmonie-Index: {harmony:.2%}",
-        interpret_harmony(harmony),
+        *coherence_lines,
+        f"Expertendiagnostik: H_raw={harmony:.2f} "
+        "(unkalibrierter Rohwert — kein Nutzerurteil)",
         "",
         f"Westliche Dominanz: {w_dominant}",
         f"Östliche Dominanz: {b_dominant}",
-        "",
     ]
-
-    if harmony >= 0.6:
-        lines.append("Ihre westliche und östliche Chart stehen in starker Resonanz.")
-        lines.append("Die Energien ergänzen sich harmonisch.")
-    elif harmony >= 0.3:
-        lines.append("Ihre Charts zeigen eine interessante Balance zwischen Ost und West.")
-        lines.append("Es gibt Spannungen, aber auch Wachstumspotential.")
-    else:
-        lines.append("Ihre westliche und östliche Energie arbeiten in unterschiedliche Richtungen.")
-        lines.append("Integration erfordert bewusste Arbeit.")
-
     return "\n".join(lines)

@@ -66,6 +66,7 @@ class WebhookEasternSection(BaseModel):
 
 class WebhookFusionSection(BaseModel):
     harmonyIndex: float
+    harmonyIndexRaw: Optional[float] = None
     harmonyInterpretation: str
     cosmicState: str
     westernDominantElement: str
@@ -91,6 +92,27 @@ class WebhookChartResponse(BaseModel):
     fusion: WebhookFusionSection
     summary: WebhookSummary
     meta: Dict[str, Any]
+
+
+def _voice_fusion_summary(fusion: Dict[str, Any]) -> Dict[str, Any]:
+    """Claim-safe fusion values for the ElevenLabs voice profile (FUF-147).
+
+    The voice agent speaks these values to end users, so they must come from
+    the calibrated model, never from the raw harmony index (raw H is
+    empirically always ≥ 0.5 and would read as a positive judgment). The raw
+    value is preserved separately as an expert diagnostic.
+    """
+    cal = fusion.get("calibration", {})
+    h_calibrated = max(0.0, min(1.0, cal.get("h_calibrated", 0.5)))
+    return {
+        "harmonyIndex": h_calibrated,
+        "harmonyIndexRaw": cal.get("h_raw"),
+        "harmonyInterpretation": cal.get(
+            "interpretation_band",
+            "Kalibrierte Kohärenz nicht verfügbar — keine Aussage möglich",
+        ),
+        "harmonie": f"{h_calibrated:.0%}",
+    }
 
 
 @router.post("/webhooks/chart", response_model=WebhookChartResponse)
@@ -206,6 +228,7 @@ async def elevenlabs_chart_webhook(
             bazi_pillars=bazi_pillars_for_fusion, western_bodies=bodies,
         )
 
+        voice_fusion = _voice_fusion_summary(fusion)
         retrogrades: List[str] = [n for n, b in bodies.items() if b.get("is_retrograde")]
         wu_xing = fusion["wu_xing_vectors"]
         western_dominant = max(wu_xing["western_planets"], key=lambda k: wu_xing["western_planets"][k])
@@ -247,8 +270,11 @@ async def elevenlabs_chart_webhook(
                 "lichunNext":   bazi_result.lichun_next_local_dt.isoformat() if bazi_result.lichun_next_local_dt else None,
             },
             "fusion": {
-                "harmonyIndex":          fusion["harmony_index"]["harmony_index"],
-                "harmonyInterpretation": fusion["harmony_index"]["interpretation"],
+                # FUF-147: voice-facing values are calibrated; raw only as
+                # labeled expert diagnostic (harmonyIndexRaw).
+                "harmonyIndex":          voice_fusion["harmonyIndex"],
+                "harmonyIndexRaw":       voice_fusion["harmonyIndexRaw"],
+                "harmonyInterpretation": voice_fusion["harmonyInterpretation"],
                 "cosmicState":           fusion["cosmic_state"],
                 "westernDominantElement": western_dominant,
                 "baziDominantElement":    bazi_dominant,
@@ -262,7 +288,7 @@ async def elevenlabs_chart_webhook(
                 "mondzeichen":  ZODIAC_SIGNS_DE[moon_sign_idx],
                 "chinesischesZeichen": f"{year_pillar['element']} {year_pillar['tier']}",
                 "tagesmeister":        f"{day_pillar['element']} ({day_pillar['stamm']})",
-                "harmonie":            f"{fusion['harmony_index']['harmony_index']:.0%}",
+                "harmonie":            voice_fusion["harmonie"],
                 "dominantesElement":   f"West: {western_dominant}, Ost: {bazi_dominant}",
             },
             "meta": {

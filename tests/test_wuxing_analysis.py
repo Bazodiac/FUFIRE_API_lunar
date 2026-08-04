@@ -265,24 +265,27 @@ class TestCalculateHarmonyIndex:
 # ── interpret_harmony ─────────────────────────────────────────────────────────
 
 class TestInterpretHarmony:
-    CASES = [
-        (0.9,  "Starke Resonanz"),
-        (0.7,  "Gute Harmonie"),
-        (0.5,  "Moderate Balance"),
-        (0.3,  "Gespannte Harmonie"),
-        (0.05, "Divergenz"),
-    ]
+    """FUF-147: interpret_harmony is a claim-safe raw diagnostic label.
 
-    @pytest.mark.parametrize("h,expected_fragment", CASES)
-    def test_correct_label(self, h, expected_fragment):
+    The old raw-threshold judgment labels ("Starke Resonanz", "Gute
+    Harmonie", …) are forbidden — raw H is empirically always >= 0.5, so
+    they read as positive user judgments for nearly every chart.
+    """
+
+    CASES = [0.9, 0.7, 0.5, 0.3, 0.05]
+
+    @pytest.mark.parametrize("h", CASES)
+    def test_label_is_diagnostic_not_judgment(self, h):
         result = interpret_harmony(h)
-        assert expected_fragment in result, f"h={h}: expected '{expected_fragment}' in {result!r}"
+        assert "Rohwert" in result
+        assert "kein Nutzerurteil" in result
+        assert f"{h:.2f}" in result
 
-    def test_boundary_0_8_is_starke_resonanz(self):
-        assert "Starke Resonanz" in interpret_harmony(0.8)
-
-    def test_boundary_0_6_is_gute_harmonie(self):
-        assert "Gute Harmonie" in interpret_harmony(0.6)
+    @pytest.mark.parametrize("h", [0.6, 0.8, 1.0])
+    def test_high_raw_values_produce_no_positive_judgment(self, h):
+        result = interpret_harmony(h)
+        for forbidden in ("Starke Resonanz", "Gute Harmonie", "perfekter Harmonie"):
+            assert forbidden not in result
 
     def test_returns_non_empty_string(self):
         for h in [0.0, 0.25, 0.5, 0.75, 1.0]:
