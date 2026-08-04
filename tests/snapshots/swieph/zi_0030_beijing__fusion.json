@@ -254,7 +254,7 @@
       "western": 0.559
     }
   },
-  "fusion_interpretation": "Harmonie-Index: 91.71%\nStarke Resonanz - Westliche und östliche Matrix stehen in perfekter Harmonie\n\nWestliche Dominanz: Holz\nÖstliche Dominanz: Holz\n\nIhre westliche und östliche Chart stehen in starker Resonanz.\nDie Energien ergänzen sich harmonisch.",
+  "fusion_interpretation": "Kalibrierte Kohärenz: 65.26% (Überdurchschnittliche Kongruenz)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.92 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Holz\nÖstliche Dominanz: Holz",
   "harmony_index": {
     "bazi_vector": {
       "Erde": 0.249355313,
@@ -264,7 +264,7 @@
       "Wasser": 0.3452612026
     },
     "harmony_index": 0.9171,
-    "interpretation": "Starke Resonanz - Westliche und östliche Matrix stehen in perfekter Harmonie",
+    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.92 — Expertendiagnostik, kein Nutzerurteil",
     "method": "dot_product",
     "western_vector": {
       "Erde": 0.1398088721,

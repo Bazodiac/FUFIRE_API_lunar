@@ -209,15 +209,18 @@ class TestFusionInterpretationConsistency:
             western_bodies=western,
         )
 
-    def test_high_harmony_gets_positive_text(self):
+    def test_high_raw_harmony_gets_no_judgment_text(self):
+        # FUF-147: even maximal raw congruence must not produce judgment prose.
         result = self._run(
             {"Jupiter": {"longitude": 0.0, "is_retrograde": False}},
             PILLARS_PURE_WOOD,
         )
         text = result["fusion_interpretation"]
-        assert "starker Resonanz" in text or "harmonisch" in text or "Resonanz" in text
+        assert "starker Resonanz" not in text
+        assert "harmonisch" not in text
+        assert "kein Nutzerurteil" in text
 
-    def test_low_harmony_gets_tension_text(self):
+    def test_low_raw_harmony_gets_no_judgment_text(self):
         result = self._run(BODIES_PURE_FIRE, {
             "year": {"stem": "Ren", "branch": "Zi"},
             "month": {"stem": "Gui", "branch": "Hai"},
@@ -225,12 +228,14 @@ class TestFusionInterpretationConsistency:
             "hour": {"stem": "Gui", "branch": "Hai"},
         })
         text = result["fusion_interpretation"]
-        assert "unterschiedliche Richtungen" in text or "Integration" in text
+        assert "unterschiedliche Richtungen" not in text
+        assert "kein Nutzerurteil" in text
 
-    def test_harmony_index_in_interpretation_text(self):
+    def test_calibrated_coherence_in_interpretation_text(self):
         result = self._run(WESTERN_BODIES_AQUARIUS, BAZI_PILLARS_STANDARD)
         text = result["fusion_interpretation"]
-        assert "Harmonie-Index" in text
+        assert "Kalibrierte Kohärenz" in text
+        assert "kein Nutzerurteil" in text
 
     def test_dominant_elements_mentioned(self):
         result = self._run(WESTERN_BODIES_AQUARIUS, BAZI_PILLARS_STANDARD)
@@ -250,16 +255,17 @@ class TestGenerateFusionInterpretation:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    @pytest.mark.parametrize("h,fragment", [
-        (0.8, "Resonanz"),
-        (0.5, "Balance"),
-        (0.1, "unterschiedliche Richtungen"),
-    ])
-    def test_harmony_level_reflected_in_text(self, h, fragment):
+    @pytest.mark.parametrize("h", [0.8, 0.5, 0.1])
+    def test_raw_value_only_as_labeled_diagnostic(self, h):
+        # FUF-147: the raw value appears only as a labeled expert diagnostic,
+        # never as level-dependent judgment prose.
         v = WuXingVector(1.0, 0.0, 0.0, 0.0, 0.0)
         comp = {}
         result = generate_fusion_interpretation(h, comp, v, v)
-        assert fragment in result, f"h={h}: expected '{fragment}' in text"
+        assert f"H_raw={h:.2f}" in result
+        assert "kein Nutzerurteil" in result
+        for forbidden in ("Resonanz", "Balance", "unterschiedliche Richtungen"):
+            assert forbidden not in result, f"h={h}: judgment fragment {forbidden!r} present"
 
 
 # ── Edge cases ────────────────────────────────────────────────────────────────

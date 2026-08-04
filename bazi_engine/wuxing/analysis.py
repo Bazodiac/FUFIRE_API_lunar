@@ -303,13 +303,17 @@ def calculate_harmony_index(
 
 
 def interpret_harmony(h: float) -> str:
-    """Return a human-readable label for a harmony index value."""
-    if h >= 0.8:
-        return "Starke Resonanz - Westliche und östliche Matrix stehen in perfekter Harmonie"
-    if h >= 0.6:
-        return "Gute Harmonie - Die Energien unterstützen sich gegenseitig"
-    if h >= 0.4:
-        return "Moderate Balance - Unterschiedliche Schwerpunkte, aber keine Konflikte"
-    if h >= 0.2:
-        return "Gespannte Harmonie - Teils komplementär, teils divergierend"
-    return "Divergenz - Westliche und östliche Energien arbeiten in unterschiedliche Richtungen"
+    """Return a claim-safe diagnostic label for a RAW harmony index value.
+
+    FUF-147 fail-closed containment: the raw H = cos(θ) lies empirically in
+    [0.50, 1.0] for real charts (positive orthant), so raw-threshold judgment
+    prose ("Starke Resonanz", "Gute Harmonie", …) was structurally always
+    positive. Until the calibrated card-pair model (FUF-55B) ships, the raw
+    value must never be presented as a user-facing judgment — only as an
+    expert diagnostic. Calibrated judgments live in
+    ``CalibrationResult.interpretation_band`` (wuxing/calibration.py).
+    """
+    return (
+        f"Rohwert-Diagnostik (unkalibriert): H_raw={h:.2f} — "
+        "Expertendiagnostik, kein Nutzerurteil"
+    )

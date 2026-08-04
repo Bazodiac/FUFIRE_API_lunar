@@ -262,7 +262,7 @@
       "western": 0.552
     }
   },
-  "fusion_interpretation": "Harmonie-Index: 68.39%\nGute Harmonie - Die Energien unterstützen sich gegenseitig\n\nWestliche Dominanz: Holz\nÖstliche Dominanz: Erde\n\nIhre westliche und östliche Chart stehen in starker Resonanz.\nDie Energien ergänzen sich harmonisch.",
+  "fusion_interpretation": "Kalibrierte Kohärenz: 0.00% (Keine messbare Kongruenz über Baseline)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.68 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Holz\nÖstliche Dominanz: Erde",
   "harmony_index": {
     "bazi_vector": {
       "Erde": 0.8269767696,
@@ -272,7 +272,7 @@
       "Wasser": 0.1102635693
     },
     "harmony_index": 0.6839,
-    "interpretation": "Gute Harmonie - Die Energien unterstützen sich gegenseitig",
+    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.68 — Expertendiagnostik, kein Nutzerurteil",
     "method": "dot_product",
     "western_vector": {
       "Erde": 0.3175814226,
