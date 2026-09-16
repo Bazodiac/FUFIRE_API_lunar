@@ -8124,8 +8124,7 @@
             "type": "string",
             "const": "bazi_four_pillars",
             "title": "Basis",
-            "description": "Provenance of the vector: derived from the BaZi Four Pillars (NOT western planetary positions).",
-            "default": "bazi_four_pillars"
+            "description": "Provenance of the vector: derived from the BaZi Four Pillars (NOT western planetary positions). REQUIRED and deliberately without a default: a defaulted field lets the response model supply this value when the handler does not, which turns an absent producer fact into a fabricated provenance claim. Consumers treat this string as proof of origin, so it must be proof that the handler stated it."
           },
           "pillars": {
             "additionalProperties": {
@@ -8159,6 +8158,7 @@
           "input",
           "wu_xing_vector",
           "dominant_element",
+          "basis",
           "pillars",
           "contribution_ledger",
           "provenance",
