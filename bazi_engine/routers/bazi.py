@@ -511,8 +511,15 @@ class BaziWuXingResponse(BaseModel):
     )
     dominant_element: str = Field(..., description="Element with the largest share of the BaZi vector.")
     basis: Literal["bazi_four_pillars"] = Field(
-        "bazi_four_pillars",
-        description="Provenance of the vector: derived from the BaZi Four Pillars (NOT western planetary positions).",
+        ...,
+        description=(
+            "Provenance of the vector: derived from the BaZi Four Pillars (NOT western "
+            "planetary positions). REQUIRED and deliberately without a default: a "
+            "defaulted field lets the response model supply this value when the handler "
+            "does not, which turns an absent producer fact into a fabricated provenance "
+            "claim. Consumers treat this string as proof of origin, so it must be proof "
+            "that the handler stated it."
+        ),
     )
     pillars: Dict[str, Dict[str, str]] = Field(..., description="The four pillars {stem, branch} the vector was built from.")
     contribution_ledger: Dict[str, Any] = Field(
