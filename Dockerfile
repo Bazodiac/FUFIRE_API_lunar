@@ -1,6 +1,6 @@
 # Stage 1: immutable Swiss Ephemeris data. The human-readable tag documents
 # the selected line; the manifest-list digest is the actual build input.
-FROM python:3.12-slim@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de AS ephe
+FROM python:3.12-slim@sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36 AS ephe
 
 WORKDIR /lock
 COPY ephemeris.lock.json ./ephemeris.lock.json
@@ -15,7 +15,7 @@ RUN python fetch_ephemeris.py \
       --verify-only
 
 # Stage 2: build and verify the same wheel that will enter the runtime image.
-FROM python:3.12-slim@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de AS builder
+FROM python:3.12-slim@sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36 AS builder
 
 WORKDIR /build
 ENV CC=gcc
@@ -62,7 +62,7 @@ RUN python -m build --wheel --no-isolation --outdir /dist && \
 
 # Stage 3: source-free, non-root runtime. Keep this aligned with the approved
 # Python line in scripts/assert_toolchain_versions.py and project metadata.
-FROM python:3.12-slim@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de AS runtime
+FROM python:3.12-slim@sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36 AS runtime
 
 WORKDIR /app
 RUN groupadd --gid 10001 fufire \
