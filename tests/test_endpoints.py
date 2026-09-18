@@ -47,6 +47,153 @@ class TestHealthEndpoints:
         assert data["info"]["version"] == client.get("/build").json()["version"]
 
 
+_NF_SHA = "c914d5671257b3c3ec279da76715a9338313b2e1"
+_RAILWAY_SHA = "0123456789abcdef0123456789abcdef01234567"
+
+#: Every reserved deployment variable this module reads, so a test can start
+#: from a platform-free environment instead of inheriting the developer's.
+_PLATFORM_VARS = (
+    "NF_DEPLOYMENT_SHA",
+    "NF_OBJECT_ID",
+    "NF_POD_ID",
+    "NF_PROJECT_ID",
+    "RAILWAY_GIT_COMMIT_SHA",
+    "RAILWAY_DEPLOYMENT_ID",
+    "RAILWAY_SERVICE_ID",
+    "RAILWAY_PROJECT_ID",
+    "RAILWAY_ENVIRONMENT_ID",
+    "FLY_ALLOC_ID",
+    "FLY_REGION",
+    "EXPOSE_BUILD_METADATA",
+)
+
+
+@pytest.fixture
+def no_platform(monkeypatch):
+    """Run with no deployment platform claiming this process."""
+    for name in _PLATFORM_VARS:
+        monkeypatch.delenv(name, raising=False)
+    return monkeypatch
+
+
+class TestSourceRevisionIdentity:
+    """ETBZ-34 AC 6 — `/v1/build` carries an immutable, provider-supplied
+    source revision, or it carries none at all.
+
+    The revision is read from the variable the DEPLOYMENT PLATFORM injects
+    (Northflank's ``NF_DEPLOYMENT_SHA``, Railway's ``RAILWAY_GIT_COMMIT_SHA``),
+    never from an application-owned value, so a consumer's attestation cannot be
+    satisfied by configuration. Anything that is not a full git object id is
+    refused: there is no path from "the platform told us nothing usable" to a
+    revision a consumer would accept.
+    """
+
+    def test_northflank_sha_is_reported_verbatim(self, no_platform):
+        no_platform.setenv("NF_DEPLOYMENT_SHA", _NF_SHA)
+        no_platform.setenv("NF_POD_ID", "pod-1234")
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] == _NF_SHA
+        assert data["source_revision_provider"] == "northflank"
+        assert data["source_revision_kind"] == "deployment_git_sha"
+        assert data["source_revision_status"] == "available"
+
+    def test_missing_variable_invents_no_revision(self, no_platform):
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] is None
+        assert data["source_revision_provider"] is None
+        assert data["source_revision_kind"] is None
+        assert data["source_revision_status"] == "unavailable"
+        # The mutable version string is still there, and is still not identity.
+        assert data["version"] != data["source_revision"]
+
+    @pytest.mark.parametrize(
+        "malformed",
+        [
+            "main",
+            "abc123",
+            _NF_SHA[:39],
+            _NF_SHA + "a",
+            _NF_SHA.upper(),
+            "1.0.0-rc1-20260220",
+            "sha256:" + "a" * 64,
+        ],
+    )
+    def test_malformed_variable_is_not_acceptance_grade(self, no_platform, malformed):
+        no_platform.setenv("NF_DEPLOYMENT_SHA", malformed)
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] is None
+        assert data["source_revision_status"] == "invalid"
+
+    def test_northflank_sha_is_never_reported_under_a_railway_field(self, no_platform):
+        """No alias lie: the Northflank SHA must not appear as Railway's."""
+        no_platform.setenv("NF_DEPLOYMENT_SHA", _NF_SHA)
+        no_platform.setenv("NF_POD_ID", "pod-1234")
+        no_platform.setenv("EXPOSE_BUILD_METADATA", "1")
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] == _NF_SHA
+        assert data["railway_commit_sha"] == ""
+        assert data["railway_deploy_id"] == ""
+        assert data["fly_alloc_id"] == ""
+        assert data["fly_region"] == ""
+        for field, value in data.items():
+            if field != "source_revision":
+                assert value != _NF_SHA, f"{field} echoes the Northflank SHA"
+
+    def test_railway_deployment_still_resolves(self, no_platform):
+        """Existing Railway evidence is not destroyed by adding Northflank."""
+        no_platform.setenv("RAILWAY_GIT_COMMIT_SHA", _RAILWAY_SHA)
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] == _RAILWAY_SHA
+        assert data["source_revision_provider"] == "railway"
+        assert data["source_revision_status"] == "available"
+
+    def test_two_platforms_resolve_by_their_own_markers(self, no_platform):
+        no_platform.setenv("NF_DEPLOYMENT_SHA", _NF_SHA)
+        no_platform.setenv("NF_PROJECT_ID", "fufireapi")
+        no_platform.setenv("RAILWAY_GIT_COMMIT_SHA", _RAILWAY_SHA)
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] == _NF_SHA
+        assert data["source_revision_provider"] == "northflank"
+
+        # ... and the other way round, so this is resolution, not a preference
+        # for whichever provider happens to be listed first.
+        no_platform.delenv("NF_PROJECT_ID")
+        no_platform.setenv("RAILWAY_SERVICE_ID", "svc-1")
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] == _RAILWAY_SHA
+        assert data["source_revision_provider"] == "railway"
+
+    @pytest.mark.parametrize("markers", [{}, {"NF_POD_ID": "p", "RAILWAY_SERVICE_ID": "s"}])
+    def test_unresolvable_ambiguity_fails_closed(self, no_platform, markers):
+        no_platform.setenv("NF_DEPLOYMENT_SHA", _NF_SHA)
+        no_platform.setenv("RAILWAY_GIT_COMMIT_SHA", _RAILWAY_SHA)
+        for name, value in markers.items():
+            no_platform.setenv(name, value)
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] is None
+        assert data["source_revision_status"] == "ambiguous"
+
+    def test_one_malformed_platform_variable_blocks_the_whole_identity(self, no_platform):
+        """A misconfigured platform variable must not be masked by the other."""
+        no_platform.setenv("NF_DEPLOYMENT_SHA", _NF_SHA)
+        no_platform.setenv("NF_POD_ID", "pod-1234")
+        no_platform.setenv("RAILWAY_GIT_COMMIT_SHA", "main")
+        data = client.get("/v1/build").json()
+        assert data["source_revision"] is None
+        assert data["source_revision_status"] == "invalid"
+
+    def test_legacy_and_v1_mounts_agree(self, no_platform):
+        no_platform.setenv("NF_DEPLOYMENT_SHA", _NF_SHA)
+        no_platform.setenv("NF_POD_ID", "pod-1234")
+        assert client.get("/build").json() == client.get("/v1/build").json()
+
+    def test_root_does_not_leak_the_source_revision_fields(self, no_platform):
+        """`/` shares the helper but declares only status/service/version."""
+        no_platform.setenv("NF_DEPLOYMENT_SHA", _NF_SHA)
+        no_platform.setenv("NF_POD_ID", "pod-1234")
+        assert set(client.get("/").json()) == {"status", "service", "version"}
+
+
 class TestOpenApiContract:
     """Guardrails for fields that must stay visible in /docs."""
 

@@ -304,12 +304,26 @@ Same as `/health` but returns **503** when degraded. Use this for load balancer 
 ```json
 {
   "version": "1.0.0-rc1-20260220",
+  "source_revision": "c914d5671257b3c3ec279da76715a9338313b2e1",
+  "source_revision_provider": "northflank",
+  "source_revision_kind": "deployment_git_sha",
+  "source_revision_status": "available",
   "fly_alloc_id": "abc123",
   "fly_region": "ams"
 }
 ```
 
-Build metadata (Fly.io/Railway) only exposed when `EXPOSE_BUILD_METADATA=1`.
+`source_revision` is the immutable git object id of the build that is answering,
+read from the variable the deployment platform injects itself
+(`NF_DEPLOYMENT_SHA` on Northflank, `RAILWAY_GIT_COMMIT_SHA` on Railway) — never
+from an application-owned value. It is always reported. Anything that is not 40
+lower-case hex characters is refused: `source_revision` stays `null` and
+`source_revision_status` says why (`unavailable`, `invalid`, `ambiguous`). The
+mutable `version` string is not an identity.
+
+The Fly.io/Railway deploy identifiers (`fly_alloc_id`, `fly_region`,
+`railway_commit_sha`, `railway_deploy_id`) are only exposed when
+`EXPOSE_BUILD_METADATA=1`.
 
 ---
 

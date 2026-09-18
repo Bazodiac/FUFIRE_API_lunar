@@ -151,7 +151,7 @@
           "Info"
         ],
         "summary": "Build Info",
-        "description": "Build metadata. Returns version and (when `EXPOSE_BUILD_METADATA=1`) deploy identifiers from Railway/Fly.io. No authentication required.",
+        "description": "Build metadata. Returns the engine version, the immutable source revision of the running build as supplied by the deployment platform (`source_revision`, a 40-hex git object id, with its provider, kind and status), and — when `EXPOSE_BUILD_METADATA=1` — the Railway/Fly.io deploy identifiers. No authentication required.",
         "operationId": "build_info_build_get",
         "responses": {
           "200": {
@@ -3642,7 +3642,7 @@
           "Info"
         ],
         "summary": "Build Info",
-        "description": "Build metadata. Returns version and (when `EXPOSE_BUILD_METADATA=1`) deploy identifiers from Railway/Fly.io. No authentication required.",
+        "description": "Build metadata. Returns the engine version, the immutable source revision of the running build as supplied by the deployment platform (`source_revision`, a 40-hex git object id, with its provider, kind and status), and — when `EXPOSE_BUILD_METADATA=1` — the Railway/Fly.io deploy identifiers. No authentication required.",
         "operationId": "build_info_v1_build_get",
         "responses": {
           "200": {
@@ -8406,6 +8406,44 @@
           "version": {
             "type": "string",
             "title": "Version"
+          },
+          "source_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision"
+          },
+          "source_revision_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision Provider"
+          },
+          "source_revision_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision Kind"
+          },
+          "source_revision_status": {
+            "type": "string",
+            "title": "Source Revision Status",
+            "default": "unavailable"
           },
           "railway_commit_sha": {
             "anyOf": [
