@@ -6,7 +6,8 @@ Endpoints: GET /, /health, /build, /api (zodiac lookup), /info/wuxing-mapping
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Literal, Optional
+import re
+from typing import Any, Dict, Literal, Optional, Tuple
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -49,6 +50,21 @@ class HealthResponse(BaseModel):
 
 class BuildResponse(BaseModel):
     version: str
+    #: Provider-neutral, immutable source revision of the running build.
+    #: A full 40-character lower-case git object id, or null when the platform
+    #: did not supply one. Never a version string, tag or date.
+    source_revision: Optional[str] = None
+    #: Which deployment platform supplied `source_revision` ("northflank",
+    #: "railway"). Null whenever `source_revision` is null.
+    source_revision_provider: Optional[str] = None
+    #: What kind of identity `source_revision` is ("deployment_git_sha").
+    source_revision_kind: Optional[str] = None
+    #: Why `source_revision` is what it is — "available", "unavailable"
+    #: (no platform supplied one), "invalid" (a platform variable carried
+    #: something that is not a full git object id) or "ambiguous" (several
+    #: platforms claimed the deployment and none could be resolved).
+    #: Fail-closed states never carry a revision.
+    source_revision_status: str = "unavailable"
     railway_commit_sha: Optional[str] = None
     railway_deploy_id: Optional[str] = None
     fly_alloc_id: Optional[str] = None
@@ -68,8 +84,96 @@ class WuxingMappingResponse(BaseModel):
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-def _build_metadata() -> Dict[str, str]:
-    meta: Dict[str, str] = {"version": _BUILD_VERSION}
+#: A git object id and nothing else: 40 lower-case hex characters. Branch names,
+#: tags, abbreviated SHAs, semantic versions and dates are all reassignable and
+#: are therefore never an immutable source revision.
+_SOURCE_REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
+
+#: Deployment platforms that hand the RUNNING container the git commit it was
+#: built from. Each entry is
+#:     (provider, revision variable, kind, marker variables)
+#: where the revision variable and the markers are reserved names the platform
+#: injects itself. The application never sets them, and FuFirE never presents
+#: one platform's value under another platform's field name.
+_SOURCE_REVISION_PROVIDERS: Tuple[Tuple[str, str, str, Tuple[str, ...]], ...] = (
+    (
+        "northflank",
+        "NF_DEPLOYMENT_SHA",
+        "deployment_git_sha",
+        ("NF_OBJECT_ID", "NF_POD_ID", "NF_PROJECT_ID"),
+    ),
+    (
+        "railway",
+        "RAILWAY_GIT_COMMIT_SHA",
+        "deployment_git_sha",
+        ("RAILWAY_SERVICE_ID", "RAILWAY_PROJECT_ID", "RAILWAY_ENVIRONMENT_ID"),
+    ),
+)
+
+
+def _unavailable(status: str) -> Dict[str, Optional[str]]:
+    """A fail-closed source identity: a reason, never a substitute revision."""
+    return {
+        "source_revision": None,
+        "source_revision_provider": None,
+        "source_revision_kind": None,
+        "source_revision_status": status,
+    }
+
+
+def _source_revision() -> Dict[str, Optional[str]]:
+    """Resolve the immutable source revision of the build that is answering.
+
+    The value comes from the deployment platform, never from an application
+    environment value, so it cannot be forged by configuration. There is no
+    plausible substitute: when the platform supplied nothing, supplied something
+    that is not a git object id, or when several platforms claim the deployment
+    and none can be resolved, the revision stays null and the status says why.
+    """
+    declared = [
+        (provider, os.environ.get(variable, "").strip(), kind, markers)
+        for provider, variable, kind, markers in _SOURCE_REVISION_PROVIDERS
+    ]
+    declared = [entry for entry in declared if entry[1]]
+
+    if not declared:
+        return _unavailable("unavailable")
+
+    if any(not _SOURCE_REVISION_RE.match(value) for _, value, _, _ in declared):
+        # A reserved deployment variable carrying something that is not a full
+        # git object id is a misconfiguration. Reporting the other provider's
+        # value here would hide it, so the whole identity fails closed.
+        return _unavailable("invalid")
+
+    if len(declared) > 1:
+        # Several platforms claim this deployment. Resolve it only when exactly
+        # one of them also injected its own marker variables; otherwise refuse
+        # rather than pick silently.
+        active = [
+            entry
+            for entry in declared
+            if any(os.environ.get(marker, "").strip() for marker in entry[3])
+        ]
+        if len(active) != 1:
+            return _unavailable("ambiguous")
+        declared = active
+
+    provider, value, kind, _ = declared[0]
+    return {
+        "source_revision": value,
+        "source_revision_provider": provider,
+        "source_revision_kind": kind,
+        "source_revision_status": "available",
+    }
+
+
+def _build_metadata() -> Dict[str, Any]:
+    meta: Dict[str, Any] = {"version": _BUILD_VERSION}
+    # Deployment provenance is not infrastructure detail: a consumer must be
+    # able to attest WHICH source revision answered it without an operator
+    # first opting in. It is therefore reported unconditionally, while the
+    # Railway/Fly deploy identifiers stay behind EXPOSE_BUILD_METADATA.
+    meta.update(_source_revision())
     if os.environ.get("EXPOSE_BUILD_METADATA"):
         meta["railway_commit_sha"] = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "")
         meta["railway_deploy_id"] = os.environ.get("RAILWAY_DEPLOYMENT_ID", "")
@@ -153,8 +257,8 @@ def readiness_check() -> Dict[str, Any] | JSONResponse:
 
 
 @router.get("/build", response_model=BuildResponse)
-def build_info() -> Dict[str, str]:
-    """Build metadata. Returns version and (when `EXPOSE_BUILD_METADATA=1`) deploy identifiers from Railway/Fly.io. No authentication required."""
+def build_info() -> Dict[str, Any]:
+    """Build metadata. Returns the engine version, the immutable source revision of the running build as supplied by the deployment platform (`source_revision`, a 40-hex git object id, with its provider, kind and status), and — when `EXPOSE_BUILD_METADATA=1` — the Railway/Fly.io deploy identifiers. No authentication required."""
     return _build_metadata()
 
 

@@ -216,7 +216,7 @@ exclusively. Exceptions: `/v1/match/bazi-hehun` and `/v1/admin/*` are `/v1`-only
 |---|---|---|
 | GET | `/health` | `{status, engine, version, dependencies{ephemeris, rate_limiter}}` |
 | GET | `/ready` | Readiness probe. |
-| GET | `/build` | Build metadata (gated by `EXPOSE_BUILD_METADATA`). |
+| GET | `/build` | Version + immutable `source_revision` of the running build; Railway/Fly deploy ids gated by `EXPOSE_BUILD_METADATA`. |
 | GET | `/api` · `/` | Service descriptor. |
 | GET | `/info/wuxing-mapping` | Static Wu-Xing reference table. |
 | GET | `/openapi.json` | The full OpenAPI 3.1 document (69 paths). |

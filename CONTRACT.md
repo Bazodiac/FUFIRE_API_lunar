@@ -51,6 +51,26 @@ All endpoints are mounted twice: once at the legacy unprefixed path and once at 
 | GET | `/api` | `ApiResponse` |
 | GET | `/info/wuxing-mapping` | `WuxingMappingResponse` |
 
+#### Runtime source identity on `GET /build`
+
+`BuildResponse` carries a provider-neutral, immutable identity of the build that
+is answering, so a consumer can attest WHICH source revision it talked to:
+
+| Field | Meaning |
+|---|---|
+| `source_revision` | 40 lower-case hex git object id, or `null`. Never a version, tag or date. |
+| `source_revision_provider` | `northflank` \| `railway` \| `null` |
+| `source_revision_kind` | `deployment_git_sha` \| `null` |
+| `source_revision_status` | `available` \| `unavailable` \| `invalid` \| `ambiguous` |
+
+The value is read only from a variable the deployment platform injects itself
+(`NF_DEPLOYMENT_SHA`, `RAILWAY_GIT_COMMIT_SHA`); an application-owned environment
+value can never produce one. It is reported unconditionally — deployment
+provenance is not infrastructure detail — while the Railway/Fly deploy
+identifiers stay behind `EXPOSE_BUILD_METADATA`. One platform's SHA is never
+published under another platform's field name. Fail-closed states
+(`unavailable`, `invalid`, `ambiguous`) carry no revision at all.
+
 ### Calculation (v1 — API key required)
 
 | Method | Path | Request | Response |
