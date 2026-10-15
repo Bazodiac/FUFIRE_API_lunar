@@ -2,7 +2,7 @@
 #    uv export --frozen --no-emit-project --no-hashes --no-annotate --format requirements-txt --output-file requirements.lock
 annotated-doc==0.0.4
 annotated-types==0.7.0
-anyio==4.12.1
+anyio==4.14.2
 async-timeout==5.0.1 ; python_full_version < '3.11.3'
 attrs==25.4.0
 cachetools==7.0.5
