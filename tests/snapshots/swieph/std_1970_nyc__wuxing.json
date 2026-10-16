@@ -126,7 +126,7 @@
     "tz": "America/New_York"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc2-20261016",
+    "engine_version": "1.0.0-rc3-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {
@@ -213,7 +213,7 @@
     "chart_type_quality": null,
     "ephemeris_mode": "SWIEPH"
   },
-  "true_solar_time": 15.7438,
+  "true_solar_time": 14.8101,
   "wu_xing_vector": {
     "Erde": 0.3103012381,
     "Feuer": 0.4047407454,

@@ -118,7 +118,7 @@
     "tz": "Australia/Sydney"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc2-20261016",
+    "engine_version": "1.0.0-rc3-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -205,7 +205,7 @@
     "chart_type_quality": null,
     "ephemeris_mode": "MOSEPH"
   },
-  "true_solar_time": 23.9683,
+  "true_solar_time": 23.0489,
   "wu_xing_vector": {
     "Erde": 0.1941163554,
     "Feuer": 0.4479608201,

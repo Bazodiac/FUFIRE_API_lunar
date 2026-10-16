@@ -194,11 +194,14 @@ single-sourcing.
   The Decision field below selects option (a); option (b) is recorded
   here for future review.
 - Owner: API contracts (FBP-06-001 / wuxing v2).
-- Decision: Defer to Phase 6 (`/v2/calculate/wuxing`). v1 keeps the
-  current numeric value to preserve reproducibility of historic
-  signatures.
-- Status: Open (deferred to v2).
-- Review gate: FBP-06-001.
+- Decision: ~~Defer to Phase 6 (`/v2/calculate/wuxing`)~~ — superseded by
+  plan decision E1 (owner-approved 2026-10-16): fixed in v1, loudly.
+- Status: **Resolved (v1, loud)** — 2026-10-16, FBP-TST-004. `/calculate/wuxing`
+  and `/chart` `time_scales` consume `compute_effective_time_context_from_instant`;
+  engine build label `1.0.0-rc3-20261016`; 50 swieph `*__wuxing.json`
+  regenerated (only `true_solar_time` / `equation_of_time` / `engine_version`
+  changed). Permanent drift guard: `test_all_tst_surfaces_agree`.
+- Review gate: FBP-TST-004.
 
 ## DEV-2026-004 — Day-cycle anchor unverified
 

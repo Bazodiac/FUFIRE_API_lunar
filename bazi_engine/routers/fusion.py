@@ -23,8 +23,6 @@ from ..fusion import (
     calculate_wuxing_from_bazi_with_ledger,
     calculate_wuxing_vector_from_planets_with_ledger,
     compute_fusion_analysis,
-    equation_of_time,
-    true_solar_time,
 )
 from ..limiter import limiter, tier_limit
 from ..provenance import build_provenance, normalize_house_system
@@ -231,9 +229,11 @@ def _compute_wuxing_response(req: WxRequest) -> Dict[str, Any]:
         )
         wx_norm = wx_vector.normalize()
         wx_dict = wx_norm.to_dict()
-        day_of_year = dt.timetuple().tm_yday
-        civil_time_hours = dt.hour + dt.minute / 60
-        TST = true_solar_time(civil_time_hours, req.lon, day_of_year)
+        # FBP-TST-004 (DEV-2026-008): the TST/EoT fields come from the same
+        # UTC-axis context as /calculate/tst, the BaZi trace and chronometry,
+        # so the four surfaces can no longer drift. (Historically this path
+        # called true_solar_time() without the zone offset, i.e. civil + EoT.)
+        time_ctx = compute_effective_time_context_from_instant(dt, req.lon)
         # FQ-ATT-02 (T9), AC-02-3: Wu-Xing computes no house cusps of its own
         # (OQ-1 scopes house_system_fallback to house-computing endpoints
         # only) but DOES already construct a real SwissEphBackend via
@@ -245,8 +245,8 @@ def _compute_wuxing_response(req: WxRequest) -> Dict[str, Any]:
             "wu_xing_vector":  wx_dict,
             "dominant_element": max(wx_dict, key=lambda k: wx_dict[k]),
             "basis":           "western_planetary",
-            "equation_of_time": equation_of_time(day_of_year),
-            "true_solar_time":  TST,
+            "equation_of_time": time_ctx.eot_minutes,
+            "true_solar_time":  round(time_ctx.tlst_hours, 4),
             "contribution_ledger": {"western": wx_ledger},
             "provenance": build_provenance(
                 house_system=normalize_house_system(western_chart.get("house_system")),
@@ -314,7 +314,7 @@ class TSTResponse(BaseModel):
 def calculate_tst_endpoint(request: Request, req: TSTRequest) -> Dict[str, Any]:
     """True Solar Time (TST) calculation.
 
-    Delegates to :func:`bazi_engine.time_context.compute_effective_time_context`
+    Delegates to :func:`bazi_engine.time_context.compute_effective_time_context_from_instant`
     so the endpoint and the BaZi engine's effective-time decomposition
     cannot drift (FBP-01-003 / FBP-01-004).
     """

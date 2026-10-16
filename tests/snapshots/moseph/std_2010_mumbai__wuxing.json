@@ -118,7 +118,7 @@
     "tz": "Asia/Kolkata"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc2-20261016",
+    "engine_version": "1.0.0-rc3-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -205,7 +205,7 @@
     "chart_type_quality": null,
     "ephemeris_mode": "MOSEPH"
   },
-  "true_solar_time": 9.4188,
+  "true_solar_time": 8.7773,
   "wu_xing_vector": {
     "Erde": 0.2726202734,
     "Feuer": 0.4498234511,

@@ -17,12 +17,13 @@ Two kinds of tests live here:
    half of ``EffectiveTimeContext``, the EoT approximation bound, and the
    half-open hour-branch rule.
 2. **Strict ``xfail`` tripwires** for the deviations still open in
-   ``docs/precision/deviations.md`` (DEV-2026-008, DEV-2026-011). They
+   ``docs/precision/deviations.md`` (DEV-2026-011). They
    pin the *correct* expectation; ``strict=True`` makes them flip RED the
    moment the corresponding fix lands, so the marker (and the deviation
    status) must be removed in the same commit as the fix. This mirrors the
-   GT6 convention. DEV-2026-009 / -010 / -012 were fixed by FBP-TST-001…003;
-   their former tripwires now run as plain regression tests.
+   GT6 convention. DEV-2026-009 / -010 / -012 were fixed by FBP-TST-001…003
+   and DEV-2026-008 by FBP-TST-004; their former tripwires now run as plain
+   regression tests.
 
 Remediation plan: ``docs/plans/2026-10-15-true-solar-time-remediation.md``.
 """
@@ -52,7 +53,6 @@ HOURS_TOL_APPROX = EOT_APPROX_TOL_MIN / 60.0 + 1e-4
 HOURS_TOL_EXACT = 1e-3        # for quantities that do not depend on the EoT approximation
 
 DEV_011 = "DEV-2026-011: compute_bazi ignores EffectiveTimeContext.date_rollover for the TLST day pillar"
-DEV_008 = "DEV-2026-008: /calculate/wuxing and /chart call true_solar_time without the zone offset"
 
 
 @pytest.fixture(autouse=True)
@@ -329,7 +329,7 @@ def test_true_solar_time_from_civil_helper_removed():
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 7. HTTP boundary (repo convention: response-body claims are asserted via
-#    TestClient, not on internal objects). DEV-2026-008 ones remain tripwires.
+#    TestClient, not on internal objects).
 # ═══════════════════════════════════════════════════════════════════════════
 
 _HANNOVER = CASES["hannover_1990_mesz_1544"]
@@ -401,8 +401,9 @@ def test_calculate_bazi_lmt_hour_pillar_hannover_is_wei(client):
     assert r.json()["pillars"]["hour"]["zweig"] == "Wei", r.json()["pillars"]["hour"]
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_008)
 def test_calculate_wuxing_true_solar_time_hannover(client):
+    """DEV-2026-008 (fixed by FBP-TST-004): /calculate/wuxing used to report
+    civil + EoT (no zone offset, no longitude correction)."""
     r = client.post(
         "/calculate/wuxing",
         json={"date": "1990-07-15T15:44:00", "tz": "Europe/Berlin", "lon": 9.732, "lat": 52.3759},
@@ -413,8 +414,9 @@ def test_calculate_wuxing_true_solar_time_hannover(client):
     assert _circular_hours_delta(r.json()["true_solar_time"], _HANNOVER_REF_HOURS) < HOURS_TOL_APPROX, r.json()
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_008)
 def test_chart_time_scales_tlst_hours_hannover(client):
+    """DEV-2026-008 (fixed by FBP-TST-004): /chart time_scales used the same
+    offset-less helper call as /calculate/wuxing."""
     r = client.post(
         "/chart",
         json={"local_datetime": "1990-07-15T15:44:00", "tz_id": "Europe/Berlin",
@@ -425,6 +427,40 @@ def test_chart_time_scales_tlst_hours_hannover(client):
     assert r.status_code == 200, r.text
     ts = r.json()["time_scales"]
     assert _circular_hours_delta(ts["tlst_hours"], _HANNOVER_REF_HOURS) < HOURS_TOL_APPROX, ts
+
+
+@pytest.mark.parametrize("case_id", ["hannover_1990_mesz_1544", "madrid_feb_0220_cet", "auckland_nzdt_utc13",
+                                     "st_johns_nst_minus0330", "lisbon_wet_winter"])
+def test_all_tst_surfaces_agree(client, case_id):
+    """Permanent drift guard (FBP-TST-004): /calculate/tst, /calculate/wuxing,
+    /chart time_scales, /chronometry/resolve and the /calculate/bazi trace must
+    publish the same true solar time for the same input."""
+    inp = CASES[case_id]["input"]
+    ref = CASES[case_id]["reference"]["tlst_hours"]
+    common = {"date": inp["birth_local_iso"], "tz": inp["timezone"], "lon": inp["longitude_deg"], "lat": 45.0}
+    r_tst = client.post("/calculate/tst", json={k: common[k] for k in ("date", "tz", "lon")})
+    r_wx = client.post("/calculate/wuxing", json=common)
+    r_bazi = client.post("/calculate/bazi", json=common)
+    r_chart = client.post("/chart", json={"local_datetime": inp["birth_local_iso"], "tz_id": inp["timezone"],
+                                          "geo_lon_deg": inp["longitude_deg"], "geo_lat_deg": 45.0})
+    r_chrono = client.post("/v1/chronometry/resolve", json={"birth": {
+        "datetime": inp["birth_local_iso"], "timezone": inp["timezone"],
+        "location": {"lat": 45.0, "lon": inp["longitude_deg"]}}})
+    if 503 in (r_wx.status_code, r_bazi.status_code, r_chart.status_code, r_chrono.status_code):
+        pytest.skip("ephemeris unavailable")
+    for r in (r_tst, r_wx, r_bazi, r_chart, r_chrono):
+        assert r.status_code == 200, r.text
+    values = {
+        "tst": r_tst.json()["true_solar_time_hours"],
+        "wuxing": r_wx.json()["true_solar_time"],
+        "bazi_trace": r_bazi.json()["derivation_trace"]["time_resolution"]["tlst_hours"],
+        "chart": r_chart.json()["time_scales"]["tlst_hours"],
+    }
+    for name, v in values.items():
+        assert _circular_hours_delta(v, ref) < HOURS_TOL_APPROX, (case_id, name, v, ref)
+    # chronometry publishes HH:MM — compare on the minute grid
+    hh, mm = (int(x) for x in r_chrono.json()["chronometry"]["true_solar_time"].split(":"))
+    assert _circular_hours_delta(hh + mm / 60, ref) < 1 / 60 + HOURS_TOL_APPROX, (case_id, r_chrono.json())
 
 
 # ═══════════════════════════════════════════════════════════════════════════
