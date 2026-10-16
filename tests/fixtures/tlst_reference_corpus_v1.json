@@ -1,0 +1,500 @@
+{
+  "cases": [
+    {
+      "id": "hannover_1990_mesz_1544",
+      "input": {
+        "birth_local_iso": "1990-07-15T15:44:00",
+        "fold": 0,
+        "longitude_deg": 9.732,
+        "timezone": "Europe/Berlin"
+      },
+      "note": "User-reported case: 15:44 MESZ (UTC+2), Hannover. Reference TLST 14:17 (Wei).",
+      "reference": {
+        "equation_of_time_minutes": -5.919,
+        "hour_branch_index_lmt": 7,
+        "hour_branch_index_tlst": 7,
+        "lmt_date": "1990-07-15",
+        "lmt_hours": 14.382133,
+        "longitude_correction_minutes": 38.928,
+        "tlst_date": "1990-07-15",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 14.283483,
+        "utc_iso": "1990-07-15T13:44:00+00:00",
+        "utc_offset_minutes": 120
+      }
+    },
+    {
+      "id": "berlin_doc_example_2024_cet_1430",
+      "input": {
+        "birth_local_iso": "2024-02-10T14:30:00",
+        "fold": 0,
+        "longitude_deg": 13.405,
+        "timezone": "Europe/Berlin"
+      },
+      "note": "docs/fusion/04_solar_time.md worked example (TST ≈ 14:09 WSZ).",
+      "reference": {
+        "equation_of_time_minutes": -14.1815,
+        "hour_branch_index_lmt": 7,
+        "hour_branch_index_tlst": 7,
+        "lmt_date": "2024-02-10",
+        "lmt_hours": 14.393667,
+        "longitude_correction_minutes": 53.62,
+        "tlst_date": "2024-02-10",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 14.157308,
+        "utc_iso": "2024-02-10T13:30:00+00:00",
+        "utc_offset_minutes": 60
+      }
+    },
+    {
+      "id": "berlin_summer_noon_cest",
+      "input": {
+        "birth_local_iso": "2024-06-21T12:00:00",
+        "fold": 0,
+        "longitude_deg": 13.405,
+        "timezone": "Europe/Berlin"
+      },
+      "note": "Solstice, CEST (UTC+2).",
+      "reference": {
+        "equation_of_time_minutes": -1.9037,
+        "hour_branch_index_lmt": 5,
+        "hour_branch_index_tlst": 5,
+        "lmt_date": "2024-06-21",
+        "lmt_hours": 10.893667,
+        "longitude_correction_minutes": 53.62,
+        "tlst_date": "2024-06-21",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 10.861939,
+        "utc_iso": "2024-06-21T10:00:00+00:00",
+        "utc_offset_minutes": 120
+      }
+    },
+    {
+      "id": "madrid_feb_0200_cet",
+      "input": {
+        "birth_local_iso": "2024-02-22T02:00:00",
+        "fold": 0,
+        "longitude_deg": -3.7038,
+        "timezone": "Europe/Madrid"
+      },
+      "note": "Fixture of tests/test_bazi_tlst_hour_pillar.py. Reference TLST 00:31 (Zi) == LMT branch (Zi).",
+      "reference": {
+        "equation_of_time_minutes": -13.5703,
+        "hour_branch_index_lmt": 0,
+        "hour_branch_index_tlst": 0,
+        "lmt_date": "2024-02-22",
+        "lmt_hours": 0.75308,
+        "longitude_correction_minutes": -14.8152,
+        "tlst_date": "2024-02-22",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 0.526909,
+        "utc_iso": "2024-02-22T01:00:00+00:00",
+        "utc_offset_minutes": 60
+      }
+    },
+    {
+      "id": "madrid_feb_0220_cet",
+      "input": {
+        "birth_local_iso": "2024-02-22T02:20:00",
+        "fold": 0,
+        "longitude_deg": -3.7038,
+        "timezone": "Europe/Madrid"
+      },
+      "note": "Genuine EoT divergence: LMT 01:05 (Chou) vs TLST 00:51 (Zi).",
+      "reference": {
+        "equation_of_time_minutes": -13.5686,
+        "hour_branch_index_lmt": 1,
+        "hour_branch_index_tlst": 0,
+        "lmt_date": "2024-02-22",
+        "lmt_hours": 1.086413,
+        "longitude_correction_minutes": -14.8152,
+        "tlst_date": "2024-02-22",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 0.86027,
+        "utc_iso": "2024-02-22T01:20:00+00:00",
+        "utc_offset_minutes": 60
+      }
+    },
+    {
+      "id": "madrid_feb_0030_cet_rollover_minus1",
+      "input": {
+        "birth_local_iso": "2024-02-22T00:30:00",
+        "fold": 0,
+        "longitude_deg": -3.7038,
+        "timezone": "Europe/Madrid"
+      },
+      "note": "TLST falls on the PREVIOUS civil date (23:01 on 02-21).",
+      "reference": {
+        "equation_of_time_minutes": -13.5778,
+        "hour_branch_index_lmt": 0,
+        "hour_branch_index_tlst": 0,
+        "lmt_date": "2024-02-21",
+        "lmt_hours": 23.25308,
+        "longitude_correction_minutes": -14.8152,
+        "tlst_date": "2024-02-21",
+        "tlst_date_rollover_vs_civil": -1,
+        "tlst_hours": 23.026784,
+        "utc_iso": "2024-02-21T23:30:00+00:00",
+        "utc_offset_minutes": 60
+      }
+    },
+    {
+      "id": "berlin_gt6_2330_cet",
+      "input": {
+        "birth_local_iso": "2024-02-15T23:30:00",
+        "fold": 0,
+        "longitude_deg": 13.405,
+        "timezone": "Europe/Berlin"
+      },
+      "note": "GT6 fixture (tests/test_bazi_trace_endpoint.py). Reference TLST 23:09 → late-Zi rollover fires.",
+      "reference": {
+        "equation_of_time_minutes": -14.0957,
+        "hour_branch_index_lmt": 0,
+        "hour_branch_index_tlst": 0,
+        "lmt_date": "2024-02-15",
+        "lmt_hours": 23.393667,
+        "longitude_correction_minutes": 53.62,
+        "tlst_date": "2024-02-15",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 23.158739,
+        "utc_iso": "2024-02-15T22:30:00+00:00",
+        "utc_offset_minutes": 60
+      }
+    },
+    {
+      "id": "utc_lon0_identity",
+      "input": {
+        "birth_local_iso": "2024-09-22T18:30:00",
+        "fold": 0,
+        "longitude_deg": 0.0,
+        "timezone": "UTC"
+      },
+      "note": "Zone offset 0, longitude 0: TLST = civil + EoT.",
+      "reference": {
+        "equation_of_time_minutes": 7.5696,
+        "hour_branch_index_lmt": 9,
+        "hour_branch_index_tlst": 9,
+        "lmt_date": "2024-09-22",
+        "lmt_hours": 18.5,
+        "longitude_correction_minutes": 0.0,
+        "tlst_date": "2024-09-22",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 18.62616,
+        "utc_iso": "2024-09-22T18:30:00+00:00",
+        "utc_offset_minutes": 0
+      }
+    },
+    {
+      "id": "utc_lon30_2330_rollover_plus1",
+      "input": {
+        "birth_local_iso": "2024-06-15T23:30:00",
+        "fold": 0,
+        "longitude_deg": 30.0,
+        "timezone": "UTC"
+      },
+      "note": "Fixture of tests/test_bazi_time_context.py::test_date_rollover_when_tlst_crosses_midnight.",
+      "reference": {
+        "equation_of_time_minutes": -0.7268,
+        "hour_branch_index_lmt": 1,
+        "hour_branch_index_tlst": 1,
+        "lmt_date": "2024-06-16",
+        "lmt_hours": 1.5,
+        "longitude_correction_minutes": 120.0,
+        "tlst_date": "2024-06-16",
+        "tlst_date_rollover_vs_civil": 1,
+        "tlst_hours": 1.487887,
+        "utc_iso": "2024-06-15T23:30:00+00:00",
+        "utc_offset_minutes": 0
+      }
+    },
+    {
+      "id": "auckland_nzdt_utc13",
+      "input": {
+        "birth_local_iso": "2024-01-10T09:15:00",
+        "fold": 0,
+        "longitude_deg": 174.7633,
+        "timezone": "Pacific/Auckland"
+      },
+      "note": "UTC+13 (NZDT): the largest common zone offset.",
+      "reference": {
+        "equation_of_time_minutes": -7.0397,
+        "hour_branch_index_lmt": 4,
+        "hour_branch_index_tlst": 4,
+        "lmt_date": "2024-01-10",
+        "lmt_hours": 7.900887,
+        "longitude_correction_minutes": 699.0532,
+        "tlst_date": "2024-01-10",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 7.783559,
+        "utc_iso": "2024-01-09T20:15:00+00:00",
+        "utc_offset_minutes": 780
+      }
+    },
+    {
+      "id": "kathmandu_utc0545",
+      "input": {
+        "birth_local_iso": "2024-05-05T06:10:00",
+        "fold": 0,
+        "longitude_deg": 85.324,
+        "timezone": "Asia/Kathmandu"
+      },
+      "note": "Non-integer zone offset (+5:45).",
+      "reference": {
+        "equation_of_time_minutes": 3.3132,
+        "hour_branch_index_lmt": 3,
+        "hour_branch_index_tlst": 3,
+        "lmt_date": "2024-05-05",
+        "lmt_hours": 6.104933,
+        "longitude_correction_minutes": 341.296,
+        "tlst_date": "2024-05-05",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 6.160153,
+        "utc_iso": "2024-05-05T00:25:00+00:00",
+        "utc_offset_minutes": 345
+      }
+    },
+    {
+      "id": "st_johns_nst_minus0330",
+      "input": {
+        "birth_local_iso": "2024-01-20T07:05:00",
+        "fold": 0,
+        "longitude_deg": -52.7126,
+        "timezone": "America/St_Johns"
+      },
+      "note": "Negative non-integer zone offset (-3:30).",
+      "reference": {
+        "equation_of_time_minutes": -10.8458,
+        "hour_branch_index_lmt": 4,
+        "hour_branch_index_tlst": 3,
+        "lmt_date": "2024-01-20",
+        "lmt_hours": 7.06916,
+        "longitude_correction_minutes": -210.8504,
+        "tlst_date": "2024-01-20",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 6.888397,
+        "utc_iso": "2024-01-20T10:35:00+00:00",
+        "utc_offset_minutes": -210
+      }
+    },
+    {
+      "id": "chengdu_cst_west_of_meridian",
+      "input": {
+        "birth_local_iso": "2024-03-30T08:00:00",
+        "fold": 0,
+        "longitude_deg": 104.0665,
+        "timezone": "Asia/Shanghai"
+      },
+      "note": "China Standard Time (meridian 120°E) ~64 min ahead of local mean time.",
+      "reference": {
+        "equation_of_time_minutes": -4.4427,
+        "hour_branch_index_lmt": 3,
+        "hour_branch_index_tlst": 3,
+        "lmt_date": "2024-03-30",
+        "lmt_hours": 6.937767,
+        "longitude_correction_minutes": 416.266,
+        "tlst_date": "2024-03-30",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 6.863722,
+        "utc_iso": "2024-03-30T00:00:00+00:00",
+        "utc_offset_minutes": 480
+      }
+    },
+    {
+      "id": "new_york_est_winter",
+      "input": {
+        "birth_local_iso": "2024-02-14T06:40:00",
+        "fold": 0,
+        "longitude_deg": -74.006,
+        "timezone": "America/New_York"
+      },
+      "note": "EST, near annual EoT minimum.",
+      "reference": {
+        "equation_of_time_minutes": -14.155,
+        "hour_branch_index_lmt": 3,
+        "hour_branch_index_tlst": 3,
+        "lmt_date": "2024-02-14",
+        "lmt_hours": 6.732933,
+        "longitude_correction_minutes": -296.024,
+        "tlst_date": "2024-02-14",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 6.497016,
+        "utc_iso": "2024-02-14T11:40:00+00:00",
+        "utc_offset_minutes": -300
+      }
+    },
+    {
+      "id": "los_angeles_pdt_summer",
+      "input": {
+        "birth_local_iso": "2024-07-04T21:50:00",
+        "fold": 0,
+        "longitude_deg": -118.2437,
+        "timezone": "America/Los_Angeles"
+      },
+      "note": "PDT (UTC-7), late evening → TLST next-hour bin check.",
+      "reference": {
+        "equation_of_time_minutes": -4.6591,
+        "hour_branch_index_lmt": 10,
+        "hour_branch_index_tlst": 10,
+        "lmt_date": "2024-07-04",
+        "lmt_hours": 20.95042,
+        "longitude_correction_minutes": -472.9748,
+        "tlst_date": "2024-07-04",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 20.872769,
+        "utc_iso": "2024-07-05T04:50:00+00:00",
+        "utc_offset_minutes": -420
+      }
+    },
+    {
+      "id": "tehran_irst_utc0330",
+      "input": {
+        "birth_local_iso": "2024-11-02T13:00:00",
+        "fold": 0,
+        "longitude_deg": 51.389,
+        "timezone": "Asia/Tehran"
+      },
+      "note": "UTC+3:30, near annual EoT maximum.",
+      "reference": {
+        "equation_of_time_minutes": 16.4532,
+        "hour_branch_index_lmt": 6,
+        "hour_branch_index_tlst": 7,
+        "lmt_date": "2024-11-02",
+        "lmt_hours": 12.925933,
+        "longitude_correction_minutes": 205.556,
+        "tlst_date": "2024-11-02",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 13.200153,
+        "utc_iso": "2024-11-02T09:30:00+00:00",
+        "utc_offset_minutes": 210
+      }
+    },
+    {
+      "id": "lisbon_wet_winter",
+      "input": {
+        "birth_local_iso": "2024-12-21T16:30:00",
+        "fold": 0,
+        "longitude_deg": -9.1393,
+        "timezone": "Europe/Lisbon"
+      },
+      "note": "Zone offset 0 but longitude -9° → TLST ≠ civil although tz==UTC.",
+      "reference": {
+        "equation_of_time_minutes": 1.6159,
+        "hour_branch_index_lmt": 8,
+        "hour_branch_index_tlst": 8,
+        "lmt_date": "2024-12-21",
+        "lmt_hours": 15.890713,
+        "longitude_correction_minutes": -36.5572,
+        "tlst_date": "2024-12-21",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 15.917646,
+        "utc_iso": "2024-12-21T16:30:00+00:00",
+        "utc_offset_minutes": 0
+      }
+    },
+    {
+      "id": "berlin_dst_fallback_fold0",
+      "input": {
+        "birth_local_iso": "2024-10-27T02:30:00",
+        "fold": 0,
+        "longitude_deg": 13.405,
+        "timezone": "Europe/Berlin"
+      },
+      "note": "Ambiguous local time, first occurrence (CEST, UTC+2).",
+      "reference": {
+        "equation_of_time_minutes": 16.1513,
+        "hour_branch_index_lmt": 1,
+        "hour_branch_index_tlst": 1,
+        "lmt_date": "2024-10-27",
+        "lmt_hours": 1.393667,
+        "longitude_correction_minutes": 53.62,
+        "tlst_date": "2024-10-27",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 1.662854,
+        "utc_iso": "2024-10-27T00:30:00+00:00",
+        "utc_offset_minutes": 120
+      }
+    },
+    {
+      "id": "berlin_dst_fallback_fold1",
+      "input": {
+        "birth_local_iso": "2024-10-27T02:30:00",
+        "fold": 1,
+        "longitude_deg": 13.405,
+        "timezone": "Europe/Berlin"
+      },
+      "note": "Ambiguous local time, second occurrence (CET, UTC+1) — differs from fold0 by exactly 1 h.",
+      "reference": {
+        "equation_of_time_minutes": 16.1549,
+        "hour_branch_index_lmt": 1,
+        "hour_branch_index_tlst": 1,
+        "lmt_date": "2024-10-27",
+        "lmt_hours": 2.393667,
+        "longitude_correction_minutes": 53.62,
+        "tlst_date": "2024-10-27",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 2.662916,
+        "utc_iso": "2024-10-27T01:30:00+00:00",
+        "utc_offset_minutes": 60
+      }
+    },
+    {
+      "id": "london_bst_1950",
+      "input": {
+        "birth_local_iso": "1950-06-15T10:00:00",
+        "fold": 0,
+        "longitude_deg": -0.1278,
+        "timezone": "Europe/London"
+      },
+      "note": "Historical BST (UTC+1).",
+      "reference": {
+        "equation_of_time_minutes": -0.2032,
+        "hour_branch_index_lmt": 4,
+        "hour_branch_index_tlst": 4,
+        "lmt_date": "1950-06-15",
+        "lmt_hours": 8.99148,
+        "longitude_correction_minutes": -0.5112,
+        "tlst_date": "1950-06-15",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 8.988093,
+        "utc_iso": "1950-06-15T09:00:00+00:00",
+        "utc_offset_minutes": 60
+      }
+    },
+    {
+      "id": "singapore_1965_utc0730",
+      "input": {
+        "birth_local_iso": "1965-08-09T10:00:00",
+        "fold": 0,
+        "longitude_deg": 103.85,
+        "timezone": "Asia/Singapore"
+      },
+      "note": "Historical +7:30 zone.",
+      "reference": {
+        "equation_of_time_minutes": -5.4959,
+        "hour_branch_index_lmt": 5,
+        "hour_branch_index_tlst": 5,
+        "lmt_date": "1965-08-09",
+        "lmt_hours": 9.423333,
+        "longitude_correction_minutes": 415.4,
+        "tlst_date": "1965-08-09",
+        "tlst_date_rollover_vs_civil": 0,
+        "tlst_hours": 9.331735,
+        "utc_iso": "1965-08-09T02:30:00+00:00",
+        "utc_offset_minutes": 450
+      }
+    }
+  ],
+  "definition": {
+    "hour_branch": "floor(((hours + 1) mod 24) / 2), HALF_OPEN 2h bins (Zi = [23, 1))",
+    "lmt": "UTC + longitude_deg * 4 min (east positive)",
+    "tlst": "LMT + equation_of_time (apparent - mean)"
+  },
+  "provenance": {
+    "ephemeris_lock_id": "c2185af9a436e8381bcf2e6584afd793a280ec0a70796c03b54ba9441fe27623",
+    "note": "EoT via Moshier fallback and via SE1 files agree to <1e-3 min; corpus is backend-agnostic.",
+    "oracle": "pyswisseph swe.time_equ + swe.lmt_to_lat",
+    "se_ephe_path_set": true,
+    "swisseph_version": "2.10.03"
+  },
+  "schema": "fufire.tlst_reference_corpus.v1"
+}

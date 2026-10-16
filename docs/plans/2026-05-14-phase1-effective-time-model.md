@@ -20,7 +20,7 @@
 - `bazi_engine/types.py:41` — `BaziInput.time_standard: TimeStandard = "CIVIL"`.
 - `bazi_engine/routers/bazi.py:49` — `BaziRequest.standard: Literal["CIVIL", "LMT"]` (own copy).
 - `bazi_engine/routers/chart.py:51` — `time_standard: Literal["CIVIL", "LMT"]` (own copy).
-- `bazi_engine/routers/fusion.py:255-278` — `/calculate/tst` already uses `equation_of_time()` and computes `TST = (civil_hours + delta_t_long + E_t) % 24` inline. This is the formula `EffectiveTimeContext.tlst_hours` must match.
+- `bazi_engine/routers/fusion.py:255-278` — `/calculate/tst` already uses `equation_of_time()` and computes `TST = (civil_hours + delta_t_long + E_t) % 24` inline. This is the formula `EffectiveTimeContext.tlst_hours` must match. **⚠ Retro-note 2026-10-15:** this inline formula omits the zone offset (`civil` instead of `UTC`) and is wrong for every non-UTC zone — DEV-2026-009. Do not treat it as the reference; see `docs/plans/2026-10-15-true-solar-time-remediation.md`.
 - `bazi_engine/solar_time.py:17-60` — `equation_of_time()` and `true_solar_time()` available, stdlib-only.
 
 ---
