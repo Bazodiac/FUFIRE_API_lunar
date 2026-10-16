@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc1-20260220"
+    "version": "1.0.0-rc2-20261016"
   },
   "paths": {
     "/": {
@@ -597,7 +597,7 @@
           "BaZi Trace (beta)"
         ],
         "summary": "Calculate Bazi Trace Endpoint",
-        "description": "BETA — Four Pillars (BaZi) calculation with the full derivation trace always attached.\n\nThin alias for `POST /calculate/bazi` that forces `include_trace=true`: it reuses the exact same engine (`compute_bazi`) and the same `_build_derivation_trace` — no new or duplicated trace math. The returned `derivation_trace` deep-equals the one from `/calculate/bazi` for an identical request, and exposes the real engine trace shape `{year, month, day, hour, time_resolution, provenance_ids}` (not the PRD's hypothetical fields). The `include_trace` flag in the body is ignored here — this route always returns the trace.\n\n**Known limitation (tracked):** for `standard=TLST` with `boundary=zi` near the 23:00 late-Zi rollover, `derivation_trace.day` may diverge by one day from the headline day pillar — trust the headline day pillar; the trace/pillar consistency fix is tracked in the backlog (GT6).",
+        "description": "BETA — Four Pillars (BaZi) calculation with the full derivation trace always attached.\n\nThin alias for `POST /calculate/bazi` that forces `include_trace=true`: it reuses the exact same engine (`compute_bazi`) and the same `_build_derivation_trace` — no new or duplicated trace math. The returned `derivation_trace` deep-equals the one from `/calculate/bazi` for an identical request, and exposes the real engine trace shape `{year, month, day, hour, time_resolution, provenance_ids}` (not the PRD's hypothetical fields). The `include_trace` flag in the body is ignored here — this route always returns the trace.\n\n`derivation_trace.day` is derived from the same day-boundary decision as the headline day pillar (TLST-aware late-Zi rollover included), so the two can never disagree.",
         "operationId": "calculate_bazi_trace_endpoint_calculate_bazi_trace_post",
         "requestBody": {
           "content": {
@@ -4131,7 +4131,7 @@
           "BaZi Trace (beta)"
         ],
         "summary": "Calculate Bazi Trace Endpoint",
-        "description": "BETA — Four Pillars (BaZi) calculation with the full derivation trace always attached.\n\nThin alias for `POST /calculate/bazi` that forces `include_trace=true`: it reuses the exact same engine (`compute_bazi`) and the same `_build_derivation_trace` — no new or duplicated trace math. The returned `derivation_trace` deep-equals the one from `/calculate/bazi` for an identical request, and exposes the real engine trace shape `{year, month, day, hour, time_resolution, provenance_ids}` (not the PRD's hypothetical fields). The `include_trace` flag in the body is ignored here — this route always returns the trace.\n\n**Known limitation (tracked):** for `standard=TLST` with `boundary=zi` near the 23:00 late-Zi rollover, `derivation_trace.day` may diverge by one day from the headline day pillar — trust the headline day pillar; the trace/pillar consistency fix is tracked in the backlog (GT6).",
+        "description": "BETA — Four Pillars (BaZi) calculation with the full derivation trace always attached.\n\nThin alias for `POST /calculate/bazi` that forces `include_trace=true`: it reuses the exact same engine (`compute_bazi`) and the same `_build_derivation_trace` — no new or duplicated trace math. The returned `derivation_trace` deep-equals the one from `/calculate/bazi` for an identical request, and exposes the real engine trace shape `{year, month, day, hour, time_resolution, provenance_ids}` (not the PRD's hypothetical fields). The `include_trace` flag in the body is ignored here — this route always returns the trace.\n\n`derivation_trace.day` is derived from the same day-boundary decision as the headline day pillar (TLST-aware late-Zi rollover included), so the two can never disagree.",
         "operationId": "calculate_bazi_trace_endpoint_v1_calculate_bazi_trace_post",
         "requestBody": {
           "content": {
@@ -10021,7 +10021,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc1-20260220"
+          "version": "1.0.0-rc2-20261016"
         }
       },
       "HourDerivationTrace": {

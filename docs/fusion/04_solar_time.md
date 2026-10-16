@@ -122,19 +122,30 @@ TST           = 14.394 + (−14.1)/60 = 14.394 − 0.235 = 14.159 h
 
 ---
 
-## `true_solar_time_from_civil()` (in fusion.py)
+## Engine-Pfad: `time_context.compute_effective_time_context_from_instant()`
 
-Die zweite Variante in `fusion.py` verwendet die **Standardmeridian-Methode**:
+Der kanonische Pfad der Engine (BaZi-Stundensäule bei `TLST`, `/calculate/tst`,
+Trace `time_resolution`, Chronometrie) ist seit FBP-TST-003 (2026-10-16)
+`bazi_engine/time_context.py`. Er wendet dieselbe Definition wie oben als
+eine einzige Zeitdifferenz auf den **UTC-Instant** an:
 
 ```
-TST = civil_time + 4 × (SM − λ)/60 + EoT/60
+TLST_instant = UTC + (λ × 4 min + EoT)
+tlst_hours   = Stunde des Tages von TLST_instant
+date_rollover = Datum(TLST_instant) − Datum(zivil)        ∈ {−1, 0, +1}
 ```
 
-**Unterschied zur UTC-basierten Methode:**
-- `solar_time.py`: rechnet explizit über UTC (allgemein)
-- `fusion.py`: rechnet über den Standardmeridian (für den Fusion-Context)
+Der Einstieg erwartet ein zeitzonen-bewusstes `datetime` (DST-Fold bereits
+aufgelöst); die String-Variante `compute_effective_time_context(iso, tz, lon,
+fold=…)` delegiert dorthin. Referenzkorpus gegen Swiss Ephemeris
+(`swe.lmt_to_lat`): `tests/fixtures/tlst_reference_corpus_v1.json`.
 
-Beide Methoden liefern dasselbe Ergebnis, wenn `SM = 15 × round(λ/15)`.
+> **Historie (DEV-2026-009):** Bis FBP-TST-003 addierte dieser Pfad die
+> Längenkorrektur auf die *zivile* Uhrzeit statt auf UTC und lag damit für
+> jede Nicht-UTC-Zone um den Zonen-Offset daneben (Hannover 15:44 MESZ: 16:17
+> statt 14:17). Die frühere Standardmeridian-Variante
+> `fusion.true_solar_time_from_civil()` hatte zusätzlich ein invertiertes
+> Längengrad-Vorzeichen und wurde entfernt (DEV-2026-012).
 
 ---
 

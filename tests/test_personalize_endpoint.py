@@ -128,7 +128,7 @@ def _chronometry_sample() -> dict:
         "delta_t_seconds": 56.9,
         "equation_of_time_minutes": -0.027,
         "longitude_correction_minutes": 53.62,
-        "true_solar_time": "15:23",
+        "true_solar_time": "13:23",
         "solar_longitude_degrees": 84.31,
         "solar_term": "Mangzhong",
         "boundary_flags": {

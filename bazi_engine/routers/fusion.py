@@ -28,7 +28,7 @@ from ..fusion import (
 )
 from ..limiter import limiter, tier_limit
 from ..provenance import build_provenance, normalize_house_system
-from ..time_context import compute_effective_time_context
+from ..time_context import compute_effective_time_context_from_instant
 from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy, resolve_local_iso
 from ..types import BaziInput, Fold
 from ..western import compute_western_chart
@@ -323,12 +323,8 @@ def calculate_tst_endpoint(request: Request, req: TSTRequest) -> Dict[str, Any]:
             req.date, req.tz,
             ambiguous=req.ambiguousTime, nonexistent=req.nonexistentTime,
         )
-        resolved_naive = dt.replace(tzinfo=None).isoformat()
-        ctx = compute_effective_time_context(
-            birth_local_iso=resolved_naive,
-            tz_name=req.tz,
-            longitude_deg=req.lon,
-        )
+        # FBP-TST-002: hand over the resolved aware instant (fold-faithful).
+        ctx = compute_effective_time_context_from_instant(dt, req.lon)
         civil_hours = (
             ctx.civil_local.hour
             + ctx.civil_local.minute / 60

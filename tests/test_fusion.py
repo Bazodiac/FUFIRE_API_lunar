@@ -32,7 +32,6 @@ from bazi_engine.fusion import (
     is_night_chart,
     planet_to_wuxing,
     true_solar_time,
-    true_solar_time_from_civil,
 )
 
 
@@ -243,20 +242,6 @@ class TestTrueSolarTime:
     def test_normalization(self):
         # Result should always be 0-24
         tst = true_solar_time(23.5, 180.0, 1)
-        assert 0 <= tst < 24
-
-
-class TestTrueSolarTimeFromCivil:
-    """Tests for true solar time from civil time."""
-
-    def test_berlin_example(self):
-        # Berlin: lon=13.405°, standard meridian=15° (CET)
-        tst = true_solar_time_from_civil(12.0, 13.405, 180, standard_meridian_deg=15.0)
-        assert 11.5 < tst < 12.5
-
-    def test_auto_standard_meridian(self):
-        # Should auto-calculate standard meridian
-        tst = true_solar_time_from_civil(12.0, 13.405, 180)
         assert 0 <= tst < 24
 
 

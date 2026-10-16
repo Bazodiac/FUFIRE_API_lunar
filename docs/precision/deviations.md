@@ -411,7 +411,7 @@ The Zi Wei Dou Shu (ZWDS) natal engine ships as an explicit **core-seed**, not a
 - Owner: BaZi precision (BAZI-PRECISION-V2).
 - Decision: Fix in v1 as Task T3 of
   `docs/plans/2026-10-15-true-solar-time-remediation.md`, together with GT6.
-- Status: Open — tripwires in place (2026-10-15).
+- Status: **Resolved (v1, loud)** — 2026-10-16, FBP-TST-003 (+GT6). `time_context.py` computes TLST on the UTC axis via `compute_effective_time_context_from_instant`; engine build label bumped to `1.0.0-rc2-20261016`; 50 swieph `*__bazi.json` + `chronometry_canonical.json` regenerated (only `tlst_hours` / `true_solar_time` / `engine_version` changed; CIVIL/LMT pillars byte-identical). Former tripwires now run as regression tests.
 - Review gate: FBP-TST-003.
 
 ## DEV-2026-010 — `compute_effective_time_context` drops the DST fold
@@ -431,7 +431,7 @@ The Zi Wei Dou Shu (ZWDS) natal engine ships as an explicit **core-seed**, not a
 - Affected tests: none pin the wrong value.
 - Decision: Task T2 — aware-datetime entry point
   (`compute_effective_time_context_from_instant`) + `fold` parameter.
-- Status: Open — tripwire in place (2026-10-15).
+- Status: **Resolved** — 2026-10-16, FBP-TST-002. All engine callers (`bazi.py`, `routers/bazi.py` trace, `routers/fusion.py` `/tst`, `chronometry.py`, `zwds/seed.py`) hand over the resolved aware instant.
 
 ## DEV-2026-011 — TLST day pillar ignores `EffectiveTimeContext.date_rollover`
 
@@ -464,4 +464,4 @@ The Zi Wei Dou Shu (ZWDS) natal engine ships as an explicit **core-seed**, not a
 - Severity: P2 (dead-but-exported wrong math).
 - Decision: Task T1 — remove (or delegate to `solar_time.true_solar_time`
   with an explicit zone offset + DeprecationWarning).
-- Status: Open — tripwire in place (2026-10-15).
+- Status: **Resolved** — 2026-10-16, FBP-TST-001: helper removed from `bazi_engine/fusion.py` (no production caller; `tests/test_fusion.py` class dropped, regression test asserts absence).

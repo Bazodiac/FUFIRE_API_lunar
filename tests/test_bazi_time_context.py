@@ -8,9 +8,9 @@ Properties enforced here:
 - date_rollover is the integer day shift relative to civil local date.
 - TLST is NOT modeled as a tzinfo — there is no ``tlst_local`` field
   with a TLST tzinfo (FBP-01-006).
-- The TLST formula matches the inline formula currently in
-  ``bazi_engine/routers/fusion.py`` for ``/calculate/tst``
-  (precondition for FBP-01-003 refactor).
+- TLST is computed on the UTC axis (``UTC + lon·4 min + EoT``), is
+  invariant under zone relabeling and honours the DST fold
+  (FBP-TST-002 / FBP-TST-003, DEV-2026-009 / DEV-2026-010).
 """
 from __future__ import annotations
 
@@ -74,24 +74,65 @@ def test_eot_minutes_matches_solar_time_module():
     )
 
 
-def test_tlst_formula_matches_calculate_tst_endpoint():
-    """FBP-01-003 precondition: same input must produce the same TLST hours
-    as the inline formula in ``fusion.py:264-267`` currently uses."""
+def test_tlst_formula_is_utc_based():
+    """FBP-TST-003 / DEV-2026-009: TLST = UTC + longitude·4 min + EoT.
+
+    History: this test used to pin the *civil*-based inline formula of the
+    pre-Phase-1 ``/calculate/tst`` endpoint (``civil + lon/15 + EoT``), which
+    omitted the zone offset and was wrong by exactly that offset for every
+    non-UTC zone. It now pins the definition from
+    ``docs/fusion/04_solar_time.md``.
+    """
     from bazi_engine.solar_time import equation_of_time
     iso = "2024-06-21T12:00:00"
-    tz = "Europe/Berlin"
+    tz = "Europe/Berlin"   # CEST, UTC+2
     lon = 13.4050
 
     ctx = compute_effective_time_context(iso, tz, lon)
     civil_dt = datetime.fromisoformat(iso)
-    civil_hours = civil_dt.hour + civil_dt.minute / 60 + civil_dt.second / 3600
+    utc_hours = (civil_dt.hour + civil_dt.minute / 60 + civil_dt.second / 3600) - 2.0
     delta_t_long = lon * 4 / 60
     E_t = equation_of_time(civil_dt.timetuple().tm_yday) / 60
-    expected = (civil_hours + delta_t_long + E_t) % 24
+    expected = (utc_hours + delta_t_long + E_t) % 24
     assert math.isclose(ctx.tlst_hours, expected, abs_tol=1e-3), (
-        f"EffectiveTimeContext.tlst_hours = {ctx.tlst_hours}, "
-        f"fusion.py formula = {expected}"
+        f"EffectiveTimeContext.tlst_hours = {ctx.tlst_hours}, expected = {expected}"
     )
+    # The same instant expressed in UTC must give the same TLST (zone invariance).
+    ctx_utc = compute_effective_time_context("2024-06-21T10:00:00", "UTC", lon)
+    assert ctx_utc.utc == ctx.utc
+    assert math.isclose(ctx_utc.tlst_hours, ctx.tlst_hours, abs_tol=1e-6)
+
+
+def test_tlst_minus_lmt_equals_eot():
+    """Internal consistency: the context's own LMT and TLST differ by its EoT."""
+    ctx = compute_effective_time_context("1990-07-15T15:44:00", "Europe/Berlin", 9.732)
+    lmt_hours = ctx.lmt_local.hour + ctx.lmt_local.minute / 60 + ctx.lmt_local.second / 3600
+    diff_min = (((ctx.tlst_hours - lmt_hours + 12.0) % 24.0) - 12.0) * 60.0
+    assert math.isclose(diff_min, ctx.eot_minutes, abs_tol=0.05)
+
+
+def test_fold_is_honoured_for_ambiguous_fallback_time():
+    """FBP-TST-002 / DEV-2026-010: Berlin 2024-10-27 02:30 occurs twice.
+    fold=0 is CEST (UTC+2 → 00:30Z), fold=1 is CET (UTC+1 → 01:30Z)."""
+    c0 = compute_effective_time_context("2024-10-27T02:30:00", "Europe/Berlin", 13.405, fold=0)
+    c1 = compute_effective_time_context("2024-10-27T02:30:00", "Europe/Berlin", 13.405, fold=1)
+    assert c0.utc.isoformat() == "2024-10-27T00:30:00+00:00"
+    assert c1.utc.isoformat() == "2024-10-27T01:30:00+00:00"
+    assert c0.tz_offset_minutes == 120 and c1.tz_offset_minutes == 60
+    assert math.isclose(c1.tlst_hours - c0.tlst_hours, 1.0, abs_tol=1e-3)
+
+
+def test_from_instant_rejects_naive_datetime():
+    from bazi_engine.time_context import compute_effective_time_context_from_instant
+    with pytest.raises(ValueError):
+        compute_effective_time_context_from_instant(datetime(2024, 6, 21, 12, 0), 13.405)
+
+
+def test_date_rollover_minus_one_west_of_meridian():
+    """Madrid 00:30 CET: TLST is 23:01 on the previous calendar day."""
+    ctx = compute_effective_time_context("2024-02-22T00:30:00", "Europe/Madrid", -3.7038)
+    assert ctx.date_rollover == -1
+    assert 23.0 <= ctx.tlst_hours < 23.1
 
 
 def test_date_rollover_when_tlst_crosses_midnight():

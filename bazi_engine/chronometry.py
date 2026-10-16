@@ -31,7 +31,7 @@ from .ephemeris import (
     SwissEphBackend,
     datetime_utc_to_jd_ut,
 )
-from .time_context import compute_effective_time_context
+from .time_context import compute_effective_time_context_from_instant
 from .time_utils import resolve_local_iso
 
 # ── Pure reference data (GT4) ───────────────────────────────────────────────
@@ -217,9 +217,9 @@ def resolve_chronometry(
     iso_for_resolution = birth_datetime if not date_only else f"{birth_datetime}T00:00:00"
 
     dt_local, _resolution = resolve_local_iso(iso_for_resolution, timezone)
-    resolved_naive = dt_local.replace(tzinfo=None).isoformat()
 
-    ctx = compute_effective_time_context(resolved_naive, timezone, lon)
+    # FBP-TST-002: hand over the resolved aware instant (fold-faithful).
+    ctx = compute_effective_time_context_from_instant(dt_local, lon)
     backend = SwissEphBackend()
 
     jd_ut = datetime_utc_to_jd_ut(ctx.utc)

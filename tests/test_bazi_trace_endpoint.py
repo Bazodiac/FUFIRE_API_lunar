@@ -261,33 +261,19 @@ def test_late_zi_vs_midnight():
     )
 
 
-# ── GT6: TLST+zi late-Zi trace/pillar divergence (tracked) ───────────────────
+# ── GT6: TLST+zi late-Zi trace/pillar consistency (resolved, FBP-TST-003) ───
 #
-# This is the late-Zi+TLST corner the CIVIL fixtures above deliberately
-# avoid. ``_build_derivation_trace`` re-derives the day via the LEGACY
-# ``apply_day_boundary`` (naive +1h for "zi"), while ``compute_bazi`` uses
-# the TLST-aware late-Zi rollover — so the trace's day sexagenary index can
-# be one day off from the headline day pillar. We do NOT fix the engine this
-# iteration (it churns snapshots — deferred to its own increment); instead we
-# pin the known bug with a strict xfail and disclose it in the endpoint's
-# OpenAPI description.
-#
-# strict=True is the tripwire: the day the GT6 engine fix lands, the trace
-# and pillar agree, this xfails-turned-xpass flips RED — a loud signal to
-# remove the OpenAPI caveat and this xfail marker.
-
+# _build_derivation_trace used to re-derive the day via the legacy
+# apply_day_boundary (+1h) while compute_bazi applied the TLST-aware zi
+# rollover, so derivation_trace.day could be one day off from the headline
+# pillar. The trace now reads BaziResult.chart_day_dt (the engine's own
+# decision); this test guards that they can never diverge again.
 
 @_skip_no_ephe
-@pytest.mark.xfail(
-    reason="GT6: TLST+zi late-Zi trace/pillar divergence — tracked, engine fix deferred",
-    strict=True,
-)
 def test_trace_day_pillar_matches_headline_tlst_zi():
-    """GT6 (tracked): for standard=TLST + boundary=zi at the 23:30 late-Zi
-    rollover, the trace's day sexagenary index must equal the headline day
-    pillar's sexagenary index. It does NOT today (legacy apply_day_boundary
-    +1h vs TLST-aware rollover → off by one day), so this xfails. When the
-    engine fix lands they agree → xpass → strict flips it red."""
+    """GT6 (resolved): for standard=TLST + boundary=zi at the 23:30 late-Zi
+    rollover (Berlin CET → TLST 23:09, rollover fires), the trace's day
+    sexagenary index must equal the headline day pillar's sexagenary index."""
     payload = {
         "date": "2024-02-15T23:30:00",
         "tz": "Europe/Berlin",

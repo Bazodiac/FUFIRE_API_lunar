@@ -16,12 +16,13 @@ Two kinds of tests live here:
    ``solar_time.true_solar_time`` (when given the zone offset), the LMT
    half of ``EffectiveTimeContext``, the EoT approximation bound, and the
    half-open hour-branch rule.
-2. **Strict ``xfail`` tripwires** for the open deviations in
-   ``docs/precision/deviations.md`` (DEV-2026-009 … DEV-2026-012). They
+2. **Strict ``xfail`` tripwires** for the deviations still open in
+   ``docs/precision/deviations.md`` (DEV-2026-008, DEV-2026-011). They
    pin the *correct* expectation; ``strict=True`` makes them flip RED the
    moment the corresponding fix lands, so the marker (and the deviation
    status) must be removed in the same commit as the fix. This mirrors the
-   GT6 convention in ``tests/test_bazi_trace_endpoint.py``.
+   GT6 convention. DEV-2026-009 / -010 / -012 were fixed by FBP-TST-001…003;
+   their former tripwires now run as plain regression tests.
 
 Remediation plan: ``docs/plans/2026-10-15-true-solar-time-remediation.md``.
 """
@@ -50,11 +51,22 @@ EOT_APPROX_TOL_MIN = 0.8      # measured: max |Spencer/NOAA approx - swe.time_eq
 HOURS_TOL_APPROX = EOT_APPROX_TOL_MIN / 60.0 + 1e-4
 HOURS_TOL_EXACT = 1e-3        # for quantities that do not depend on the EoT approximation
 
-DEV_009 = "DEV-2026-009: EffectiveTimeContext.tlst_hours adds the longitude correction to CIVIL, not UTC"
-DEV_010 = "DEV-2026-010: compute_effective_time_context ignores the DST fold"
 DEV_011 = "DEV-2026-011: compute_bazi ignores EffectiveTimeContext.date_rollover for the TLST day pillar"
-DEV_012 = "DEV-2026-012: fusion.true_solar_time_from_civil has the longitude sign inverted"
 DEV_008 = "DEV-2026-008: /calculate/wuxing and /chart call true_solar_time without the zone offset"
+
+
+@pytest.fixture(autouse=True)
+def _pin_swisseph_global_state():
+    """The live-oracle calls below go straight to ``swe.*``. Other test files
+    (``test_ephemeris_attestation.py``) deliberately point swisseph at throwaway
+    directories with dummy SE1 files and leave that global path behind, which
+    would silently corrupt ``swe.time_equ`` / ``swe.lmt_to_lat`` here. Re-pin
+    the path exactly as the engine resolves it (``SE_EPHE_PATH`` or the default
+    cache dir; a missing dir means Moshier fallback) and reset sidereal mode."""
+    from bazi_engine.ephemeris import _resolve_ephe_path
+    swe.set_ephe_path(str(_resolve_ephe_path(None)))
+    swe.set_sid_mode(0)
+    yield
 
 
 def _circular_hours_delta(a: float, b: float) -> float:
@@ -71,10 +83,6 @@ def _civil(case: dict) -> datetime:
 def _ctx(case: dict):
     inp = case["input"]
     return compute_effective_time_context(inp["birth_local_iso"], inp["timezone"], inp["longitude_deg"])
-
-
-def _xfail_if(condition: bool, reason: str):
-    return [pytest.mark.xfail(strict=True, reason=reason)] if condition else []
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -230,81 +238,36 @@ def test_gt6_fixture_crosses_late_zi_under_correct_math():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 4. Tripwires — DEV-2026-009: tlst_hours built on CIVIL instead of UTC
+# 4. Regression — DEV-2026-009 (fixed by FBP-TST-003): tlst_hours on the UTC axis
 # ═══════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.parametrize(
-    "case_id",
-    [
-        pytest.param(
-            c,
-            marks=_xfail_if(CASES[c]["reference"]["utc_offset_minutes"] != 0, DEV_009),
-        )
-        for c in CASE_IDS
-        if CASES[c]["input"]["fold"] == 0
-    ],
-)
+@pytest.mark.parametrize("case_id", [c for c in CASE_IDS if CASES[c]["input"]["fold"] == 0])
 def test_ctx_tlst_hours_matches_reference(case_id):
-    """Fails today for every zone with a non-zero UTC offset by exactly that offset
-    (Hannover: +120 min → Shen instead of Wei). Passes for UTC / Lisbon-winter."""
+    """Before FBP-TST-003 this failed for every zone with a non-zero UTC offset by
+    exactly that offset (Hannover: +120 min → Shen instead of Wei)."""
     case = CASES[case_id]
     ctx = _ctx(case)
     delta = _circular_hours_delta(ctx.tlst_hours, case["reference"]["tlst_hours"])
     assert delta < HOURS_TOL_APPROX, (case_id, ctx.tlst_hours, case["reference"]["tlst_hours"], delta * 60)
 
 
-# The +1 h zone-offset error happens to stay inside the 2-hour Zi bin [23, 1)
-# for these two (TLST 23:01→00:01, 23:09→00:09): branch right, hours wrong.
-_BRANCH_COINCIDENTALLY_RIGHT_TODAY = {
-    "madrid_feb_0030_cet_rollover_minus1",
-    "berlin_gt6_2330_cet",
-}
-
-
-@pytest.mark.parametrize(
-    "case_id",
-    [
-        pytest.param(
-            c,
-            marks=_xfail_if(
-                CASES[c]["reference"]["utc_offset_minutes"] != 0
-                and c not in _BRANCH_COINCIDENTALLY_RIGHT_TODAY,
-                DEV_009,
-            ),
-        )
-        for c in CASE_IDS
-        if CASES[c]["input"]["fold"] == 0
-    ],
-)
+@pytest.mark.parametrize("case_id", [c for c in CASE_IDS if CASES[c]["input"]["fold"] == 0])
 def test_ctx_hour_branch_matches_reference(case_id):
     case = CASES[case_id]
     ctx = _ctx(case)
     assert hour_branch_index_from_tlst(ctx.tlst_hours) == case["reference"]["hour_branch_index_tlst"]
 
 
-# Cases whose TLST calendar date the current (CIVIL-based) rollover gets wrong.
-_DATE_ROLLOVER_WRONG_TODAY = {
-    "madrid_feb_0030_cet_rollover_minus1",   # TLST is 23:01 on the previous day; ctx says same day
-    "berlin_gt6_2330_cet",                   # ctx reports +1 (24:09 "next day"); reference is 23:09 same day
-}
-
-
-@pytest.mark.parametrize(
-    "case_id",
-    [
-        pytest.param(c, marks=_xfail_if(c in _DATE_ROLLOVER_WRONG_TODAY, DEV_009))
-        for c in CASE_IDS
-        if CASES[c]["input"]["fold"] == 0
-    ],
-)
+@pytest.mark.parametrize("case_id", [c for c in CASE_IDS if CASES[c]["input"]["fold"] == 0])
 def test_ctx_tlst_date_matches_reference(case_id):
+    """Includes the two rollover cases the CIVIL-based formula got wrong
+    (Madrid 00:30 → previous day; GT6 Berlin 23:30 → same day, not +1)."""
     case = CASES[case_id]
     ctx = _ctx(case)
     tlst_date = ctx.civil_local.date() + timedelta(days=ctx.date_rollover)
     assert tlst_date.isoformat() == case["reference"]["tlst_date"]
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_009)
 def test_ctx_tlst_is_invariant_under_zone_relabeling():
     """One physical instant, two zone labels → one TLST. Hannover 13:44 UTC expressed
     as UTC and as Europe/Berlin must yield the same tlst_hours."""
@@ -314,10 +277,9 @@ def test_ctx_tlst_is_invariant_under_zone_relabeling():
     assert _circular_hours_delta(a.tlst_hours, b.tlst_hours) < 1e-6, (a.tlst_hours, b.tlst_hours)
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_009)
 def test_ctx_tlst_minus_lmt_equals_eot():
-    """Internal consistency: TLST − LMT must equal the EoT the same context reports.
-    Today the difference is EoT + zone_offset (2 h for Hannover in MESZ)."""
+    """Internal consistency: TLST − LMT must equal the EoT the same context reports
+    (before the fix the difference was EoT + zone_offset, 2 h for Hannover in MESZ)."""
     ctx = compute_effective_time_context("1990-07-15T15:44:00", "Europe/Berlin", 9.732)
     lmt_hours = ctx.lmt_local.hour + ctx.lmt_local.minute / 60 + ctx.lmt_local.second / 3600
     diff_min = (((ctx.tlst_hours - lmt_hours + 12.0) % 24.0) - 12.0) * 60.0
@@ -325,7 +287,7 @@ def test_ctx_tlst_minus_lmt_equals_eot():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 5. Tripwire — DEV-2026-010: DST fold is dropped
+# 5. Regression — DEV-2026-010 (fixed by FBP-TST-002): DST fold is honoured
 # ═══════════════════════════════════════════════════════════════════════════
 
 def test_ctx_fold0_matches_reference():
@@ -334,38 +296,40 @@ def test_ctx_fold0_matches_reference():
     assert ctx.utc.isoformat() == case["reference"]["utc_iso"]
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_010)
-def test_ctx_fold1_cannot_be_expressed_and_is_resolved_as_fold0():
-    """The function takes a naive ISO string and re-attaches the zone with fold=0, so
-    the second occurrence of an ambiguous time (fold=1, CET) is computed as CEST:
-    UTC and therefore LMT/TLST are 1 h too early. The fix needs an aware-datetime
-    (or fold) entry point; ``BaziInput.fold`` already carries the information."""
+def test_ctx_fold1_matches_reference():
+    """The second occurrence of an ambiguous time (fold=1, CET) must resolve to
+    01:30Z, one hour after the fold=0 (CEST) instant — both via the ``fold``
+    keyword and via the aware-instant entry point."""
+    from bazi_engine.time_context import compute_effective_time_context_from_instant
     case = CASES["berlin_dst_fallback_fold1"]
     inp = case["input"]
     civil = _civil(case)
     assert civil.utcoffset() == timedelta(hours=1)  # fold=1 → CET
-    ctx = compute_effective_time_context(inp["birth_local_iso"], inp["timezone"], inp["longitude_deg"])
-    assert ctx.utc == civil.astimezone(timezone.utc), (ctx.utc, civil.astimezone(timezone.utc))
+    ctx = compute_effective_time_context(
+        inp["birth_local_iso"], inp["timezone"], inp["longitude_deg"], fold=inp["fold"]
+    )
+    assert ctx.utc.isoformat() == case["reference"]["utc_iso"]
+    assert _circular_hours_delta(ctx.tlst_hours, case["reference"]["tlst_hours"]) < HOURS_TOL_APPROX
+    ctx2 = compute_effective_time_context_from_instant(civil, inp["longitude_deg"])
+    assert ctx2 == ctx
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 6. Tripwire — DEV-2026-012: fusion.true_solar_time_from_civil sign error
+# 6. Regression — DEV-2026-012 (fixed by FBP-TST-001): the sign-inverted helper is gone
 # ═══════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.xfail(strict=True, reason=DEV_012)
-def test_true_solar_time_from_civil_sign_convention():
-    """Berlin (13.405°E) lies WEST of the CET meridian (15°E): its solar time runs
-    ~6.4 min BEHIND zone time, so TST(12:00 CET) must be < 12.0 even after the
-    ~−3 min EoT of day 180 — the helper currently adds the correction instead."""
-    from bazi_engine.fusion import true_solar_time_from_civil
-    tst = true_solar_time_from_civil(12.0, 13.405, 180, standard_meridian_deg=15.0)
-    expected = 12.0 + (13.405 - 15.0) * 4 / 60 + equation_of_time(180) / 60
-    assert math.isclose(tst, expected, abs_tol=1e-3), (tst, expected)
+def test_true_solar_time_from_civil_helper_removed():
+    """``fusion.true_solar_time_from_civil`` inverted the longitude sign and
+    guessed a DST-blind zone meridian; it had no production caller and was
+    removed. The only sanctioned TST path is ``time_context`` (or the pure leaf
+    ``solar_time.true_solar_time`` with an explicit zone offset)."""
+    import bazi_engine.fusion as fusion
+    assert not hasattr(fusion, "true_solar_time_from_civil")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 7. Tripwires at the HTTP boundary (repo convention: response-body claims are
-#    asserted via TestClient, not on internal objects)
+# 7. HTTP boundary (repo convention: response-body claims are asserted via
+#    TestClient, not on internal objects). DEV-2026-008 ones remain tripwires.
 # ═══════════════════════════════════════════════════════════════════════════
 
 _HANNOVER = CASES["hannover_1990_mesz_1544"]
@@ -380,7 +344,6 @@ def client():
     return TestClient(app)
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_009)
 def test_calculate_tst_endpoint_hannover(client):
     r = client.post(
         "/calculate/tst",
@@ -392,7 +355,6 @@ def test_calculate_tst_endpoint_hannover(client):
     assert body["true_solar_time_formatted"] == "14:17", body
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_009)
 def test_chronometry_endpoint_hannover(client):
     r = client.post(
         "/v1/chronometry/resolve",
@@ -410,7 +372,6 @@ def test_chronometry_endpoint_hannover(client):
     assert r.json()["chronometry"]["true_solar_time"] == "14:17", r.text
 
 
-@pytest.mark.xfail(strict=True, reason=DEV_009)
 def test_calculate_bazi_trace_tlst_hours_hannover(client):
     r = client.post(
         "/calculate/bazi",

@@ -9,7 +9,6 @@ Re-exports:
   All Wu-Xing symbols                — from wuxing package (Level 4 peer)
 
 Own functions:
-  true_solar_time_from_civil()       — fusion-specific TST helper
   compute_fusion_analysis()          — main orchestrator
   generate_fusion_interpretation()   — text generation
 """
@@ -36,41 +35,6 @@ from .wuxing import (  # noqa: F401
 from .wuxing.calibration import CalibrationResult, calibrate_harmony
 
 # ─────────────────────────────────────────────────────────────────────────────
-
-
-def true_solar_time_from_civil(
-    civil_time_hours: float,
-    longitude_deg: float,
-    day_of_year: int,
-    standard_meridian_deg: Optional[float] = None,
-) -> float:
-    """True Solar Time from civil time via standard meridian correction.
-
-    TST = civil_time + 4*(standard_meridian - longitude) + EoT
-
-    Args:
-        civil_time_hours:    Local civil time in hours.
-        longitude_deg:       Observer's longitude (positive = east).
-        day_of_year:         Day of year (1–366).
-        standard_meridian_deg: Standard meridian for the timezone (e.g. 15° for CET).
-                              Auto-estimated from longitude if None.
-
-    Returns:
-        True Solar Time in hours [0, 24).
-    """
-    if standard_meridian_deg is None:
-        standard_meridian_deg = round(longitude_deg / 15) * 15
-
-    longitude_correction_hours = (standard_meridian_deg - longitude_deg) * 4 / 60
-    E_t_hours = equation_of_time(day_of_year) / 60.0
-    TST = civil_time_hours + longitude_correction_hours + E_t_hours
-
-    while TST < 0:
-        TST += 24
-    while TST >= 24:
-        TST -= 24
-
-    return round(TST, 4)
 
 
 def compute_fusion_analysis(
