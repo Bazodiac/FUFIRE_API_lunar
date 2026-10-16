@@ -132,18 +132,18 @@ def compute_effective_time_context_from_instant(
     tlst_wall = utc.replace(tzinfo=None) + timedelta(
         minutes=longitude_deg * 4.0 + eot_min
     )
-    tlst_hours = (
-        tlst_wall.hour
-        + tlst_wall.minute / 60.0
-        + tlst_wall.second / 3600.0
-        + tlst_wall.microsecond / 3.6e9
-    )
+    # Hour-of-day to 6 decimals by TRUNCATION of the integer microsecond
+    # count, never by rounding: rounding lifted 22:59:59.9995 to 23.000000
+    # and flipped the hour branch (Hai → Zi) plus the zi day advance for an
+    # instant that is still before 23:00 (R2 review finding TLST-1), and
+    # lifted the last ~2 ms of a day to 24.0 (S-4 finding). Truncation keeps
+    # every decision (hour branch, zi rule, date_rollover) on the correct
+    # side of its edge and bounds the value in [0, 23.999999].
+    wall_us = (
+        (tlst_wall.hour * 60 + tlst_wall.minute) * 60 + tlst_wall.second
+    ) * 1_000_000 + tlst_wall.microsecond
+    tlst_hours = (wall_us // 3600) / 1e6
     rollover = (tlst_wall.date() - civil_local.date()).days
-    # ``round(…, 6)`` can lift a wall-clock in the last ~2 ms of the day to
-    # exactly 24.0; the instant is still on ``tlst_wall``'s date, so clamp to
-    # the largest representable value below 24 instead of wrapping (which
-    # would contradict ``date_rollover``). S-4 review finding.
-    tlst_hours = min(round(tlst_hours, 6), 23.999999)
 
     tz_off = civil_local.utcoffset()
     tz_off_min = 0 if tz_off is None else int(round(tz_off.total_seconds() / 60))

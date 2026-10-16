@@ -35,6 +35,18 @@ Testlücken (R1-b, Punkt 7) und ihre Abdeckung in S-4: Trace-Stunde == Headline 
 
 Durch R1-b **ausgeschlossen** (getestet, nicht reproduziert): Vorzeichen/Wrap der Meeus-Formel; `jd_ut_from_datetime` vs `swe.julday` (µs, nicht-UTC-aware, Jahre 1/1500/3000); 4 000 zufällige Zone×Länge×Jahr-Samples gegen `swe.lmt_to_lat` (0 Verstöße); exotische Zonen (Etc/GMT+12 lon −179.9, Auckland +179.9, Kiritimati, Kathmandu, Kolkata, St_Johns, Urumqi) für Tages- und Stundensäule; historische krumme Offsets (Amsterdam 1930, Berlin 1850, Kolkata 1900, Apia 1930); fold=1/shift_forward auf `/calculate/bazi`, `/calculate/tst`, `/chart`; LMT- und TLST-Datum verschieden (E5-A-Verhalten, Traces je selbstkonsistent); Zi-Regel exakt bei 23:00/00:00; keine verbliebenen Produktionsaufrufe von `true_solar_time`/`equation_of_time(day_of_year)` außer `/validate`.
 
+## 2b. R2 — Codex (externes Review, 2026-10-16, Range `03c471c..af62e90`)
+
+Ergebnis: **kein Blocker.** Zwei bestätigte Minor-Findings, beide an Sub-Millisekunden-Kanten der 6-/4-Dezimal-Darstellung; eine Beobachtung außerhalb des Review-Bereichs.
+
+| ID | Datei | Befund | Schwere | Verifikation | Entscheidung |
+|---|---|---|---|---|---|
+| TLST-1 | `time_context.py:135–146`, `bazi.py:125–127, 251–255` | `2024-06-16T23:00:56.243413Z`, lon 0, TLST/zi: TLST ist 22:59:59.9995 (Meeus) bzw. 22:59:59.953 (swe); `round(…, 6)` macht daraus 23.000000 → Stundenzweig Zi statt Hai und zi-Tagesvorsprung. | minor | bestätigt (ctx = 23.0 reproduziert) | **Fix (S-5):** `tlst_hours` wird aus dem ganzzahligen Mikrosekundenzähler auf 6 Dezimalen *abgeschnitten*, nie gerundet — jede Entscheidung (Zweig, zi, Rollover) bleibt auf der richtigen Seite ihrer Kante; der S-4-Clamp wird damit überflüssig. HTTP-Test am Fall. |
+| TLST-2 | `routers/fusion.py:249, 344` | `2024-06-16T00:00:43.800000Z`, lon 0: Kontext 23.999999, aber `/calculate/tst` und `/calculate/wuxing` serialisieren `round(…, 4)` = 24.0 (`/chart` und Trace: 23.999999). | minor | bestätigt | **Fix (S-5):** 4-Dezimal-Anzeigewert auf 23.9999 begrenzt (`_tlst_hours_4dp`); Test für beide Endpunkte. |
+| — (außerhalb) | `time_utils.py:141–159` | Pacific/Apia `2011-12-30T12:00` (übersprungener Kalendertag), `nonexistentTime=shift_forward` → 422: der Resolver sucht nur 180 min vorwärts, die nächste gültige Ortszeit liegt 720 min später. | info | von Codex bestätigt; Code im Review-Bereich unverändert | **Owner-Entscheidung** (Folgeaufgabe, nicht TLST-spezifisch): Suchfenster auf 24 h erweitern oder 422 mit erklärender Meldung beibehalten. |
+
+Von Codex ausgeschlossen: Kiritimati-Rollover −2 (korrekt), Berlin-Folds (Instants erhalten), Frühjahrslücke `shift_forward`, Meeus 1800–3000 monatlich max 0,0445 min, keine weiteren Aufrufer der Tagesformel außer `/validate`.
+
 ## 3. Grid-Lauf (Plan §6.4)
 
 `SE_EPHE_PATH=/tmp/ephe python scripts/tlst_grid_check.py` (neu, Review-Evidenz; 16 Zonen × 12 Daten 1950–2030 × 96 Viertelstunden, beide Folds bei Mehrdeutigkeit):
@@ -45,12 +57,12 @@ Durch R1-b **ausgeschlossen** (getestet, nicht reproduziert): Vorzeichen/Wrap de
 
 Vor dem Sprint (Plan vom 2026-10-15, gleiches Raster): 85,4 % falscher Stundenzweig, 21,4 % falsches TLST-Datum, max. 12 h.
 
-## 4. Gesamtsuite nach S-4
+## 4. Gesamtsuite nach S-5 (R1- und R2-Fixes)
 
 | Backend | Ergebnis |
 |---|---|
-| SWIEPH (`SE_EPHE_PATH=/tmp/ephe`) | 4171 passed, 102 skipped (Vollsuite, echte Ephemeriden) |
-| MOSEPH (Fallback) | 3626 passed, 597 skipped, 1 bekannter umgebungsabhängiger Fehler (`test_security_findings::test_ephemeris_unavailable_503_does_not_leak_resolved_path`) |
+| SWIEPH (`SE_EPHE_PATH=/tmp/ephe`) | 4174 passed, 102 skipped (Vollsuite, echte Ephemeriden) |
+| MOSEPH (Fallback) | 3629 passed, 597 skipped, 1 bekannter umgebungsabhängiger Fehler (`test_security_findings::test_ephemeris_unavailable_503_does_not_leak_resolved_path`) |
 
 Gates: ruff, mypy, `check_complexity.py --check`, `export_openapi.py --check`, `assert_toolchain_versions.py`, `gen_tlst_reference_corpus.py --check` — sauber.
 
@@ -60,4 +72,4 @@ Gates: ruff, mypy, `check_complexity.py --check`, `export_openapi.py --check`, `
 2. F10: `ambiguousTime`/`nonexistentTime` additiv ins `/chronometry/resolve`-Request-Modell (empfohlen).
 3. F11: additives Feld `tlst_date_rollover` auf `TimeResolutionTrace` und `ChronometryFrame` (empfohlen).
 4. F12: `OverflowError` → 422 im Error-Handler (klein, vorbestehend).
-5. R2: Codex-Review auf dem S-4-PR anstoßen (Plan §6.3); Findings fließen in einen S-5-Fix-PR oder werden hier als Nicht-Findings dokumentiert.
+5. Nicht-TLST-Folgeaufgabe aus R2: `time_utils` Suchfenster für `shift_forward` (180 min) deckt übersprungene Kalendertage (Samoa 2011) nicht ab.
