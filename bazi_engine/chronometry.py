@@ -32,7 +32,7 @@ from .ephemeris import (
     datetime_utc_to_jd_ut,
 )
 from .time_context import compute_effective_time_context_from_instant
-from .time_utils import resolve_local_iso
+from .time_utils import AmbiguousTimeChoice, NonexistentTimePolicy, resolve_local_iso
 
 # ── Pure reference data (GT4) ───────────────────────────────────────────────
 # The 24 solar terms (jieqi), indexed by ``floor(solar_longitude / 15°)``.
@@ -99,6 +99,7 @@ class ChronometryFrame:
     eot_source: str                         # provenance of the EoT (ctx.eot_source, FBP-TST-006)
     longitude_correction_minutes: float     # = lon * 4
     true_solar_time: Optional[str]          # "HH:MM" from ctx.tlst_hours; None if time unknown
+    tlst_date_rollover: Optional[int]       # TLST calendar date − civil date (days); None if time unknown
     solar_longitude_degrees: float          # SwissEphBackend.sun_lon_deg_ut
     solar_term: str                         # JIEQI_NAMES[floor(sun_lon / 15)]
     boundary_flags: Dict[str, Any]          # Li Chun proximity / before-after
@@ -180,6 +181,8 @@ def resolve_chronometry(
     lon: float,
     calendar_policy: Optional[str] = None,
     time_known: bool = True,
+    ambiguous_time: AmbiguousTimeChoice = "earlier",
+    nonexistent_time: NonexistentTimePolicy = "error",
 ) -> ChronometryFrame:
     """Resolve a birth instant into a full chronometry frame.
 
@@ -202,6 +205,13 @@ def resolve_chronometry(
         threaded through unchanged (no behavioural effect yet).
     time_known
         ``False`` to force the unknown-time path even for a full ISO string.
+    ambiguous_time, nonexistent_time
+        DST resolution policy for the local wall-clock, identical to the
+        ``ambiguousTime`` / ``nonexistentTime`` request fields of
+        ``/calculate/bazi`` and ``/calculate/tst`` (owner decision after the
+        sprint-2 review, R1 finding F10): before this the frame silently
+        resolved a fall-back duplicate as the *earlier* instant and rejected
+        spring-gap times, with no way to ask otherwise.
 
     Returns
     -------
@@ -217,7 +227,10 @@ def resolve_chronometry(
     # this is NOT a noon default and never reaches true_solar_time.
     iso_for_resolution = birth_datetime if not date_only else f"{birth_datetime}T00:00:00"
 
-    dt_local, _resolution = resolve_local_iso(iso_for_resolution, timezone)
+    dt_local, _resolution = resolve_local_iso(
+        iso_for_resolution, timezone,
+        ambiguous=ambiguous_time, nonexistent=nonexistent_time,
+    )
 
     # FBP-TST-002: hand over the resolved aware instant (fold-faithful).
     ctx = compute_effective_time_context_from_instant(dt_local, lon)
@@ -236,6 +249,10 @@ def resolve_chronometry(
     )
 
     true_solar_time = None if not effective_time_known else _format_tlst(ctx.tlst_hours)
+    # R1 finding F11: the frame's julian_day_number is the CIVIL date's JDN by
+    # contract; expose the TLST date shift so a reader can place
+    # true_solar_time on its own calendar day (−1 = previous solar day, …).
+    tlst_date_rollover = None if not effective_time_known else ctx.date_rollover
 
     return ChronometryFrame(
         julian_day=jd_ut,
@@ -245,6 +262,7 @@ def resolve_chronometry(
         eot_source=ctx.eot_source,
         longitude_correction_minutes=lon * 4,
         true_solar_time=true_solar_time,
+        tlst_date_rollover=tlst_date_rollover,
         solar_longitude_degrees=sun_lon,
         solar_term=JIEQI_NAMES[term_index],
         boundary_flags=boundary,

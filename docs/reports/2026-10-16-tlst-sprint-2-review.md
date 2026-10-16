@@ -69,7 +69,7 @@ Gates: ruff, mypy, `check_complexity.py --check`, `export_openapi.py --check`, `
 ## 5. Offene Owner-Entscheidungen
 
 1. F9: `/validate` auf den gemeinsamen Zeitkontext migrieren (Meeus statt Spencer) — berührt die Attestierungsregeln für `/validate`.
-2. F10: `ambiguousTime`/`nonexistentTime` additiv ins `/chronometry/resolve`-Request-Modell (empfohlen).
-3. F11: additives Feld `tlst_date_rollover` auf `TimeResolutionTrace` und `ChronometryFrame` (empfohlen).
+2. ~~F10: `ambiguousTime`/`nonexistentTime` additiv ins `/chronometry/resolve`-Request-Modell~~ — **freigegeben und umgesetzt** (2026-10-16, Label `1.0.0-rc7-20261016`): `BirthContext.ambiguousTime`/`nonexistentTime`, durchgereicht an `resolve_chronometry(…, ambiguous_time, nonexistent_time)`; Tests `tests/test_chronometry_dst_policy_and_rollover.py`.
+3. ~~F11: additives Feld `tlst_date_rollover` auf `TimeResolutionTrace` und `ChronometryFrame`~~ — **freigegeben und umgesetzt** (2026-10-16): `tlst_date_rollover` auf Trace `time_resolution` (int), `ChronometryFrame`/`/chronometry/resolve`/`/personalize` (int, `null` bei unbekannter Geburtszeit); `julian_day_number` bleibt vertragsgemäß das zivile Datum.
 4. F12: `OverflowError` → 422 im Error-Handler (klein, vorbestehend).
 5. Nicht-TLST-Folgeaufgabe aus R2: `time_utils` Suchfenster für `shift_forward` (180 min) deckt übersprungene Kalendertage (Samoa 2011) nicht ab.

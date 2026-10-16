@@ -22,6 +22,7 @@ from starlette.requests import Request
 
 from ..chronometry import resolve_chronometry
 from ..limiter import limiter, tier_limit
+from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy
 
 _log = logging.getLogger(__name__)
 
@@ -69,6 +70,21 @@ class BirthContext(BaseModel):
             "precision.grade='unknown_time')."
         ),
     )
+    ambiguousTime: AmbiguousTimeChoice = Field(
+        "earlier",
+        description=(
+            "Which instant to use when the local time occurs twice (DST "
+            "fall-back): 'earlier' (default) or 'later'. Same semantics as "
+            "/calculate/bazi and /calculate/tst."
+        ),
+    )
+    nonexistentTime: NonexistentTimePolicy = Field(
+        "error",
+        description=(
+            "Policy for a local time skipped by a DST spring-forward: 'error' "
+            "(default, 422) or 'shift_forward'. Same semantics as /calculate/bazi."
+        ),
+    )
 
 
 class ChronometryResolveRequest(BaseModel):
@@ -102,6 +118,15 @@ class ChronometryFrameResponse(BaseModel):
     longitude_correction_minutes: float = Field(..., description="lon * 4 minutes")
     true_solar_time: Optional[str] = Field(
         None, description="HH:MM apparent solar time; null when birth time unknown"
+    )
+    tlst_date_rollover: Optional[int] = Field(
+        None,
+        description=(
+            "Calendar-day shift of the apparent-solar (TLST) date relative to the "
+            "civil date (−2…+1): true_solar_time belongs to civil date + this many "
+            "days, while julian_day_number stays the civil date's JDN. Null when "
+            "birth time unknown."
+        ),
     )
     solar_longitude_degrees: float
     solar_term: str = Field(..., description="JIEQI_NAMES[floor(solar_longitude / 15)]")
@@ -141,6 +166,8 @@ def resolve_chronometry_endpoint(
         lon=birth.location.lon,
         calendar_policy=birth.calendar_policy,
         time_known=birth.time_known,
+        ambiguous_time=birth.ambiguousTime,
+        nonexistent_time=birth.nonexistentTime,
     )
     return {
         "request_id": getattr(request.state, "request_id", "unknown"),
@@ -152,6 +179,7 @@ def resolve_chronometry_endpoint(
             "eot_source": frame.eot_source,
             "longitude_correction_minutes": frame.longitude_correction_minutes,
             "true_solar_time": frame.true_solar_time,
+            "tlst_date_rollover": frame.tlst_date_rollover,
             "solar_longitude_degrees": frame.solar_longitude_degrees,
             "solar_term": frame.solar_term,
             "boundary_flags": frame.boundary_flags,

@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc6-20261016"
+    "version": "1.0.0-rc7-20261016"
   },
   "paths": {
     "/": {
@@ -8199,6 +8199,26 @@
             "title": "Time Known",
             "description": "Set False when the birth time is not known. Forces the unknown-time path (no noon default, true_solar_time null, precision.grade='unknown_time').",
             "default": true
+          },
+          "ambiguousTime": {
+            "type": "string",
+            "enum": [
+              "earlier",
+              "later"
+            ],
+            "title": "Ambiguoustime",
+            "description": "Which instant to use when the local time occurs twice (DST fall-back): 'earlier' (default) or 'later'. Same semantics as /calculate/bazi and /calculate/tst.",
+            "default": "earlier"
+          },
+          "nonexistentTime": {
+            "type": "string",
+            "enum": [
+              "error",
+              "shift_forward"
+            ],
+            "title": "Nonexistenttime",
+            "description": "Policy for a local time skipped by a DST spring-forward: 'error' (default, 422) or 'shift_forward'. Same semantics as /calculate/bazi.",
+            "default": "error"
           }
         },
         "additionalProperties": false,
@@ -8772,6 +8792,18 @@
             ],
             "title": "True Solar Time",
             "description": "HH:MM apparent solar time; null when birth time unknown"
+          },
+          "tlst_date_rollover": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tlst Date Rollover",
+            "description": "Calendar-day shift of the apparent-solar (TLST) date relative to the civil date (−2…+1): true_solar_time belongs to civil date + this many days, while julian_day_number stays the civil date's JDN. Null when birth time unknown."
           },
           "solar_longitude_degrees": {
             "type": "number",
@@ -10027,7 +10059,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc6-20261016"
+          "version": "1.0.0-rc7-20261016"
         }
       },
       "HourDerivationTrace": {
@@ -13084,6 +13116,10 @@
             "type": "string",
             "title": "Eot Source"
           },
+          "tlst_date_rollover": {
+            "type": "integer",
+            "title": "Tlst Date Rollover"
+          },
           "tz_offset_minutes": {
             "type": "integer",
             "title": "Tz Offset Minutes"
@@ -13102,6 +13138,7 @@
           "tlst_hours",
           "eot_minutes",
           "eot_source",
+          "tlst_date_rollover",
           "tz_offset_minutes",
           "effective_standard"
         ],
