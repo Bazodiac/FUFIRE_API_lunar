@@ -219,7 +219,7 @@ def _valid_response_payload() -> Dict[str, Any]:
             "correlation_id": None,
             "ruleset_id": "standard_bazi_2026",
             "ruleset_version": "1.0.0",
-            "engine_version": "1.0.0-rc3-20261016",
+            "engine_version": "1.0.0-rc4-20261016",
         },
         "request_context": {
             "mode": "birth_input",

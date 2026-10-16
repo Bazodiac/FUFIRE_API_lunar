@@ -450,8 +450,13 @@ The Zi Wei Dou Shu (ZWDS) natal engine ships as an explicit **core-seed**, not a
   (strict xfail); `grep -rn date_rollover bazi_engine/` → only the producer.
 - Severity: P1 (wrong day pillar for TLST births between solar and
   civil midnight, west of the zone meridian).
-- Decision: Task T5, needs domain sign-off (plan decision E5).
-- Status: Open — tripwire in place (2026-10-15).
+- Decision: Task T5; owner decision **E5-A** (2026-10-16): the day pillar follows the
+  apparent-solar date (`civil_date + date_rollover`, +1 under `zi` once `tlst_hours ≥ 23`),
+  mirroring the LMT path.
+- Status: **Resolved (v1, loud)** — 2026-10-16, FBP-TST-005. `bazi.py::_dt_for_day_pillar`
+  shifts the chart date by `ctx.date_rollover` for TLST; boundary matrix
+  `tests/test_bazi_tlst_day_pillar.py` (swisseph-inverted oracle, 2 sites × 6 targets ×
+  2 boundaries); engine build label `1.0.0-rc4-20261016`. CIVIL/LMT unchanged.
 
 ## DEV-2026-012 — `fusion.true_solar_time_from_civil` inverts the longitude sign and is DST-blind
 
