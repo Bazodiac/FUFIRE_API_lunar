@@ -115,15 +115,17 @@ def _dt_for_day_pillar(
     # follows the LMT date. chart_local_dt is civil for TLST (TLST is not a
     # tzinfo, FBP-01-006), so shift it by the day the TLST instant falls on.
     solar_day_dt = chart_local_dt + timedelta(days=ctx.date_rollover)
-    if (
-        inp.day_boundary == "zi"
-        and day_change_policy.get("time_standard_for_day_rollover") == "TLST"
-    ):
-        zi_start = float(day_change_policy.get("zi_start_hour", 23.0))
-        if ctx.tlst_hours >= zi_start:
-            return solar_day_dt + timedelta(days=1)
+    if inp.day_boundary != "zi":
         return solar_day_dt
-    return apply_day_boundary(solar_day_dt, inp.day_boundary)
+    # The zi decision for a TLST request is always taken on the TLST hour;
+    # the ruleset only parameterises ``zi_start_hour``. (Before S-4 a ruleset
+    # without ``time_standard_for_day_rollover == "TLST"`` fell through to
+    # ``apply_day_boundary`` — the civil +1 h rule applied to the solar
+    # date, a mixed rule that double-counted the rollover.)
+    zi_start = float(day_change_policy.get("zi_start_hour", 23.0))
+    if ctx.tlst_hours >= zi_start:
+        return solar_day_dt + timedelta(days=1)
+    return solar_day_dt
 
 
 def _month_index_for_chart(

@@ -72,7 +72,8 @@ def equation_of_time_jd(jd_ut: float) -> float:
     The input is UT rather than TT; the ΔT difference (≤ ~70 s in
     1950–2030) moves the Sun by < 0.003″ in the EoT, far below the
     0.1 min tolerance enforced in tests. Validated against
-    ``swe.time_equ``: max |Δ| < 0.05 min over 1950–2030 at 6 h steps.
+    ``swe.time_equ``: max |Δ| = 0.038 min over 1950–2030 at 6 h steps
+    (and ≤ 0.08 min for years 1–3000).
     """
     T = (jd_ut - J2000_JD) / 36525.0
     T2, T3 = T * T, T * T * T
@@ -99,8 +100,12 @@ def equation_of_time_jd(jd_ut: float) -> float:
     dpsi = dpsi_arcsec / 3600.0
     eps = eps0 + deps_arcsec / 3600.0
 
-    # Apparent longitude (nutation + aberration, 25.8/25.9 with the Ω correction).
-    apparent_lon = true_lon + dpsi - 0.00569 - 0.00478 * sin(om_r)
+    # Apparent longitude = true longitude + nutation in longitude − aberration
+    # (25.9/25.10 with the explicit Δψ above). Meeus' low-accuracy shorthand
+    # ``λ = Θ − 0.00569° − 0.00478°·sin Ω`` (25.8) folds the dominant
+    # nutation term into that −0.00478°·sin Ω; using it *and* Δψ would count
+    # the nutation twice (S-4 review finding, +0.02 min error).
+    apparent_lon = true_lon + dpsi - 0.00569
 
     # Apparent right ascension (25.6) — atan2 keeps the quadrant.
     lam_r, eps_r = radians(apparent_lon), radians(eps)

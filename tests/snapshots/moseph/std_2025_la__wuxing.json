@@ -110,7 +110,7 @@
     ]
   },
   "dominant_element": "Holz",
-  "equation_of_time": 3.4012,
+  "equation_of_time": 3.4032,
   "input": {
     "date": "2025-05-20T18:00:00",
     "lat": 34.0522,
@@ -118,7 +118,7 @@
     "tz": "America/Los_Angeles"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc5-20261016",
+    "engine_version": "1.0.0-rc6-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {

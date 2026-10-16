@@ -46,7 +46,9 @@ def _git(*args: str) -> str:
 
 
 def _changed_files(backend: str) -> list[Path]:
-    out = _git("diff", "--name-only", "--", f"tests/snapshots/{backend}")
+    # Diff against HEAD (not the index): a staged regeneration must still be
+    # minimised against the committed baseline. S-4 review finding.
+    out = _git("diff", "--name-only", "HEAD", "--", f"tests/snapshots/{backend}")
     return [REPO_ROOT / line for line in out.split() if line.endswith(".json")]
 
 
@@ -59,11 +61,19 @@ def _head_version(path: Path) -> Any | None:
 
 
 def merge(old: Any, new: Any, tol: float) -> Any:
-    """Return ``new`` with every immaterial numeric change replaced by ``old``."""
-    if isinstance(old, dict) and isinstance(new, dict) and set(old) == set(new):
-        return {k: merge(old[k], new[k], tol) for k in old}
-    if isinstance(old, list) and isinstance(new, list) and len(old) == len(new):
-        return [merge(a, b, tol) for a, b in zip(old, new)]
+    """Return ``new`` with every immaterial numeric change replaced by ``old``.
+
+    Keys/elements present on both sides are merged recursively; keys only in
+    ``new`` (an additive schema change such as a new response field) and
+    list elements beyond the common prefix are taken from ``new`` verbatim,
+    so one added key does not turn every float sibling into a "change".
+    Keys only in ``old`` are dropped (the regenerated shape wins).
+    """
+    if isinstance(old, dict) and isinstance(new, dict):
+        return {k: (merge(old[k], v, tol) if k in old else v) for k, v in new.items()}
+    if isinstance(old, list) and isinstance(new, list):
+        common = [merge(a, b, tol) for a, b in zip(old, new)]
+        return common + new[len(common):]
     if (
         isinstance(old, (int, float)) and isinstance(new, (int, float))
         and not isinstance(old, bool) and not isinstance(new, bool)
@@ -74,12 +84,17 @@ def merge(old: Any, new: Any, tol: float) -> Any:
 
 def material_paths(old: Any, new: Any, path: str = "") -> list[str]:
     out: list[str] = []
-    if isinstance(old, dict) and isinstance(new, dict) and set(old) == set(new):
-        for k in old:
-            out.extend(material_paths(old[k], new[k], f"{path}/{k}"))
-    elif isinstance(old, list) and isinstance(new, list) and len(old) == len(new):
+    if isinstance(old, dict) and isinstance(new, dict):
+        for k in sorted(set(old) | set(new)):
+            if k in old and k in new:
+                out.extend(material_paths(old[k], new[k], f"{path}/{k}"))
+            else:
+                out.append(f"{path}/{k}" + (" (added)" if k in new else " (removed)"))
+    elif isinstance(old, list) and isinstance(new, list):
         for a, b in zip(old, new):
             out.extend(material_paths(a, b, f"{path}[]"))
+        if len(old) != len(new):
+            out.append(f"{path}[] (length {len(old)} -> {len(new)})")
     elif old != new:
         out.append(path or "/")
     return out

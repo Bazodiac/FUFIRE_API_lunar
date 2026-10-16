@@ -473,3 +473,25 @@ The Zi Wei Dou Shu (ZWDS) natal engine ships as an explicit **core-seed**, not a
 - Decision: Task T1 — remove (or delegate to `solar_time.true_solar_time`
   with an explicit zone offset + DeprecationWarning).
 - Status: **Resolved** — 2026-10-16, FBP-TST-001: helper removed from `bazi_engine/fusion.py` (no production caller; `tests/test_fusion.py` class dropped, regression test asserts absence).
+
+
+---
+
+## Closure note — True Solar Time remediation series (2026-10-16)
+
+DEV-2026-008 … DEV-2026-012 (TST/TLST) are all **Resolved** by the sprint in
+`docs/plans/2026-10-15-true-solar-time-remediation.md` (T1–T4) and
+`docs/plans/2026-10-16-tlst-fix-sprint-2.md` (S-1–S-3), tasks FBP-TST-000 … 007:
+
+| Theme | Resolution | Engine build label |
+|---|---|---|
+| Longitude correction on the civil axis (008/009), DST fold dropped (010), sign-inverted helper (012) | `time_context.compute_effective_time_context_from_instant` on the UTC axis; all five TST surfaces share it | `1.0.0-rc4-20261016` |
+| Day pillar ignored the TLST date (011) | E5-A: apparent-solar date + Zi rule in `bazi.py::_dt_for_day_pillar` | `1.0.0-rc4-20261016` |
+| EoT day-of-year approximation (≤ 0.77 min) | E6-M: Meeus (1998) `solar_time.equation_of_time_jd`, `eot_source` provenance | `1.0.0-rc5-20261016` |
+| S-4 review findings (trace hour contradicted TLST headline; zi fallback mixed rules; nutation double-counted; `tlst_hours` could round to 24.0) | fixed in the S-4 PR, see `docs/reports/2026-10-16-tlst-sprint-2-review.md` | `1.0.0-rc6-20261016` |
+
+Residual, by design: the Meeus EoT differs from `swe.time_equ` by ≤ 0.038 min
+(1950–2030; ≤ 0.08 min for years 1–3000; tested bound 0.1 min); `HH:MM` renderings use floor-to-minute, so a value
+within a second of a minute edge may render one minute earlier than a
+swisseph-derived string (Hannover reference 14:17:00.5 → `14:16`). The
+independent review loop (S-4, decision E8-R3) is tracked in the sprint plan.

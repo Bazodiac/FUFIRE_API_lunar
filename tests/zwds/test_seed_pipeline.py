@@ -182,3 +182,23 @@ def test_tlst_uses_apparent_solar_offset_anchored_to_utc() -> None:
     assert r.day_boundary_offset_hours == pytest.approx(expected, abs=0.1 / 60.0)
     assert r.day_boundary_offset_hours == pytest.approx(7.8726, abs=1e-3)
     assert r.hour_branch_id == "ZI"
+
+
+def test_tlst_offset_is_exactly_the_shared_context_offset() -> None:
+    """FBP-TST-007 consistency: the ZWDS seed's TLST day-boundary offset must be
+    *exactly* ``lon·4 min + EffectiveTimeContext.eot_minutes`` for the same
+    instant — the seed consumes the shared context (FBP-TST-006 Meeus EoT),
+    it does not carry an EoT of its own. A drift here would mean the two
+    engines disagree on what TLST is."""
+    from bazi_engine.time_context import compute_effective_time_context_from_instant
+    from bazi_engine.time_utils import resolve_local_iso
+
+    r = resolve_chronometry(**_SHANGHAI, time_standard="TLST")
+    civil_dt, _ = resolve_local_iso(_SHANGHAI["datetime_local"], _SHANGHAI["timezone"])
+    ctx = compute_effective_time_context_from_instant(civil_dt, _SHANGHAI["lon"])
+    assert ctx.eot_source == "meeus_1998"
+    expected_offset_min = _SHANGHAI["lon"] * 4.0 + ctx.eot_minutes
+    assert r.day_boundary_offset_hours * 60.0 == pytest.approx(expected_offset_min, abs=1e-6)
+    # And the LMT offset is the pure longitude term (no EoT).
+    r_lmt = resolve_chronometry(**_SHANGHAI, time_standard="LMT")
+    assert r_lmt.day_boundary_offset_hours * 60.0 == pytest.approx(_SHANGHAI["lon"] * 4.0, abs=1e-6)

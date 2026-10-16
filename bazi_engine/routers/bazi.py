@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.requests import Request
 
-from ..bazi import compute_bazi, hour_branch_index, jdn_gregorian, sexagenary_day_index_from_date
+from ..bazi import compute_bazi, jdn_gregorian, sexagenary_day_index_from_date
 from ..bazi_rules import day_offset_from_ruleset, load_default_ruleset
 from ..constants import ANIMALS, BRANCHES, STEMS
 from ..exc import BaziEngineError
@@ -283,8 +283,11 @@ def _build_derivation_trace(
         dt_for_day.year, dt_for_day.month, dt_for_day.day,
     )
 
-    # Hour trace
-    hb = hour_branch_index(res.chart_local_dt)
+    # Hour trace — S-4 review finding (sibling of GT6): the trace must carry
+    # the engine's own hour-branch decision, not a re-derivation from the
+    # civil clock, which under TLST reported the civil branch next to a TLST
+    # headline pillar (Madrid 02:20 CET: trace Chou vs headline Zi).
+    hb = res.pillars.hour.branch_index
 
     # FBP-03-004 — provenance IDs derived from loaded ruleset + request params.
     ruleset = load_default_ruleset()
@@ -327,7 +330,10 @@ def _build_derivation_trace(
             day_anchor_evidence=_day_anchor_evidence(ruleset),
         ),
         hour=HourDerivationTrace(
-            local_hour=res.chart_local_dt.hour,
+            local_hour=(
+                int(time_ctx.tlst_hours) if inp.time_standard == "TLST"
+                else res.chart_local_dt.hour
+            ),
             branch_index=hb,
             true_solar_time_used=inp.time_standard == "TLST",
             lmt_used=inp.time_standard == "LMT",

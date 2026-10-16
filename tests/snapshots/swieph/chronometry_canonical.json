@@ -7,12 +7,12 @@
   },
   "delta_t_seconds": 57.1655852651,
   "eot_source": "meeus_1998",
-  "equation_of_time_minutes": -0.4045,
+  "equation_of_time_minutes": -0.3885,
   "julian_day": 2448058.0208333335,
   "julian_day_number": 2448058,
   "longitude_correction_minutes": 53.62,
   "precision": {
-    "algorithm_version": "1.0.0-rc5-20261016",
+    "algorithm_version": "1.0.0-rc6-20261016",
     "grade": "exact",
     "warnings": []
   },
