@@ -90,6 +90,39 @@ EoT ≈ 9.87 × sin(2B) − 7.53 × cos(B) − 1.5 × sin(B)
 Genauigkeit: ±1 Minute. Ausreichend für die meisten astrologischen Zwecke,
 die auf Minutenpräzision nicht angewiesen sind.
 
+### Die exakte Formel (Meeus 1998) — der Engine-Pfad: `equation_of_time_jd(jd_ut)`
+
+Beide Tagesformeln oben kennen nur den Tag des Jahres, nicht das Jahr und
+nicht die Uhrzeit: sie liegen bis zu 0,8 Minuten neben der tatsächlichen
+Zeitgleichung — genug, um an einer 2-Stunden-Kante die Stundensäule zu
+kippen. Seit FBP-TST-006 (2026-10-16) rechnet die Engine deshalb mit
+*Astronomical Algorithms* (Meeus, 2. Aufl. 1998), Gl. 28.1, am exakten
+UT-Instant:
+
+```
+T  = (JD_UT − 2451545) / 36525
+L0 = 280.46646° + 36000.76983°·T + 0.0003032°·T²        (mittlere Länge, 28.2)
+α  = scheinbare Rektaszension der Sonne                  (Kap. 25, Low Accuracy,
+                                                          + Nutation Δψ, Schiefe ε nach Kap. 22)
+E  = L0 − 0.0057183° − α + Δψ·cos ε                     (28.1)
+EoT[min] = 4 · E[°]                                     (in (−180°, 180°] gefaltet)
+```
+
+Eigenschaften:
+
+- Reine Mathematik (stdlib), kein Swiss-Ephemeris-Aufruf — `/calculate/tst`
+  bleibt ephemeridenfrei (Attestierungs-Invariante F3).
+- Gegen `swe.time_equ` gemessen: max |Δ| = 0,058 min über 118 340
+  Stichproben 1950–2030 (6-h-Raster), Mittel −0,006 min, kein
+  systematischer Offset; 1800–2200 ≤ 0,04 min. Harte Schranke in den Tests:
+  0,1 min (`tests/test_solar_time.py::TestMeeusEquationOfTime`).
+- UT statt TT als Eingabe: der ΔT-Unterschied (≤ ~70 s) verschiebt die
+  Zeitgleichung um < 0,003″, vernachlässigbar.
+- Provenance: jede Oberfläche, die `eot_minutes` ausgibt (`/calculate/tst`,
+  Trace `time_resolution`, Chronometrie, `/personalize`), trägt
+  `eot_source = "meeus_1998"`. Der `/validate`-Degraded-Pfad nutzt weiterhin
+  die Tagesformel und meldet `eot_provenance = "spencer_1971"`.
+
 ---
 
 ## Funktion: `true_solar_time(civil_time, longitude, day_of_year, tz_offset)`

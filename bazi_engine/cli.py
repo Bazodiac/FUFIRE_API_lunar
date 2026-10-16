@@ -13,7 +13,10 @@ def main() -> None:
     parser.add_argument("--tz", default="Europe/Berlin", help="Timezone name (default: Europe/Berlin)")
     parser.add_argument("--lon", type=float, default=13.4050, help="Longitude in degrees (default: 13.4050 for Berlin)")
     parser.add_argument("--lat", type=float, default=52.52, help="Latitude in degrees (default: 52.52)")
-    parser.add_argument("--standard", choices=["CIVIL", "LMT"], default="CIVIL", help="Time standard (default: CIVIL)")
+    parser.add_argument(
+        "--standard", choices=["CIVIL", "LMT", "TLST"], default="CIVIL",
+        help="Time standard: CIVIL (zone time), LMT (local mean time), TLST (true local solar time; FBP-TST-007) (default: CIVIL)",
+    )
     parser.add_argument("--boundary", choices=["midnight", "zi"], default="midnight", help="Day boundary (default: midnight)")
     parser.add_argument("--accuracy", type=float, default=1.0, help="Iteration accuracy in seconds (default: 1.0)")
     parser.add_argument("--strict", action="store_true", default=True, help="Strict local time validation (default: True)")

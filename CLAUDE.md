@@ -70,6 +70,7 @@ python -m bazi_engine.cli 2024-02-10T14:30:00 --json
 python scripts/export_openapi.py              # Regenerate after endpoint changes
 python scripts/export_openapi.py --check      # CI drift check
 python tests/golden/regen_route_table.py      # Regenerate route-mount golden after ANY mount/route change
+python scripts/gen_tlst_reference_corpus.py --check   # CI lint: TLST corpus vs Swiss-Ephemeris oracle (backend-agnostic)
 
 # Docker — FUFIRE_ENV is mandatory (image bakes FUFIRE_REQUIRE_EXPLICIT_ENV=1; omitting it crashes startup)
 docker build -t bazi_engine . && docker run -e FUFIRE_ENV=dev -p 8080:8080 bazi_engine
@@ -251,7 +252,17 @@ CI runs on Python 3.10–3.12, installs with `uv sync --frozen --extra dev`, fet
 Mechanics:
 - Markers: `swieph` (registered dynamically in conftest — deliberately NOT duplicated in pyproject; add it to any SE1-dependent test) and `integration` (needs a reachable LeanDeep service; auto-skips).
 - Autouse conftest fixtures reset transit caches and the in-memory rate limiter between tests — don't re-add per-test resets or worry about TestClient tests tripping limits.
-- Snapshots: `tests/snapshots/{moseph,swieph}/` chosen by active backend. Regenerate moseph locally with `UPDATE_SNAPSHOTS=1 pytest tests/test_snapshot_stability.py`; **swieph baselines only via the manual `update-swieph-snapshots.yml` workflow** (emits a review-only patch artifact, never commits). Never hand-edit snapshot JSON.
+- Snapshots: `tests/snapshots/{moseph,swieph}/` chosen by active backend. Never hand-edit snapshot JSON. **Regeneration procedure (owner decision E7, 2026-10-16):** regenerate *both* backends locally against the SHA-verified ephemeris, then minimise the diff so only material changes remain (a raw regeneration rewrites every float in the 8th–10th decimal and produces a ~1 200-line diff nobody can review):
+  ```bash
+  python scripts/fetch_ephemeris.py --destination /tmp/ephe
+  SE_EPHE_PATH=/tmp/ephe UPDATE_SNAPSHOTS=1 pytest -q tests/test_snapshot_stability.py tests/test_snapshot_math_endpoints.py
+  python scripts/minimize_snapshot_diff.py --backend swieph --report
+  env -u SE_EPHE_PATH UPDATE_SNAPSHOTS=1 pytest -q tests/test_snapshot_stability.py tests/test_snapshot_math_endpoints.py
+  python scripts/minimize_snapshot_diff.py --backend moseph --report
+  SE_EPHE_PATH=/tmp/ephe pytest -q tests/test_snapshot_stability.py tests/test_snapshot_math_endpoints.py   # verify, no update
+  ```
+  `--report` lists the JSON paths that still differ — every one of them must be explained by the change (and the engine build label bump). The manual `update-swieph-snapshots.yml` workflow (review-only patch artifact) remains available as an alternative for the swieph baselines.
+- TLST reference corpus: `tests/fixtures/tlst_reference_corpus_v1.json` is generated from Swiss Ephemeris (`swe.time_equ`, `swe.lmt_to_lat`) by `scripts/gen_tlst_reference_corpus.py`; CI lint runs its `--check`. Add cases to the script's `CASES` table and regenerate — never hand-edit the fixture.
 - Scale: ~183 top-level test files + 22 in `tests/zwds/`. Dedicated suites beyond the basics: match (14 files + sentinel payloads), dayun (13), impact, ephemeris supply-chain governance (`test_ephemeris_*`), release/toolchain gates (`test_release_*`, `test_toolchain_pinning.py`, `test_requirements_lock.py`, `test_sbom_validation.py`), lunar state (USNO reference fixture), natal, golden vectors, `test_import_hierarchy.py`, `test_openapi_contract.py`, `test_app_composition.py` (route-table golden).
 
 ## OpenAPI Contract

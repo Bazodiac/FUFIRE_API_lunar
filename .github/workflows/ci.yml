@@ -114,6 +114,13 @@ jobs:
       - name: Run ruff check
         run: uv run ruff check bazi_engine/ tests/ scripts/ --output-format=github
 
+      - name: Check TLST reference corpus against the Swiss Ephemeris oracle
+        # FBP-TST-007: tests/fixtures/tlst_reference_corpus_v1.json must stay
+        # reproducible from swe.time_equ / swe.lmt_to_lat. Runs on the Moshier
+        # fallback here (no SE1 files in this job); the corpus is backend-agnostic
+        # to < 1e-3 min and the script's --check tolerance absorbs that.
+        run: uv run python scripts/gen_tlst_reference_corpus.py --check
+
       - name: Assert immutable release toolchain inputs
         run: uv run python scripts/assert_toolchain_versions.py
 
