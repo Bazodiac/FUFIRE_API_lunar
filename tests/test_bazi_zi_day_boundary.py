@@ -7,7 +7,7 @@ is "TLST" and the request itself uses TLST, the boundary fires at
 tlst_hours >= zi_start_hour (HALF_OPEN, 23.0 per shipped ruleset).
 
 Madrid is chosen as the test fixture because it sits ~75 min west of
-the CET standard meridian, so civil 23:00 has TLST ≈ 21:30 — a clear
+the CET standard meridian, so civil 23:00 has TLST ≈ 21:31 — a clear
 divergence between the legacy clock-based check (rolls over at civil
 23) and the TLST-aware check (no rollover until apparent solar 23:00).
 """
@@ -129,8 +129,8 @@ def test_tlst_zi_boundary_does_not_roll_at_civil_23():
 
 def test_tlst_zi_boundary_does_roll_eventually():
     """At some civil hour, TLST DOES cross 23:00 and the rollover fires.
-    For Madrid in Feb (TLST ≈ civil - 1h28min), TLST reaches 23 around
-    civil 00:28 the next day. Use civil 02:00 next day (TLST ≈ 00:32 —
+    For Madrid in Feb (TLST ≈ civil − 1h29min), TLST reaches 23 around
+    civil 00:29 the next day. Use civil 02:00 next day (TLST ≈ 00:31 —
     past midnight in TLST terms) to confirm a rollover has happened
     relative to the 22:00 reference."""
     ref = _day_sex(_post("2024-02-15T22:00:00", "TLST"))

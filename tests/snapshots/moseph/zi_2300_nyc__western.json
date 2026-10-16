@@ -142,7 +142,7 @@
       "is_retrograde": false,
       "latitude": -0.6943251083,
       "longitude": 69.1030486694,
-      "speed": 0.2129309821,
+      "speed": 0.2129309837,
       "zodiac_sign": 2
     },
     "Lilith": {
@@ -151,16 +151,16 @@
       "is_retrograde": false,
       "latitude": 0.9300283452,
       "longitude": 180.635644497,
-      "speed": 0.1108321872,
+      "speed": 0.1108321871,
       "zodiac_sign": 6
     },
     "Mars": {
-      "degree_in_sign": 18.9208715546,
+      "degree_in_sign": 18.9208715545,
       "distance": 1.7212331071,
       "is_retrograde": false,
       "latitude": -0.9091303597,
-      "longitude": 48.9208715546,
-      "speed": 0.7147783192,
+      "longitude": 48.9208715545,
+      "speed": 0.7147783041,
       "zodiac_sign": 1
     },
     "Mercury": {
@@ -169,7 +169,7 @@
       "is_retrograde": false,
       "latitude": 1.5967803729,
       "longitude": 124.3606276925,
-      "speed": 1.6374743391,
+      "speed": 1.6374743335,
       "zodiac_sign": 4
     },
     "Moon": {
@@ -178,7 +178,7 @@
       "is_retrograde": false,
       "latitude": 4.9621370338,
       "longitude": 93.4129311092,
-      "speed": 13.3017738064,
+      "speed": 13.3017743002,
       "zodiac_sign": 3
     },
     "Neptune": {
@@ -187,7 +187,7 @@
       "is_retrograde": true,
       "latitude": -1.2822449616,
       "longitude": 359.9298728321,
-      "speed": -0.001441779,
+      "speed": -0.0014417795,
       "zodiac_sign": 11
     },
     "NorthNode": {
@@ -196,7 +196,7 @@
       "is_retrograde": true,
       "latitude": 0.0,
       "longitude": 11.0216714732,
-      "speed": -0.0529058384,
+      "speed": -0.0529058715,
       "zodiac_sign": 0
     },
     "Pluto": {
@@ -205,7 +205,7 @@
       "is_retrograde": true,
       "latitude": -3.1942008744,
       "longitude": 301.290394638,
-      "speed": -0.0222318651,
+      "speed": -0.022231872,
       "zodiac_sign": 10
     },
     "Saturn": {
@@ -214,7 +214,7 @@
       "is_retrograde": true,
       "latitude": -2.0001944345,
       "longitude": 349.404557752,
-      "speed": -0.008834841,
+      "speed": -0.0088348427,
       "zodiac_sign": 11
     },
     "Sun": {
@@ -227,12 +227,12 @@
       "zodiac_sign": 3
     },
     "TrueNorthNode": {
-      "degree_in_sign": 10.9549927235,
-      "distance": 0.0024771956,
+      "degree_in_sign": 10.9549920418,
+      "distance": 0.0024771957,
       "is_retrograde": true,
       "latitude": 0.0,
-      "longitude": 10.9549927235,
-      "speed": -0.2081401835,
+      "longitude": 10.9549920418,
+      "speed": -0.2081383027,
       "zodiac_sign": 0
     },
     "Uranus": {
@@ -241,7 +241,7 @@
       "is_retrograde": false,
       "latitude": -0.2608360776,
       "longitude": 55.9033128853,
-      "speed": 0.0432981529,
+      "speed": 0.0432981666,
       "zodiac_sign": 1
     },
     "Venus": {
@@ -250,7 +250,7 @@
       "is_retrograde": false,
       "latitude": 1.0430254979,
       "longitude": 111.9444252073,
-      "speed": 1.2289991034,
+      "speed": 1.2289991164,
       "zodiac_sign": 3
     }
   },
@@ -281,7 +281,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc1-20260220",
+    "engine_version": "1.0.0-rc2-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -361,7 +361,7 @@
     },
     "parameter_set_id": "default_v1",
     "ruleset_id": "traditional_bazi_2026",
-    "tzdb_version_id": "unknown",
+    "tzdb_version_id": "2026.2",
     "zodiac_mode": "tropical"
   },
   "quality_flags": {

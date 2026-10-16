@@ -82,3 +82,11 @@ class BaziResult:
     lichun_next_local_dt: Optional[datetime] = None
 
     solar_terms_local_dt: Optional[Sequence[SolarTerm]] = None
+
+    # FBP-TST-003 (GT6): the chart-local datetime whose calendar date the
+    # engine actually used for the day pillar (after the midnight/zi
+    # day-boundary policy, TLST-aware when applicable). Exposed so the
+    # derivation trace reuses the engine's decision instead of re-deriving
+    # it with a different rule. ``None`` only for results built outside
+    # ``compute_bazi`` (back-compat); consumers must fall back explicitly.
+    chart_day_dt: Optional[datetime] = None

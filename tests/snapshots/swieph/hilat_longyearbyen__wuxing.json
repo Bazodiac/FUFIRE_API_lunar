@@ -126,7 +126,7 @@
     "tz": "Arctic/Longyearbyen"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc1-20260220",
+    "engine_version": "1.0.0-rc2-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "porphyry",
     "parameter_set": {

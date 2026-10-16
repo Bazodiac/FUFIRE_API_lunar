@@ -1,7 +1,7 @@
 # True Solar Time (TLST) — Befund und Sanierungsplan
 
 **Datum:** 2026-10-15
-**Status:** Befund verifiziert, Plan freigabereif, Fix **nicht** angewendet (siehe §0)
+**Status:** Befund verifiziert (PR #55, gemerged). **E1 freigegeben 2026-10-16; T1–T3 (+GT6) umgesetzt** (siehe §7). Offen: T4 (DEV-2026-008), T5 (DEV-2026-011, Domain-Sign-off E5), T6, T7.
 **Auslöser:** 15:44 MESZ + Hannover-Koordinaten liefert intern widersprüchliche
 Werte (LMT 14:22 vs. TLST 16:17 → Stundensäule Wei vs. Shen).
 **Referenzsystem:** Swiss Ephemeris (`swe.time_equ`, `swe.lmt_to_lat`), Korpus
@@ -370,3 +370,17 @@ Revert die Snapshots mitnimmt.
 | `scripts/check_complexity.py --check` | passed |
 | `scripts/gen_tlst_reference_corpus.py --check` (beide Backends) | OK |
 | `pytest tests/` (MOSEPH, lokal) | 200 vorbestehende `test_snapshot_stability`-Fails + 1 env-abhängiger `test_security_findings`-Fail — unabhängig von dieser Änderung (identisch vor/nach) |
+
+---
+
+## 7. Umsetzungsstand T1–T3 (2026-10-16, FBP-TST-001…003)
+
+| Task | Ergebnis |
+|---|---|
+| T1 | `fusion.true_solar_time_from_civil` entfernt (E4). Regressionstest `test_true_solar_time_from_civil_helper_removed`. |
+| T2 | `compute_effective_time_context_from_instant(civil_local, lon)` ist der kanonische Einstieg; `compute_effective_time_context(..., fold=0)` delegiert. Alle Aufrufer (`bazi.py`, Router-Trace, `/calculate/tst`, `chronometry.py`, `zwds/seed.py`) übergeben den aufgelösten aware-Instant. |
+| T3 | TLST = UTC + lon·4 min + EoT als `timedelta` auf der UTC-Achse; `date_rollover` aus dem TLST-Datum. GT6: `BaziResult.chart_day_dt` (additiv, frozen) trägt die Tagesentscheidung der Engine; der Trace liest sie statt neu abzuleiten; OpenAPI-Caveat entfernt; strikter xfail → regulärer Test. Engine-Build-Label `1.0.0-rc2-20261016`. |
+| Tests | Bugpinnende Tests umgeschrieben (`test_tlst_formula_is_utc_based`, Fold-Test, Rollover −1); Madrid-Fixture 02:00 → 02:20 mit 02:00 als Kontrolle; Hannover-Fall als HTTP-Test (Wei). Korpus-Tripwires DEV-009/010/012 laufen als Regressionstests; DEV-008 und DEV-011 bleiben `xfail(strict)`. Korpus-Tests pinnen den swisseph-Pfad per Autouse-Fixture, weil `test_ephemeris_attestation.py` globalen Zustand hinterlässt (nur unter MOSEPH sichtbar). |
+| Snapshots | SWIEPH mit SHA-verifizierten Ephemeriden (`ephemeris.lock.json`) lokal regeneriert und auf materielle Felder reduziert: 200 Dateien, ausschließlich `provenance.engine_version` und `derivation_trace.time_resolution.tlst_hours` (37 Dateien); Float-Rauschen ≤ 7e-8 verworfen. `chronometry_canonical.json` „15:23“ → „13:23“. MOSEPH-Snapshots vollständig regeneriert (waren seit Phase 3 veraltet). |
+| Verifikation | SWIEPH: 3993 passed, 102 skipped, 3 xfailed. MOSEPH: 3448 passed, 1 vorbestehender env-abhängiger Fail (`test_security_findings`). ruff, mypy, Komplexität, OpenAPI-Drift-Check grün. |
+| Nicht enthalten | T4 (`/calculate/wuxing`, `/chart`), T5 (TLST-Tagessäule, E5), T6 (exakte EoT), T7 (Hygiene). CHANGELOG bleibt release-please-geführt; der Commit ist als `fix(tlst):` mit Hinweis auf die numerische Wire-Änderung formuliert. |

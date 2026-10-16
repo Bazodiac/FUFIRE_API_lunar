@@ -32,10 +32,11 @@ is always a real tz-aware datetime:
   :func:`bazi_engine.time_utils.lmt_tzinfo`).
 * ``TLST``  — apparent solar offset ``longitude × 4 min + equation_of_time``.
   The equation-of-time value is taken from
-  :func:`bazi_engine.time_context.compute_effective_time_context`; its own
-  ``tlst_hours`` is **not** used because it adds the full longitude offset to
-  the *civil* wall-clock (double-counting the zone offset for non-UTC zones),
-  whereas the ZWDS day-boundary frame must be anchored to the true UTC instant.
+  :func:`bazi_engine.time_context.compute_effective_time_context_from_instant`.
+  (Its ``tlst_hours`` is UTC-anchored since FBP-TST-003 / DEV-2026-009 and
+  agrees with this offset; the seed keeps its own tz-aware ``effective_local``
+  because the ZWDS calendar provider needs a real UTC offset, not an
+  hour-of-day.)
 
 Layer: this module may import ``time_utils``, ``time_context`` and its ZWDS
 siblings (``zwds.domain``, ``zwds.errors``, ``zwds.calendar_provider``) only. It
@@ -49,7 +50,7 @@ from datetime import date, datetime, timedelta
 from datetime import timezone as dt_timezone
 from typing import Optional, Tuple
 
-from bazi_engine.time_context import compute_effective_time_context
+from bazi_engine.time_context import compute_effective_time_context_from_instant
 from bazi_engine.time_utils import lmt_tzinfo, resolve_local_iso
 from bazi_engine.zwds.calendar_provider import (
     ResolvedLunarDate,
@@ -182,9 +183,8 @@ def resolve_chronometry(
     elif std == "LMT":
         effective_local = birth_utc.astimezone(lmt_tzinfo(lon))
     elif std == "TLST":
-        naive_iso = civil_dt.replace(tzinfo=None).isoformat()
-        eot_minutes = compute_effective_time_context(
-            naive_iso, timezone, lon
+        eot_minutes = compute_effective_time_context_from_instant(
+            civil_dt, lon
         ).eot_minutes
         tlst_offset_min = lon * 4.0 + eot_minutes
         effective_local = birth_utc.astimezone(

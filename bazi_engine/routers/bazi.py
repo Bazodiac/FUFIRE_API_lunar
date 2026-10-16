@@ -17,7 +17,7 @@ from ..constants import ANIMALS, BRANCHES, STEMS
 from ..exc import BaziEngineError
 from ..limiter import limiter, tier_limit
 from ..provenance import WUXING_PARAMETER_SET, build_provenance
-from ..time_context import compute_effective_time_context
+from ..time_context import compute_effective_time_context_from_instant
 from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy, apply_day_boundary, resolve_local_iso
 from ..types import BaziInput, BaziResult, Fold
 from ..wuxing.analysis import calculate_wuxing_from_bazi_with_ledger
@@ -268,8 +268,15 @@ def _build_derivation_trace(
     # Jie qi solar longitudes: month 0 (LiChun) = 315, each +30
     solar_lon_deg = (315.0 + res.month_index * 30.0) % 360.0
 
-    # Day trace: JDN and sexagenary index
-    dt_for_day = apply_day_boundary(res.chart_local_dt, inp.day_boundary)
+    # Day trace: JDN and sexagenary index. FBP-TST-003 (GT6): reuse the
+    # engine's own day-pillar date (TLST-aware zi rollover included) so the
+    # trace can never contradict the headline day pillar. The legacy
+    # re-derivation is kept only for results built outside compute_bazi.
+    dt_for_day = (
+        res.chart_day_dt
+        if res.chart_day_dt is not None
+        else apply_day_boundary(res.chart_local_dt, inp.day_boundary)
+    )
     jdn = jdn_gregorian(dt_for_day.year, dt_for_day.month, dt_for_day.day)
     sex_idx = sexagenary_day_index_from_date(
         dt_for_day.year, dt_for_day.month, dt_for_day.day,
@@ -295,10 +302,9 @@ def _build_derivation_trace(
 
     # FBP-03-003 — compute the full effective time context regardless of the
     # requested standard so the trace always exposes all three time bases.
-    time_ctx = compute_effective_time_context(
-        birth_local_iso=inp.birth_local,
-        tz_name=inp.timezone,
-        longitude_deg=inp.longitude_deg,
+    # FBP-TST-002: built from the resolved aware instant (fold-faithful).
+    time_ctx = compute_effective_time_context_from_instant(
+        res.birth_local_dt, inp.longitude_deg,
     )
 
     return BaziDerivationTrace(
@@ -460,11 +466,9 @@ def calculate_bazi_endpoint(request: Request, req: BaziRequest) -> Dict[str, Any
         "`{year, month, day, hour, time_resolution, provenance_ids}` (not "
         "the PRD's hypothetical fields). The `include_trace` flag in the "
         "body is ignored here — this route always returns the trace.\n\n"
-        "**Known limitation (tracked):** for `standard=TLST` with "
-        "`boundary=zi` near the 23:00 late-Zi rollover, "
-        "`derivation_trace.day` may diverge by one day from the headline "
-        "day pillar — trust the headline day pillar; the trace/pillar "
-        "consistency fix is tracked in the backlog (GT6)."
+        "`derivation_trace.day` is derived from the same day-boundary "
+        "decision as the headline day pillar (TLST-aware late-Zi rollover "
+        "included), so the two can never disagree."
     ),
 )
 @limiter.limit(tier_limit)
@@ -480,14 +484,10 @@ def calculate_bazi_trace_endpoint(request: Request, req: BaziRequest) -> Dict[st
     PRD's hypothetical fields). The `include_trace` flag in the body is
     ignored here — this route always returns the trace.
 
-    Known limitation (tracked, GT6): for ``standard=TLST`` with
-    ``boundary=zi`` near the 23:00 late-Zi rollover,
-    ``_build_derivation_trace`` re-derives the day via the legacy
-    ``apply_day_boundary`` (naive +1h), which can disagree with
-    ``compute_bazi``'s TLST-aware late-Zi rollover. In that corner the
-    ``derivation_trace.day`` may be one day off from the headline day
-    pillar — trust the headline day pillar. The engine fix is deferred to
-    its own increment (it churns snapshots); see GT6 in the plan.
+    GT6 (resolved, FBP-TST-003): ``derivation_trace.day`` is built from
+    ``BaziResult.chart_day_dt`` — the exact day-boundary decision the
+    engine made (TLST-aware late-Zi rollover included) — so it can never
+    disagree with the headline day pillar.
     """
     return _compute_bazi_response(req, force_trace=True)
 

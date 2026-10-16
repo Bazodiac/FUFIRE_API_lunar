@@ -11,11 +11,11 @@
   "julian_day_number": 2448058,
   "longitude_correction_minutes": 53.62,
   "precision": {
-    "algorithm_version": "1.0.0-rc1-20260220",
+    "algorithm_version": "1.0.0-rc2-20261016",
     "grade": "exact",
     "warnings": []
   },
   "solar_longitude_degrees": 84.1494533647,
   "solar_term": "Mang Zhong",
-  "true_solar_time": "15:23"
+  "true_solar_time": "13:23"
 }

@@ -16,7 +16,7 @@ from .constants import DAY_OFFSET
 from .ephemeris import SwissEphBackend, datetime_utc_to_jd_ut, jd_ut_to_datetime_utc
 from .exc import CalculationError, NotSupportedError
 from .jieqi import compute_24_solar_terms_for_window, compute_month_boundaries_from_lichun
-from .time_context import EffectiveTimeContext, compute_effective_time_context
+from .time_context import EffectiveTimeContext, compute_effective_time_context_from_instant
 from .time_utils import apply_day_boundary, parse_local_iso, to_chart_local
 from .types import BaziInput, BaziResult, FourPillars, Pillar, SolarTerm
 
@@ -86,14 +86,16 @@ def _day_offset_for_input(inp: BaziInput, ruleset: dict[str, Any] | None) -> int
     return day_offset_from_ruleset(effective_ruleset)
 
 
-def _effective_time_context_for_input(inp: BaziInput) -> EffectiveTimeContext | None:
+def _effective_time_context_for_input(
+    inp: BaziInput,
+    birth_local_dt: datetime,
+) -> EffectiveTimeContext | None:
+    """TLST context for a TLST request, built from the *resolved* aware
+    birth datetime so the DST fold chosen upstream is honoured
+    (DEV-2026-010)."""
     if inp.time_standard != "TLST":
         return None
-    return compute_effective_time_context(
-        birth_local_iso=inp.birth_local,
-        tz_name=inp.timezone,
-        longitude_deg=inp.longitude_deg,
-    )
+    return compute_effective_time_context_from_instant(birth_local_dt, inp.longitude_deg)
 
 
 def _dt_for_day_pillar(
@@ -224,7 +226,7 @@ def compute_bazi(inp: BaziInput) -> BaziResult:
     month_index = _month_index_for_chart(chart_local_dt, month_bounds_local)
     month_p = month_pillar_from_year_stem(year_p.stem_index, month_index, ruleset=ruleset)
 
-    ctx = _effective_time_context_for_input(inp)
+    ctx = _effective_time_context_for_input(inp, birth_local_dt)
 
     calculated_offset = _day_offset_for_input(inp, ruleset)
     dt_for_day = _dt_for_day_pillar(inp, chart_local_dt, ruleset, ctx)
@@ -267,4 +269,5 @@ def compute_bazi(inp: BaziInput) -> BaziResult:
         is_before_lichun=before_lichun,
         lichun_next_local_dt=jd_ut_to_datetime_utc(jd_lichun_next).astimezone(chart_local_dt.tzinfo),
         solar_terms_local_dt=solar_terms,
+        chart_day_dt=dt_for_day,
     )

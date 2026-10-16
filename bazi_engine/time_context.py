@@ -1,7 +1,7 @@
 """EffectiveTimeContext — typed decomposition of a birth instant
 across the three time standards used by the BaZi engine.
 
-FBP-01-002 / FBP-01-006:
+FBP-01-002 / FBP-01-006 / FBP-TST-002 / FBP-TST-003:
 
 - ``CIVIL`` = legal local time in the IANA timezone (tz-aware).
 - ``LMT``   = mean solar time at the given longitude (tz-aware, with a
@@ -13,12 +13,23 @@ FBP-01-002 / FBP-01-006:
               modeling it as a tzinfo would invite false symmetry with
               CIVIL/LMT.
 
+Definition (``docs/fusion/04_solar_time.md``)::
+
+    UTC  = civil − zone_offset
+    LMT  = UTC + longitude_deg × 4 min
+    TLST = LMT + equation_of_time
+
+All three relabel the **same physical instant**; ``utc`` is the only axis
+the solar corrections are applied to. (DEV-2026-009 was exactly the
+mistake of applying them to the civil wall-clock instead, which made
+``tlst_hours`` wrong by the zone offset for every non-UTC zone.)
+
 Dependencies: stdlib + ``bazi_engine.solar_time`` (which is itself
 stdlib-only). This module sits at Level 2 and must not import from
 ``bazi.py``, ``fusion.py``, or any router.
 
-See ``docs/audits/fufire_bazi_precision_pre_audit.md`` §2 and
-``docs/plans/2026-05-14-phase1-effective-time-model.md`` for context.
+See ``docs/plans/2026-10-15-true-solar-time-remediation.md`` and
+``docs/audits/fufire_bazi_precision_pre_audit.md`` §2 for context.
 """
 from __future__ import annotations
 
@@ -64,10 +75,11 @@ class EffectiveTimeContext:
     boundary cases (TLST rollover, EoT magnitude, civil tz offset).
 
     Frozen by design — mirrors ``BaziInput`` / ``BaziResult`` /
-    ``Provenance``. Build via :func:`compute_effective_time_context`.
+    ``Provenance``. Build via :func:`compute_effective_time_context`
+    or :func:`compute_effective_time_context_from_instant`.
     """
 
-    civil_local: datetime           # tz-aware, IANA tz
+    civil_local: datetime           # tz-aware, IANA tz (fold preserved)
     utc: datetime                   # tz-aware, UTC
     lmt_local: datetime             # tz-aware, constant longitude offset
     tlst_hours: float               # apparent solar hour-of-day, in [0, 24)
@@ -76,63 +88,55 @@ class EffectiveTimeContext:
     date_rollover: int              # day shift of TLST relative to civil date
 
 
-def compute_effective_time_context(
-    birth_local_iso: str,
-    tz_name: str,
+def compute_effective_time_context_from_instant(
+    civil_local: datetime,
     longitude_deg: float,
 ) -> EffectiveTimeContext:
-    """Decompose a civil ISO timestamp + IANA zone + longitude into the
-    three time standards.
+    """Decompose an **aware** civil datetime + longitude into the three
+    time standards.
 
-    The caller is responsible for DST disambiguation upstream — by the
-    time this function is invoked, ``birth_local_iso`` is expected to
-    be the resolved naive ISO produced by
-    :func:`bazi_engine.time_utils.resolve_local_iso`.
+    This is the canonical entry point: the caller has already resolved
+    DST (gap / fold) and hands over the exact instant, so no information
+    is lost. ``civil_local.fold`` is honoured because the conversion to
+    UTC goes through ``astimezone`` on the aware value itself.
 
     Parameters
     ----------
-    birth_local_iso
-        Naive ISO 8601 local datetime, e.g. ``"2024-02-10T14:30:00"``.
-    tz_name
-        IANA timezone name, e.g. ``"Europe/Berlin"``.
+    civil_local
+        Timezone-aware local datetime (IANA zone, ``fold`` set as resolved).
     longitude_deg
         Geographic longitude, degrees east (negative = west).
 
-    Returns
-    -------
-    EffectiveTimeContext
-        Immutable record. ``tlst_hours`` is the apparent-solar
-        hour-of-day in ``[0, 24)``; if the raw TLST crosses a day
-        boundary, ``date_rollover`` records the shift (``+1`` if TLST
-        is the next day, ``-1`` if previous day).
+    Raises
+    ------
+    ValueError
+        If ``civil_local`` is naive.
     """
-    civil_naive = datetime.fromisoformat(birth_local_iso)
-    civil_local = civil_naive.replace(tzinfo=ZoneInfo(tz_name))
+    if civil_local.tzinfo is None or civil_local.utcoffset() is None:
+        raise ValueError("civil_local must be timezone-aware (resolve DST first).")
+
     utc = civil_local.astimezone(timezone.utc)
+    lmt_local = utc.astimezone(_LongitudeMeanTime(longitude_deg))
 
-    lmt_tz = _LongitudeMeanTime(longitude_deg)
-    lmt_local = utc.astimezone(lmt_tz)
-
+    # EoT keyed on the civil calendar day (as every other consumer in the
+    # engine does); the approximation's error budget is < 0.8 min, see
+    # tests/test_tlst_reference_corpus.py::test_eot_approximation_bound_full_year_vs_swisseph.
     day_of_year = civil_local.timetuple().tm_yday
     eot_min = float(equation_of_time(day_of_year))
-    # Civil hours + longitude correction + EoT. Matches the inline
-    # formula in ``bazi_engine/routers/fusion.py:264-267``; the
-    # endpoint will be migrated to this function in FBP-01-003.
-    civil_hours = (
-        civil_local.hour
-        + civil_local.minute / 60
-        + civil_local.second / 3600
+
+    # TLST on the UTC axis: one timedelta applied to the instant. The
+    # result is kept as a *naive* wall-clock (hour-of-day + calendar date)
+    # on purpose — TLST is not a tzinfo (FBP-01-006).
+    tlst_wall = utc.replace(tzinfo=None) + timedelta(
+        minutes=longitude_deg * 4.0 + eot_min
     )
-    delta_t_long = longitude_deg * 4 / 60
-    raw_tlst = civil_hours + delta_t_long + (eot_min / 60)
-    tlst_hours = raw_tlst % 24.0
-    # Day rollover: integer floor of (raw / 24) so that negative raw
-    # values (west of meridian, very early morning civil) produce a
-    # ``-1`` rollover rather than a stale positive remainder.
-    if raw_tlst >= 0:
-        rollover = int(raw_tlst // 24.0)
-    else:
-        rollover = -int((-raw_tlst + 24.0 - 1e-9) // 24.0)
+    tlst_hours = (
+        tlst_wall.hour
+        + tlst_wall.minute / 60.0
+        + tlst_wall.second / 3600.0
+        + tlst_wall.microsecond / 3.6e9
+    )
+    rollover = (tlst_wall.date() - civil_local.date()).days
 
     tz_off = civil_local.utcoffset()
     tz_off_min = 0 if tz_off is None else int(round(tz_off.total_seconds() / 60))
@@ -146,3 +150,45 @@ def compute_effective_time_context(
         tz_offset_minutes=tz_off_min,
         date_rollover=rollover,
     )
+
+
+def compute_effective_time_context(
+    birth_local_iso: str,
+    tz_name: str,
+    longitude_deg: float,
+    *,
+    fold: int = 0,
+) -> EffectiveTimeContext:
+    """Convenience wrapper: naive ISO + IANA zone (+ ``fold``) → context.
+
+    The caller is responsible for DST disambiguation upstream — by the
+    time this function is invoked, ``birth_local_iso`` is expected to
+    be the resolved naive ISO produced by
+    :func:`bazi_engine.time_utils.resolve_local_iso`, and ``fold`` the
+    choice that resolution made (``0`` = first occurrence, ``1`` = second
+    occurrence of an ambiguous fall-back time). Callers that already hold
+    the aware datetime should use
+    :func:`compute_effective_time_context_from_instant` directly.
+
+    Parameters
+    ----------
+    birth_local_iso
+        Naive ISO 8601 local datetime, e.g. ``"2024-02-10T14:30:00"``.
+    tz_name
+        IANA timezone name, e.g. ``"Europe/Berlin"``.
+    longitude_deg
+        Geographic longitude, degrees east (negative = west).
+    fold
+        DST fold for ambiguous local times (default ``0``).
+
+    Returns
+    -------
+    EffectiveTimeContext
+        Immutable record. ``tlst_hours`` is the apparent-solar
+        hour-of-day in ``[0, 24)``; if TLST falls on a different calendar
+        day than the civil input, ``date_rollover`` records the shift
+        (``+1`` next day, ``-1`` previous day).
+    """
+    civil_naive = datetime.fromisoformat(birth_local_iso)
+    civil_local = civil_naive.replace(tzinfo=ZoneInfo(tz_name), fold=fold)
+    return compute_effective_time_context_from_instant(civil_local, longitude_deg)

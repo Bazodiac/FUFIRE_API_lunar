@@ -54,7 +54,7 @@
       "effective_standard": "CIVIL",
       "eot_minutes": -13.614,
       "lmt": "2023-02-04T10:29:37.776000+07:45:37.776000",
-      "tlst_hours": 18.266927,
+      "tlst_hours": 10.266927,
       "tz_offset_minutes": 480,
       "utc": "2023-02-04T02:44:00+00:00"
     },
@@ -106,7 +106,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc1-20260220",
+    "engine_version": "1.0.0-rc2-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {
