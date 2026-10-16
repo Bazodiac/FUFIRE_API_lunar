@@ -374,3 +374,22 @@ class TestMeeusEquationOfTime:
 
     def test_j2000_epoch(self):
         assert jd_ut_from_datetime(datetime(2000, 1, 1, 12, tzinfo=timezone.utc)) == 2451545.0
+
+    @pytest.mark.parametrize("year", [1, 1000, 1600, 1800, 1900, 2100, 2200, 2500, 3000])
+    def test_far_epochs_stay_within_bound(self, year):
+        """S-4 review: pins beyond the 1950–2030 sweep (4 samples/day)."""
+        import swisseph as swe
+        jd = swe.julday(year, 1, 1, 0.0)
+        worst = 0.0
+        for _ in range(366 * 4):
+            worst = max(worst, abs(equation_of_time_jd(jd) - self._oracle_min(jd)))
+            jd += 0.25
+        assert worst < self.MEEUS_TOL_MIN, (year, worst)
+
+    def test_nutation_is_not_double_counted(self):
+        """S-4 review finding: Meeus' 25.8 shorthand ``−0.00478°·sin Ω`` *is* the
+        dominant nutation term; adding it on top of Δψ raised the 1950–2030 error
+        from 0.038 to 0.058 min. Pin the tighter bound on the worst 2029 sample."""
+        import swisseph as swe
+        jd = swe.julday(2029, 7, 3, 18.0)
+        assert abs(equation_of_time_jd(jd) - self._oracle_min(jd)) < 0.045

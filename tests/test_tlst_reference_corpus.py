@@ -118,8 +118,8 @@ def test_corpus_is_reproducible_with_live_swisseph(case_id):
 
 
 def test_hannover_reference_values_are_the_documented_ones():
-    """The user-reported case: 15:44 MESZ, Hannover → TLST 14:17 (Wei), 2 h earlier
-    than what the engine currently reports (16:17, Shen)."""
+    """The user-reported case: 15:44 MESZ, Hannover → TLST 14:17 (Wei). Before
+    FBP-TST-003 the engine reported 16:17 (Shen), 2 h too late."""
     ref = CASES["hannover_1990_mesz_1544"]["reference"]
     assert ref["utc_iso"] == "1990-07-15T13:44:00+00:00"
     assert ref["utc_offset_minutes"] == 120
@@ -564,3 +564,42 @@ def test_chronometry_exposes_eot_source(client):
         pytest.skip("ephemeris unavailable")
     assert r.status_code == 200, r.text
     assert r.json()["chronometry"]["eot_source"] == "meeus_1998"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 9. S-4 review findings — regression guards
+# ═══════════════════════════════════════════════════════════════════════════
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+@pytest.mark.parametrize("standard", ["CIVIL", "LMT", "TLST"])
+def test_trace_hour_matches_headline_hour(client, case_id, standard):
+    """R1 finding F1: under TLST the trace published the CIVIL hour branch next
+    to a TLST headline pillar. The trace must carry the engine's decision."""
+    from bazi_engine.constants import BRANCHES
+    case = CASES[case_id]
+    r = client.post("/calculate/bazi", json={
+        "date": case["input"]["birth_local_iso"], "tz": case["input"]["timezone"],
+        "lon": case["input"]["longitude_deg"], "lat": 45.0, "standard": standard,
+        "ambiguousTime": "later" if case["input"]["fold"] else "earlier",
+    })
+    if r.status_code == 503:
+        pytest.skip("ephemeris unavailable")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    hour_trace = body["derivation_trace"]["hour"]
+    assert hour_trace["branch_index"] == BRANCHES.index(body["pillars"]["hour"]["zweig"])
+    if standard == "TLST":
+        tr = body["derivation_trace"]["time_resolution"]
+        assert hour_trace["branch_index"] == hour_branch_index_from_tlst(tr["tlst_hours"])
+        assert hour_trace["local_hour"] == int(tr["tlst_hours"])
+
+
+def test_tlst_hours_never_reaches_24_after_rounding(client):
+    """R1 finding F5: a wall-clock in the last ~2 ms of the day rounded to 24.0."""
+    ctx = compute_effective_time_context("2024-06-16T00:00:43.539846", "UTC", 0.0)
+    assert 23.9999 <= ctx.tlst_hours < 24.0, ctx
+    assert ctx.date_rollover == -1
+    r = client.post("/calculate/tst", json={"date": "2024-06-16T00:00:43.539846", "tz": "UTC", "lon": 0.0})
+    assert r.status_code == 200, r.text
+    assert r.json()["true_solar_time_hours"] < 24.0
+    assert r.json()["true_solar_time_formatted"] == "23:59"

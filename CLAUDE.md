@@ -23,7 +23,7 @@ Two engines live here: the mature BaZi/Western fusion engine, and a second, inde
 ### Versioning (two independent axes)
 
 1. **Package/release version** in `pyproject.toml` — owned by [release-please](https://github.com/googleapis/release-please) in **manifest mode**: `.release-please-manifest.json` must stay consistent with pyproject and `CHANGELOG.md`, and the workflow needs the `RELEASE_PLEASE_TOKEN` secret (fails closed without it). Never hand-edit the version in only one of these files. Caveat: release-please watches `main` only, so while work lands on master the automation is **dormant** — it has never actually cut a release here; 1.5.0 was a hand-seeded baseline reconstructed from upstream.
-2. **Engine build label** `bazi_engine/__init__.py` `__version__` (e.g. `1.0.0-rc5-20261016`) — used in API responses, the OpenAPI spec, and golden snapshot fixtures. Bumped manually, deliberately, alongside a snapshot regeneration. Regenerate the OpenAPI spec (`python scripts/export_openapi.py`) after changing it.
+2. **Engine build label** `bazi_engine/__init__.py` `__version__` (e.g. `1.0.0-rc6-20261016`) — used in API responses, the OpenAPI spec, and golden snapshot fixtures. Bumped manually, deliberately, alongside a snapshot regeneration. Regenerate the OpenAPI spec (`python scripts/export_openapi.py`) after changing it.
 
 ### Current State
 
@@ -71,6 +71,7 @@ python scripts/export_openapi.py              # Regenerate after endpoint change
 python scripts/export_openapi.py --check      # CI drift check
 python tests/golden/regen_route_table.py      # Regenerate route-mount golden after ANY mount/route change
 python scripts/gen_tlst_reference_corpus.py --check   # CI lint: TLST corpus vs Swiss-Ephemeris oracle (backend-agnostic)
+SE_EPHE_PATH=/tmp/ephe python scripts/tlst_grid_check.py   # 18k-sample TLST grid vs swe.lmt_to_lat (review evidence, not in CI)
 
 # Docker — FUFIRE_ENV is mandatory (image bakes FUFIRE_REQUIRE_EXPLICIT_ENV=1; omitting it crashes startup)
 docker build -t bazi_engine . && docker run -e FUFIRE_ENV=dev -p 8080:8080 bazi_engine

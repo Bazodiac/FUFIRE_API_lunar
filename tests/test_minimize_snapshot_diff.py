@@ -34,13 +34,22 @@ def test_material_change_is_kept_and_reported():
     assert sorted(mod.material_paths(old, merged)) == ["/eot", "/label"]
 
 
-def test_structural_change_is_not_merged_elementwise():
-    """Changed key sets / list lengths are taken from the new value verbatim."""
-    old = {"x": {"a": 1.0}}
-    new = {"x": {"a": 1.0 + 1e-9, "b": 2.0}}
-    assert mod.merge(old, new, TOL) == new
-    assert mod.material_paths(old, new) == ["/x"]
-    assert mod.merge([1.0, 2.0], [1.0], TOL) == [1.0]
+def test_additive_key_keeps_sibling_noise_at_head():
+    """S-4 review finding: one added key (e.g. ``eot_source``) must not turn
+    every float sibling into a rewritten value or collapse the report."""
+    old = {"x": {"a": 1.0, "c": [0.1, 0.2]}}
+    new = {"x": {"a": 1.0 + 1e-9, "b": 2.0, "c": [0.1 + 1e-9, 0.2]}}
+    merged = mod.merge(old, new, TOL)
+    assert merged == {"x": {"a": 1.0, "b": 2.0, "c": [0.1, 0.2]}}
+    assert mod.material_paths(old, merged) == ["/x/b (added)"]
+
+
+def test_removed_key_and_list_length_changes_are_reported():
+    assert mod.merge({"a": 1.0, "gone": 1.0}, {"a": 1.0 + 1e-9}, TOL) == {"a": 1.0}
+    assert mod.material_paths({"a": 1.0, "gone": 1.0}, {"a": 1.0}) == ["/gone (removed)"]
+    assert mod.merge([1.0, 2.0], [1.0 + 1e-9], TOL) == [1.0]
+    assert mod.merge([1.0], [1.0 + 1e-9, 3.0], TOL) == [1.0, 3.0]
+    assert mod.material_paths([1.0, 2.0], [1.0]) == ["[] (length 2 -> 1)"]
 
 
 def test_bools_are_never_treated_as_numbers():

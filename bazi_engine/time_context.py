@@ -139,6 +139,11 @@ def compute_effective_time_context_from_instant(
         + tlst_wall.microsecond / 3.6e9
     )
     rollover = (tlst_wall.date() - civil_local.date()).days
+    # ``round(…, 6)`` can lift a wall-clock in the last ~2 ms of the day to
+    # exactly 24.0; the instant is still on ``tlst_wall``'s date, so clamp to
+    # the largest representable value below 24 instead of wrapping (which
+    # would contradict ``date_rollover``). S-4 review finding.
+    tlst_hours = min(round(tlst_hours, 6), 23.999999)
 
     tz_off = civil_local.utcoffset()
     tz_off_min = 0 if tz_off is None else int(round(tz_off.total_seconds() / 60))
@@ -147,7 +152,7 @@ def compute_effective_time_context_from_instant(
         civil_local=civil_local,
         utc=utc,
         lmt_local=lmt_local,
-        tlst_hours=round(tlst_hours, 6),
+        tlst_hours=tlst_hours,
         eot_minutes=round(eot_min, 4),
         tz_offset_minutes=tz_off_min,
         date_rollover=rollover,

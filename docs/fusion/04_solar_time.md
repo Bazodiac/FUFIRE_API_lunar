@@ -112,10 +112,12 @@ Eigenschaften:
 
 - Reine Mathematik (stdlib), kein Swiss-Ephemeris-Aufruf — `/calculate/tst`
   bleibt ephemeridenfrei (Attestierungs-Invariante F3).
-- Gegen `swe.time_equ` gemessen: max |Δ| = 0,058 min über 118 340
-  Stichproben 1950–2030 (6-h-Raster), Mittel −0,006 min, kein
-  systematischer Offset; 1800–2200 ≤ 0,04 min. Harte Schranke in den Tests:
-  0,1 min (`tests/test_solar_time.py::TestMeeusEquationOfTime`).
+- Gegen `swe.time_equ` gemessen: max |Δ| = 0,038 min über 118 340
+  Stichproben 1950–2030 (6-h-Raster), kein systematischer Offset;
+  Jahre 1–3000 ≤ 0,08 min. Harte Schranke in den Tests: 0,1 min
+  (`tests/test_solar_time.py::TestMeeusEquationOfTime`). Hinweis: Meeus'
+  Kurzform 25.8 (`−0.00478°·sin Ω`) ist bereits der führende Nutationsterm
+  und darf nicht zusätzlich zu Δψ addiert werden (S-4-Review).
 - UT statt TT als Eingabe: der ΔT-Unterschied (≤ ~70 s) verschiebt die
   Zeitgleichung um < 0,003″, vernachlässigbar.
 - Provenance: jede Oberfläche, die `eot_minutes` ausgibt (`/calculate/tst`,
@@ -165,7 +167,8 @@ eine einzige Zeitdifferenz auf den **UTC-Instant** an:
 ```
 TLST_instant = UTC + (λ × 4 min + EoT)
 tlst_hours   = Stunde des Tages von TLST_instant
-date_rollover = Datum(TLST_instant) − Datum(zivil)        ∈ {−1, 0, +1}
+date_rollover = Datum(TLST_instant) − Datum(zivil)        (meist −1…+1; −2 in UTC+13/+14-Zonen
+                                                           mit weit westlicher Länge, z. B. Pacific/Apia)
 ```
 
 **Zeitgleichung im Engine-Pfad (FBP-TST-006, seit 2026-10-16):** `EoT` ist

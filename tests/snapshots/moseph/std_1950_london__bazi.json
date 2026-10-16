@@ -52,10 +52,10 @@
     "time_resolution": {
       "civil_local": "1950-06-15T10:00:00+01:00",
       "effective_standard": "CIVIL",
-      "eot_minutes": -0.1957,
+      "eot_minutes": -0.197,
       "eot_source": "meeus_1998",
       "lmt": "1950-06-15T08:59:29.328000-00:00:30.672000",
-      "tlst_hours": 8.988218,
+      "tlst_hours": 8.988197,
       "tz_offset_minutes": 60,
       "utc": "1950-06-15T09:00:00+00:00"
     },
@@ -107,7 +107,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc5-20261016",
+    "engine_version": "1.0.0-rc6-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
