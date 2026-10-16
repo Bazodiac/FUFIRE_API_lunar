@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc2-20261016"
+    "version": "1.0.0-rc3-20261016"
   },
   "paths": {
     "/": {
@@ -1362,7 +1362,7 @@
           "Fusion / Wu-Xing"
         ],
         "summary": "Calculate Tst Endpoint",
-        "description": "True Solar Time (TST) calculation.\n\nDelegates to :func:`bazi_engine.time_context.compute_effective_time_context`\nso the endpoint and the BaZi engine's effective-time decomposition\ncannot drift (FBP-01-003 / FBP-01-004).",
+        "description": "True Solar Time (TST) calculation.\n\nDelegates to :func:`bazi_engine.time_context.compute_effective_time_context_from_instant`\nso the endpoint and the BaZi engine's effective-time decomposition\ncannot drift (FBP-01-003 / FBP-01-004).",
         "operationId": "calculate_tst_endpoint_calculate_tst_post",
         "requestBody": {
           "content": {
@@ -4973,7 +4973,7 @@
           "Fusion / Wu-Xing"
         ],
         "summary": "Calculate Tst Endpoint",
-        "description": "True Solar Time (TST) calculation.\n\nDelegates to :func:`bazi_engine.time_context.compute_effective_time_context`\nso the endpoint and the BaZi engine's effective-time decomposition\ncannot drift (FBP-01-003 / FBP-01-004).",
+        "description": "True Solar Time (TST) calculation.\n\nDelegates to :func:`bazi_engine.time_context.compute_effective_time_context_from_instant`\nso the endpoint and the BaZi engine's effective-time decomposition\ncannot drift (FBP-01-003 / FBP-01-004).",
         "operationId": "calculate_tst_endpoint_v1_calculate_tst_post",
         "requestBody": {
           "content": {
@@ -10021,7 +10021,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc2-20261016"
+          "version": "1.0.0-rc3-20261016"
         }
       },
       "HourDerivationTrace": {

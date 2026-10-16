@@ -19,11 +19,10 @@ from ..fusion import (
     calculate_harmony_index,
     calculate_wuxing_from_bazi,
     calculate_wuxing_vector_from_planets,
-    equation_of_time,
-    true_solar_time,
 )
 from ..limiter import limiter, tier_limit
 from ..provenance import build_provenance, normalize_house_system
+from ..time_context import compute_effective_time_context_from_instant
 from ..time_utils import AmbiguousTimeChoice, LocalTimeError, NonexistentTimePolicy, resolve_local_iso
 from ..types import BaziInput, Fold, Pillar
 from ..western import compute_western_chart
@@ -279,11 +278,11 @@ def chart_endpoint(request: Request, req: ChartComputeRequest) -> Dict[str, Any]
             "dominant_bazi":   dominant_bazi,
         }
 
-        # Time scales
-        day_of_year = dt.timetuple().tm_yday
-        civil_hours = dt.hour + dt.minute / 60 + dt.second / 3600
-        eot_min = equation_of_time(day_of_year)
-        tst_hours = true_solar_time(civil_hours, req.geo_lon_deg, day_of_year)
+        # Time scales — FBP-TST-004 (DEV-2026-008): same UTC-axis context as
+        # /calculate/tst, the BaZi trace and chronometry (was civil + EoT).
+        time_ctx = compute_effective_time_context_from_instant(dt, req.geo_lon_deg)
+        eot_min = time_ctx.eot_minutes
+        tst_hours = time_ctx.tlst_hours
 
         time_scales: Dict[str, Any] = {
             "utc":         time_res.resolved_utc_iso,

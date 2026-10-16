@@ -1,7 +1,7 @@
 # True Solar Time (TLST) — Befund und Sanierungsplan
 
 **Datum:** 2026-10-15
-**Status:** Befund verifiziert (PR #55, gemerged). **E1 freigegeben 2026-10-16; T1–T3 (+GT6) umgesetzt** (siehe §7). Offen: T4 (DEV-2026-008), T5 (DEV-2026-011, Domain-Sign-off E5), T6, T7.
+**Status:** Befund verifiziert (PR #55, gemerged). **E1 freigegeben 2026-10-16; T1–T4 (+GT6) umgesetzt** (siehe §7/§8). Offen: T5 (DEV-2026-011, Domain-Sign-off E5), T6, T7.
 **Auslöser:** 15:44 MESZ + Hannover-Koordinaten liefert intern widersprüchliche
 Werte (LMT 14:22 vs. TLST 16:17 → Stundensäule Wei vs. Shen).
 **Referenzsystem:** Swiss Ephemeris (`swe.time_equ`, `swe.lmt_to_lat`), Korpus
@@ -384,3 +384,13 @@ Revert die Snapshots mitnimmt.
 | Snapshots | SWIEPH mit SHA-verifizierten Ephemeriden (`ephemeris.lock.json`) lokal regeneriert und auf materielle Felder reduziert: 200 Dateien, ausschließlich `provenance.engine_version` und `derivation_trace.time_resolution.tlst_hours` (37 Dateien); Float-Rauschen ≤ 7e-8 verworfen. `chronometry_canonical.json` „15:23“ → „13:23“. MOSEPH-Snapshots vollständig regeneriert (waren seit Phase 3 veraltet). |
 | Verifikation | SWIEPH: 3993 passed, 102 skipped, 3 xfailed. MOSEPH: 3448 passed, 1 vorbestehender env-abhängiger Fail (`test_security_findings`). ruff, mypy, Komplexität, OpenAPI-Drift-Check grün. |
 | Nicht enthalten | T4 (`/calculate/wuxing`, `/chart`), T5 (TLST-Tagessäule, E5), T6 (exakte EoT), T7 (Hygiene). CHANGELOG bleibt release-please-geführt; der Commit ist als `fix(tlst):` mit Hinweis auf die numerische Wire-Änderung formuliert. |
+
+## 8. Umsetzungsstand T4 (2026-10-16, FBP-TST-004)
+
+| Punkt | Ergebnis |
+|---|---|
+| Code | `routers/fusion.py` `/calculate/wuxing` und `routers/chart.py` `time_scales` lesen `compute_effective_time_context_from_instant(dt, lon)`; die direkten `equation_of_time`/`true_solar_time`-Aufrufe (ohne Zonen-Offset) sind aus beiden Routern entfernt. Werte: `equation_of_time` = `ctx.eot_minutes`, `true_solar_time` = `round(ctx.tlst_hours, 4)`, `tlst_hours` = `ctx.tlst_hours`. |
+| Wire | Numerische Änderung in `/calculate/wuxing.true_solar_time` (vorher civil + EoT) und `/chart.time_scales.tlst_hours`; Feldnamen unverändert. Engine-Build-Label `1.0.0-rc3-20261016`. |
+| Tests | DEV-008-Tripwires → Regressionstests; neuer dauerhafter Drift-Wächter `test_all_tst_surfaces_agree` (tst == wuxing == bazi-trace == chart == chronometry, 5 Korpusfälle). Verbleibender `xfail(strict)`: nur DEV-2026-011 (T5). |
+| Snapshots | SWIEPH regeneriert und auf materielle Felder reduziert (`engine_version` in allen, `true_solar_time`/`equation_of_time` in den wuxing-Dateien); MOSEPH regeneriert. |
+| Register | DEV-2026-008 → Resolved (v1, loud); die frühere v2-Vertagung ist durch E1 ersetzt. |
