@@ -142,7 +142,7 @@
       "is_retrograde": false,
       "latitude": -0.4323532268,
       "longitude": 287.9382023357,
-      "speed": 0.0576803272,
+      "speed": 0.0576803275,
       "zodiac_sign": 9
     },
     "Lilith": {
@@ -151,7 +151,7 @@
       "is_retrograde": false,
       "latitude": -4.2673935178,
       "longitude": 27.7546647139,
-      "speed": 0.1116112373,
+      "speed": 0.1116112539,
       "zodiac_sign": 0
     },
     "Mars": {
@@ -160,16 +160,16 @@
       "is_retrograde": true,
       "latitude": -3.699930343,
       "longitude": 24.9790355242,
-      "speed": -0.2731435358,
+      "speed": -0.2731435596,
       "zodiac_sign": 0
     },
     "Mercury": {
-      "degree_in_sign": 4.1978087546,
+      "degree_in_sign": 4.1978087547,
       "distance": 0.9974259749,
       "is_retrograde": false,
       "latitude": -2.8028593978,
-      "longitude": 214.1978087546,
-      "speed": 0.9915465715,
+      "longitude": 214.1978087547,
+      "speed": 0.9915465615,
       "zodiac_sign": 7
     },
     "Moon": {
@@ -178,7 +178,7 @@
       "is_retrograde": false,
       "latitude": -4.9534364914,
       "longitude": 1.608897547,
-      "speed": 12.0044377816,
+      "speed": 12.0044372972,
       "zodiac_sign": 0
     },
     "Neptune": {
@@ -187,7 +187,7 @@
       "is_retrograde": true,
       "latitude": -1.1157735754,
       "longitude": 349.0240108033,
-      "speed": -0.0256075,
+      "speed": -0.025607508,
       "zodiac_sign": 11
     },
     "NorthNode": {
@@ -200,12 +200,12 @@
       "zodiac_sign": 2
     },
     "Pluto": {
-      "degree_in_sign": 22.4892391794,
+      "degree_in_sign": 22.4892391793,
       "distance": 33.8756627073,
       "is_retrograde": true,
       "latitude": -1.0981383918,
-      "longitude": 292.4892391794,
-      "speed": -0.001628591,
+      "longitude": 292.4892391793,
+      "speed": -0.0016285946,
       "zodiac_sign": 9
     },
     "Saturn": {
@@ -214,43 +214,43 @@
       "is_retrograde": false,
       "latitude": -0.3141580347,
       "longitude": 295.3405441189,
-      "speed": 0.0033516857,
+      "speed": 0.003351684,
       "zodiac_sign": 9
     },
     "Sun": {
-      "degree_in_sign": 8.5195846398,
+      "degree_in_sign": 8.5195846399,
       "distance": 1.0010835285,
       "is_retrograde": false,
       "latitude": -0.0002294009,
-      "longitude": 188.5195846398,
-      "speed": 0.9829111738,
+      "longitude": 188.5195846399,
+      "speed": 0.9829111635,
       "zodiac_sign": 6
     },
     "TrueNorthNode": {
-      "degree_in_sign": 23.0647282013,
-      "distance": 0.0026476516,
+      "degree_in_sign": 23.0647278012,
+      "distance": 0.0026476514,
       "is_retrograde": true,
       "latitude": 0.0,
-      "longitude": 83.0647282013,
-      "speed": -0.2217457385,
+      "longitude": 83.0647278012,
+      "speed": -0.2217426478,
       "zodiac_sign": 2
     },
     "Uranus": {
-      "degree_in_sign": 9.8548315486,
+      "degree_in_sign": 9.8548315485,
       "distance": 18.9221169423,
       "is_retrograde": true,
       "latitude": -0.471911754,
-      "longitude": 39.8548315486,
-      "speed": -0.0332951287,
+      "longitude": 39.8548315485,
+      "speed": -0.0332951304,
       "zodiac_sign": 1
     },
     "Venus": {
-      "degree_in_sign": 28.1190782486,
+      "degree_in_sign": 28.1190782487,
       "distance": 1.0744764024,
       "is_retrograde": false,
       "latitude": 0.2753702001,
-      "longitude": 148.1190782486,
-      "speed": 1.1616161231,
+      "longitude": 148.1190782487,
+      "speed": 1.1616161282,
       "zodiac_sign": 4
     }
   },
@@ -281,7 +281,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc1-20260220",
+    "engine_version": "1.0.0-rc2-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -361,7 +361,7 @@
     },
     "parameter_set_id": "default_v1",
     "ruleset_id": "traditional_bazi_2026",
-    "tzdb_version_id": "unknown",
+    "tzdb_version_id": "2026.2",
     "zodiac_mode": "tropical"
   },
   "quality_flags": {

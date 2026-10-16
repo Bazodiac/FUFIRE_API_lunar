@@ -16,19 +16,47 @@
   },
   "derivation_trace": {
     "day": {
+      "day_anchor_evidence": {
+        "anchor_jdn": 2419451,
+        "anchor_sex_idx": 0,
+        "anchor_verification": "unverified",
+        "ruleset_id": "standard_bazi_2026",
+        "ruleset_version": "1.0.0"
+      },
+      "day_master_stem": "Ji",
       "day_offset_used": 49,
       "julian_day_number": 2460416,
       "sexagenary_index": 45
     },
     "hour": {
       "branch_index": 6,
+      "hour_branch_time_policy": null,
+      "lmt_used": false,
       "local_hour": 12,
+      "time_standard_requested": "CIVIL",
+      "time_standard_used": "CIVIL",
       "true_solar_time_used": false
     },
     "month": {
       "jieqi_crossing_utc": "2024-04-04T07:02:17.262006+00:00",
       "month_branch_index": 4,
       "solar_longitude_deg": 15.0
+    },
+    "provenance_ids": {
+      "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
+      "ruleset_id": "standard_bazi_2026",
+      "ruleset_version": "1.0.0",
+      "time_policy_id": "civil_midnight",
+      "vector_model_id": "wuxing_v1.1.0"
+    },
+    "time_resolution": {
+      "civil_local": "2024-04-15T12:00:00+12:00",
+      "effective_standard": "CIVIL",
+      "eot_minutes": 0.02,
+      "lmt": "2024-04-15T11:39:03.192000+11:39:03.192000",
+      "tlst_hours": 11.65122,
+      "tz_offset_minutes": 720,
+      "utc": "2024-04-15T00:00:00+00:00"
     },
     "year": {
       "is_before_lichun": false,
@@ -78,7 +106,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc1-20260220",
+    "engine_version": "1.0.0-rc2-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -158,8 +186,12 @@
     },
     "parameter_set_id": "default_v1",
     "ruleset_id": "traditional_bazi_2026",
-    "tzdb_version_id": "unknown",
+    "tzdb_version_id": "2026.2",
     "zodiac_mode": "tropical"
+  },
+  "quality_flags": {
+    "chart_type_quality": null,
+    "ephemeris_mode": "MOSEPH"
   },
   "solar_terms_count": 24,
   "transition": {

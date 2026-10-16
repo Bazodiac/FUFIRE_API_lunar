@@ -1,4 +1,5 @@
 {
+  "basis": "western_planetary",
   "contribution_ledger": {
     "western": [
       {
@@ -117,7 +118,7 @@
     "tz": "Arctic/Longyearbyen"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc1-20260220",
+    "engine_version": "1.0.0-rc2-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "porphyry",
     "parameter_set": {
@@ -197,8 +198,12 @@
     },
     "parameter_set_id": "default_v1",
     "ruleset_id": "traditional_bazi_2026",
-    "tzdb_version_id": "unknown",
+    "tzdb_version_id": "2026.2",
     "zodiac_mode": "tropical"
+  },
+  "quality_flags": {
+    "chart_type_quality": null,
+    "ephemeris_mode": "MOSEPH"
   },
   "true_solar_time": 11.9742,
   "wu_xing_vector": {
