@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
-from ..solar_time import true_solar_time
+from ..solar_time import EOT_SOURCE_SPENCER, true_solar_time
 from .errors import make_issue
 
 
@@ -138,14 +138,14 @@ def evaluate_time(
                             day_of_year = int(dt_local.timetuple().tm_yday)
                             tlst_hours = float(true_solar_time(civil_time, lon, day_of_year, offset_h))
                             tlst_quality = "degraded"
-                            eot_prov = "approx_formula"
+                            eot_prov = EOT_SOURCE_SPENCER
                     elif tz_offset_sec is not None:
                         offset_h = float(tz_offset_sec) / 3600.0
                         civil_time = naive.hour + naive.minute/60.0 + naive.second/3600.0
                         day_of_year = int(naive.timetuple().tm_yday)
                         tlst_hours = float(true_solar_time(civil_time, lon, day_of_year, offset_h))
                         tlst_quality = "degraded"
-                        eot_prov = "approx_formula"
+                        eot_prov = EOT_SOURCE_SPENCER
                     else:
                         # No timezone info: cannot compute
                         tlst_quality = "missing"

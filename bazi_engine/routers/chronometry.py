@@ -96,6 +96,9 @@ class ChronometryFrameResponse(BaseModel):
     julian_day_number: int = Field(..., description="JDN of the resolved civil date")
     delta_t_seconds: float
     equation_of_time_minutes: float
+    eot_source: str = Field(
+        ..., description='Provenance of equation_of_time_minutes, e.g. "meeus_1998" (FBP-TST-006)'
+    )
     longitude_correction_minutes: float = Field(..., description="lon * 4 minutes")
     true_solar_time: Optional[str] = Field(
         None, description="HH:MM apparent solar time; null when birth time unknown"
@@ -146,6 +149,7 @@ def resolve_chronometry_endpoint(
             "julian_day_number": frame.julian_day_number,
             "delta_t_seconds": frame.delta_t_seconds,
             "equation_of_time_minutes": frame.equation_of_time_minutes,
+            "eot_source": frame.eot_source,
             "longitude_correction_minutes": frame.longitude_correction_minutes,
             "true_solar_time": frame.true_solar_time,
             "solar_longitude_degrees": frame.solar_longitude_degrees,

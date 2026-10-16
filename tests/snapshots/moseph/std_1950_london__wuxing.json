@@ -110,7 +110,7 @@
     ]
   },
   "dominant_element": "Holz",
-  "equation_of_time": -0.027,
+  "equation_of_time": -0.1957,
   "input": {
     "date": "1950-06-15T10:00:00",
     "lat": 51.5074,
@@ -118,7 +118,7 @@
     "tz": "Europe/London"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc4-20261016",
+    "engine_version": "1.0.0-rc5-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -205,7 +205,7 @@
     "chart_type_quality": null,
     "ephemeris_mode": "MOSEPH"
   },
-  "true_solar_time": 8.991,
+  "true_solar_time": 8.9882,
   "wu_xing_vector": {
     "Erde": 0.2947237798,
     "Feuer": 0.4420856698,

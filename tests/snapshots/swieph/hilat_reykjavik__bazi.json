@@ -52,9 +52,10 @@
     "time_resolution": {
       "civil_local": "2024-01-15T10:00:00+00:00",
       "effective_standard": "CIVIL",
-      "eot_minutes": -8.629,
+      "eot_minutes": -9.1945,
+      "eot_source": "meeus_1998",
       "lmt": "2024-01-15T08:32:43.824000-01:27:16.176000",
-      "tlst_hours": 8.40169,
+      "tlst_hours": 8.392265,
       "tz_offset_minutes": 0,
       "utc": "2024-01-15T10:00:00+00:00"
     },
@@ -106,7 +107,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc4-20261016",
+    "engine_version": "1.0.0-rc5-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {

@@ -304,6 +304,9 @@ class TSTResponse(BaseModel):
     civil_time_hours: float
     longitude_correction_hours: float
     equation_of_time_hours: float
+    eot_source: str = Field(
+        ..., description='Provenance of the equation of time, e.g. "meeus_1998" (FBP-TST-006).',
+    )
     true_solar_time_hours: float
     true_solar_time_formatted: str
     provenance: ProvenanceResponse
@@ -337,6 +340,7 @@ def calculate_tst_endpoint(request: Request, req: TSTRequest) -> Dict[str, Any]:
             "civil_time_hours":             round(civil_hours, 4),
             "longitude_correction_hours":   round(req.lon * 4 / 60, 4),
             "equation_of_time_hours":       round(ctx.eot_minutes / 60.0, 4),
+            "eot_source":                   ctx.eot_source,
             "true_solar_time_hours":        round(ctx.tlst_hours, 4),
             "true_solar_time_formatted":    f"{hours:02d}:{minutes:02d}",
             "provenance": build_provenance(),

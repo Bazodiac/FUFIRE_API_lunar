@@ -202,6 +202,7 @@ class TimeResolutionTrace(BaseModel):
     lmt: str               # ISO 8601, Local Mean Time (longitude-offset, no DST)
     tlst_hours: float      # apparent solar hour-of-day in [0, 24)
     eot_minutes: float     # equation of time in minutes (positive = sun fast)
+    eot_source: str        # provenance of eot_minutes, e.g. "meeus_1998" (FBP-TST-006)
     tz_offset_minutes: int  # civil UTC offset in integer minutes
     effective_standard: str  # CIVIL | LMT | TLST
 
@@ -339,6 +340,7 @@ def _build_derivation_trace(
             lmt=time_ctx.lmt_local.isoformat(),
             tlst_hours=time_ctx.tlst_hours,
             eot_minutes=time_ctx.eot_minutes,
+            eot_source=time_ctx.eot_source,
             tz_offset_minutes=time_ctx.tz_offset_minutes,
             effective_standard=inp.time_standard,
         ),

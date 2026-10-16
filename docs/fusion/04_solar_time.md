@@ -135,6 +135,18 @@ tlst_hours   = Stunde des Tages von TLST_instant
 date_rollover = Datum(TLST_instant) − Datum(zivil)        ∈ {−1, 0, +1}
 ```
 
+**Zeitgleichung im Engine-Pfad (FBP-TST-006, seit 2026-10-16):** `EoT` ist
+hier `solar_time.equation_of_time_jd(jd_ut)` — Meeus, *Astronomical
+Algorithms* (1998), Gl. 28.1, ausgewertet am exakten UT-Instant, rein
+stdlib (kein Swiss-Ephemeris-Aufruf; `/calculate/tst` bleibt
+ephemeridenfrei). Abweichung zu `swe.time_equ`: max 0,058 min
+(1950–2030). Die oben beschriebene NOAA/Spencer-Tagesformel
+`equation_of_time(day_of_year)` (Fehler ≤ 0,8 min) ist **nicht** mehr der
+Engine-Pfad; sie bleibt nur für den Degraded-Pfad von `/validate`
+(`eot_provenance = "spencer_1971"`) bestehen. Jede Oberfläche, die
+`eot_minutes` ausgibt, trägt das Provenance-Feld `eot_source`
+(`"meeus_1998"`).
+
 Der Einstieg erwartet ein zeitzonen-bewusstes `datetime` (DST-Fold bereits
 aufgelöst); die String-Variante `compute_effective_time_context(iso, tz, lon,
 fold=…)` delegiert dorthin. Referenzkorpus gegen Swiss Ephemeris

@@ -52,9 +52,10 @@
     "time_resolution": {
       "civil_local": "2024-12-21T12:00:00+02:00",
       "effective_standard": "CIVIL",
-      "eot_minutes": 1.705,
+      "eot_minutes": 1.7323,
+      "eot_source": "meeus_1998",
       "lmt": "2024-12-21T11:39:45.216000+01:39:45.216000",
-      "tlst_hours": 11.690977,
+      "tlst_hours": 11.691431,
       "tz_offset_minutes": 120,
       "utc": "2024-12-21T10:00:00+00:00"
     },
@@ -106,7 +107,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc4-20261016",
+    "engine_version": "1.0.0-rc5-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {

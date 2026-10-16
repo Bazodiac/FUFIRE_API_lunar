@@ -61,17 +61,27 @@ def test_tlst_is_not_a_tzinfo():
 
 
 def test_eot_minutes_matches_solar_time_module():
-    """EoT must come from solar_time.equation_of_time, not be re-derived."""
-    from bazi_engine.solar_time import equation_of_time
+    """EoT must come from solar_time.equation_of_time_jd (Meeus, FBP-TST-006)
+    evaluated at the UT instant, not be re-derived or keyed on day-of-year."""
+    from bazi_engine.solar_time import equation_of_time_jd, jd_ut_from_datetime
     ctx = compute_effective_time_context(
         birth_local_iso="2024-06-21T12:00:00",
         tz_name="UTC",
         longitude_deg=0.0,
     )
-    day_of_year = 173  # June 21
-    assert math.isclose(
-        ctx.eot_minutes, equation_of_time(day_of_year), abs_tol=0.5
-    )
+    expected = equation_of_time_jd(jd_ut_from_datetime(ctx.utc))
+    assert math.isclose(ctx.eot_minutes, expected, abs_tol=1e-4)
+    assert ctx.eot_source == "meeus_1998"
+
+
+def test_eot_is_evaluated_at_the_instant_not_the_civil_day():
+    """Two instants on the same civil day but ~24 h apart in UT differ in EoT
+    by the real intra-day drift (~0.1–0.5 min in February), which a
+    day-of-year lookup would flatten to zero."""
+    a = compute_effective_time_context("2024-02-11T00:00:30", "UTC", 0.0)
+    b = compute_effective_time_context("2024-02-11T23:59:30", "UTC", 0.0)
+    assert a.eot_minutes != b.eot_minutes
+    assert abs(a.eot_minutes - b.eot_minutes) < 0.6
 
 
 def test_tlst_formula_is_utc_based():
@@ -83,7 +93,7 @@ def test_tlst_formula_is_utc_based():
     non-UTC zone. It now pins the definition from
     ``docs/fusion/04_solar_time.md``.
     """
-    from bazi_engine.solar_time import equation_of_time
+    from bazi_engine.solar_time import equation_of_time_jd, jd_ut_from_datetime
     iso = "2024-06-21T12:00:00"
     tz = "Europe/Berlin"   # CEST, UTC+2
     lon = 13.4050
@@ -92,7 +102,7 @@ def test_tlst_formula_is_utc_based():
     civil_dt = datetime.fromisoformat(iso)
     utc_hours = (civil_dt.hour + civil_dt.minute / 60 + civil_dt.second / 3600) - 2.0
     delta_t_long = lon * 4 / 60
-    E_t = equation_of_time(civil_dt.timetuple().tm_yday) / 60
+    E_t = equation_of_time_jd(jd_ut_from_datetime(ctx.utc)) / 60
     expected = (utc_hours + delta_t_long + E_t) % 24
     assert math.isclose(ctx.tlst_hours, expected, abs_tol=1e-3), (
         f"EffectiveTimeContext.tlst_hours = {ctx.tlst_hours}, expected = {expected}"

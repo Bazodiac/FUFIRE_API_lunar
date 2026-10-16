@@ -62,6 +62,7 @@ def test_resolve_known_case_matches_engine():
 
     # EoT — exactly the engine value, not re-derived.
     assert frame.equation_of_time_minutes == ctx.eot_minutes
+    assert frame.eot_source == ctx.eot_source == "meeus_1998"
     # Longitude correction = lon * 4 (minutes).
     assert frame.longitude_correction_minutes == KNOWN_LON * 4
     # Fractional UT Julian Day.

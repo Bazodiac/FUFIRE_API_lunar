@@ -91,7 +91,7 @@ class TestDerivationTraceModelsExist:
     def test_time_resolution_trace_fields(self):
         fields = TimeResolutionTrace.model_fields
         for f in ("civil_local", "utc", "lmt", "tlst_hours",
-                  "eot_minutes", "tz_offset_minutes", "effective_standard"):
+                  "eot_minutes", "eot_source", "tz_offset_minutes", "effective_standard"):
             assert f in fields
 
     def test_hour_trace_has_lmt_used_field(self):
@@ -140,6 +140,7 @@ class TestDerivationTraceModelsExist:
                 lmt='2024-02-10T14:23:37+00:53',
                 tlst_hours=14.3,
                 eot_minutes=-14.2,
+                eot_source='meeus_1998',
                 tz_offset_minutes=60,
                 effective_standard='CIVIL',
                 unexpected='bad',
@@ -258,7 +259,7 @@ class TestDerivationTraceEndpointTyped:
         r = client.post("/calculate/bazi", json=PAYLOAD)
         tr = r.json()["derivation_trace"]["time_resolution"]
         for key in ("civil_local", "utc", "lmt", "tlst_hours",
-                    "eot_minutes", "tz_offset_minutes", "effective_standard"):
+                    "eot_minutes", "eot_source", "tz_offset_minutes", "effective_standard"):
             assert key in tr, f"time_resolution missing {key!r}"
 
     def test_time_resolution_types(self):
@@ -269,6 +270,7 @@ class TestDerivationTraceEndpointTyped:
         assert isinstance(tr["lmt"], str)
         assert isinstance(tr["tlst_hours"], float)
         assert isinstance(tr["eot_minutes"], float)
+        assert tr["eot_source"] == "meeus_1998"
         assert isinstance(tr["tz_offset_minutes"], int)
         assert isinstance(tr["effective_standard"], str)
 

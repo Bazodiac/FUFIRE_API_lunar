@@ -110,7 +110,7 @@
     ]
   },
   "dominant_element": "Holz",
-  "equation_of_time": 1.705,
+  "equation_of_time": 1.7323,
   "input": {
     "date": "2024-12-21T12:00:00",
     "lat": 60.1699,
@@ -118,7 +118,7 @@
     "tz": "Europe/Helsinki"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc4-20261016",
+    "engine_version": "1.0.0-rc5-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -205,7 +205,7 @@
     "chart_type_quality": null,
     "ephemeris_mode": "MOSEPH"
   },
-  "true_solar_time": 11.691,
+  "true_solar_time": 11.6914,
   "wu_xing_vector": {
     "Erde": 0.2775369647,
     "Feuer": 0.4579359918,

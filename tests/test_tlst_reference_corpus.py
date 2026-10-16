@@ -37,7 +37,7 @@ import pytest
 import swisseph as swe
 
 from bazi_engine.bafe.mapping import hour_branch_index_from_tlst
-from bazi_engine.solar_time import equation_of_time, true_solar_time
+from bazi_engine.solar_time import equation_of_time, equation_of_time_jd, true_solar_time
 from bazi_engine.time_context import compute_effective_time_context
 
 CORPUS_PATH = Path(__file__).resolve().parent / "fixtures" / "tlst_reference_corpus_v1.json"
@@ -46,9 +46,17 @@ CASES = {c["id"]: c for c in CORPUS["cases"]}
 CASE_IDS = list(CASES)
 
 # Tolerances
-EOT_APPROX_TOL_MIN = 0.8      # measured: max |Spencer/NOAA approx - swe.time_equ| = 0.77 min (1950–2026)
+# FBP-TST-006: the engine EoT is the Meeus formula (measured max
+# |equation_of_time_jd - swe.time_equ| = 0.058 min, 1950–2030 at 6 h steps);
+# the hard bound is 0.1 min. Before S-2 the day-of-year approximation needed
+# 0.8 min here.
+EOT_APPROX_TOL_MIN = 0.1
 HOURS_TOL_APPROX = EOT_APPROX_TOL_MIN / 60.0 + 1e-4
-HOURS_TOL_EXACT = 1e-3        # for quantities that do not depend on the EoT approximation
+HOURS_TOL_EXACT = 1e-3        # for quantities that do not depend on the EoT at all
+# The solar_time.true_solar_time() *leaf* still uses the day-of-year form
+# (kept for /validate); its own bound is unchanged.
+LEAF_EOT_TOL_MIN = 0.8
+HOURS_TOL_LEAF = LEAF_EOT_TOL_MIN / 60.0 + 1e-4
 
 
 
@@ -136,7 +144,7 @@ def test_solar_time_leaf_matches_reference_when_offset_is_passed(case_id):
         civil.timetuple().tm_yday,
         timezone_offset_hours=ref["utc_offset_minutes"] / 60.0,
     )
-    assert _circular_hours_delta(tst, ref["tlst_hours"]) < HOURS_TOL_APPROX, (case_id, tst, ref["tlst_hours"])
+    assert _circular_hours_delta(tst, ref["tlst_hours"]) < HOURS_TOL_LEAF, (case_id, tst, ref["tlst_hours"])
 
 
 @pytest.mark.parametrize("case_id", CASE_IDS)
@@ -153,7 +161,7 @@ def test_solar_time_leaf_without_offset_is_only_valid_for_utc_zones(case_id):
     # distance between the zone meridian and the birth meridian. For a
     # zone-offset-0 case this collapses to the longitude correction alone.
     expected_error_hours = abs(ref["utc_offset_minutes"] - ref["longitude_correction_minutes"]) / 60.0
-    assert math.isclose(delta, expected_error_hours, abs_tol=HOURS_TOL_APPROX), (case_id, delta)
+    assert math.isclose(delta, expected_error_hours, abs_tol=HOURS_TOL_LEAF), (case_id, delta)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -184,10 +192,26 @@ def test_ctx_eot_within_approximation_bound(case_id):
     assert abs(ctx.eot_minutes - case["reference"]["equation_of_time_minutes"]) < EOT_APPROX_TOL_MIN
 
 
-def test_eot_approximation_bound_full_year_vs_swisseph():
-    """Quantified accuracy of ``equation_of_time(day_of_year)`` vs ``swe.time_equ``:
-    ≤ 0.8 min for every day of 2024 at 00:00 and 12:00 UT. This is the error
-    budget a TLST hour-branch decision carries near a 2-hour bin edge."""
+def test_eot_meeus_bound_full_year_vs_swisseph():
+    """Quantified accuracy of the engine EoT (``equation_of_time_jd``, Meeus)
+    vs ``swe.time_equ``: < 0.1 min for every day of 2024 at 00:00 and 12:00 UT.
+    This is the error budget a TLST hour-branch decision carries near a
+    2-hour bin edge (was 0.8 min with the day-of-year form before S-2)."""
+    worst = 0.0
+    d = datetime(2024, 1, 1)
+    while d.year == 2024:
+        for h in (0.0, 12.0):
+            jd = swe.julday(d.year, d.month, d.day, h)
+            r = swe.time_equ(jd)
+            ref = (r[0] if isinstance(r, tuple) else r) * 1440.0
+            worst = max(worst, abs(equation_of_time_jd(jd) - ref))
+        d += timedelta(days=1)
+    assert worst < EOT_APPROX_TOL_MIN, worst
+
+
+def test_leaf_day_of_year_approximation_bound_unchanged():
+    """The retained ``equation_of_time(day_of_year)`` leaf (``/validate``
+    degraded path) keeps its documented ≤ 0.8 min budget."""
     worst = 0.0
     d = datetime(2024, 1, 1)
     while d.year == 2024:
@@ -197,7 +221,12 @@ def test_eot_approximation_bound_full_year_vs_swisseph():
             ref = (r[0] if isinstance(r, tuple) else r) * 1440.0
             worst = max(worst, abs(approx - ref))
         d += timedelta(days=1)
-    assert worst < EOT_APPROX_TOL_MIN, worst
+    assert worst < LEAF_EOT_TOL_MIN, worst
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_ctx_eot_source_is_meeus(case_id):
+    assert _ctx(CASES[case_id]).eot_source == "meeus_1998"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -333,6 +362,25 @@ _HANNOVER = CASES["hannover_1990_mesz_1544"]
 _HANNOVER_REF_HOURS = _HANNOVER["reference"]["tlst_hours"]
 
 
+def _hhmm_floor_window(ref_hours: float, tol_hours: float = HOURS_TOL_APPROX) -> set:
+    """``HH:MM`` strings (floor-to-minute, the documented formatter rule) that
+    a value within ``±tol_hours`` of ``ref_hours`` may legitimately render as.
+
+    The Hannover reference TLST is 14:17:00.5 (swisseph); the Meeus engine
+    value is 14:16:59.7 — 0.8 s apart, both inside the 0.1 min EoT budget,
+    but on opposite sides of a minute edge. Pinning one literal string here
+    would test the formatter's floor at sub-second noise, not the TST.
+    """
+    out = set()
+    for h in (ref_hours - tol_hours, ref_hours, ref_hours + tol_hours):
+        h %= 24.0
+        out.add(f"{int(h):02d}:{int((h - int(h)) * 60):02d}")
+    return out
+
+
+_HANNOVER_HHMM = _hhmm_floor_window(_HANNOVER_REF_HOURS)
+
+
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
@@ -349,7 +397,7 @@ def test_calculate_tst_endpoint_hannover(client):
     assert r.status_code == 200, r.text
     body = r.json()
     assert _circular_hours_delta(body["true_solar_time_hours"], _HANNOVER_REF_HOURS) < HOURS_TOL_APPROX, body
-    assert body["true_solar_time_formatted"] == "14:17", body
+    assert body["true_solar_time_formatted"] in _HANNOVER_HHMM, body
 
 
 def test_chronometry_endpoint_hannover(client):
@@ -366,7 +414,7 @@ def test_chronometry_endpoint_hannover(client):
     if r.status_code == 503:
         pytest.skip("ephemeris unavailable")
     assert r.status_code == 200, r.text
-    assert r.json()["chronometry"]["true_solar_time"] == "14:17", r.text
+    assert r.json()["chronometry"]["true_solar_time"] in _HANNOVER_HHMM, r.text
 
 
 def test_calculate_bazi_trace_tlst_hours_hannover(client):
@@ -478,3 +526,41 @@ def test_tlst_day_pillar_uses_tlst_date_before_solar_midnight(client):
     assert r_tlst.json()["pillars"]["day"] == r_prev.json()["pillars"]["day"], (
         r_tlst.json()["pillars"]["day"], r_prev.json()["pillars"]["day"]
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 8. FBP-TST-006 — eot_source provenance on every surface (HTTP boundary)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def test_calculate_tst_exposes_eot_source(client):
+    r = client.post("/calculate/tst", json={
+        "date": _HANNOVER["input"]["birth_local_iso"], "tz": _HANNOVER["input"]["timezone"],
+        "lon": _HANNOVER["input"]["longitude_deg"],
+    })
+    assert r.status_code == 200, r.text
+    assert r.json()["eot_source"] == "meeus_1998"
+
+
+def test_bazi_trace_exposes_eot_source(client):
+    r = client.post("/calculate/bazi", json={
+        "date": _HANNOVER["input"]["birth_local_iso"], "tz": _HANNOVER["input"]["timezone"],
+        "lon": _HANNOVER["input"]["longitude_deg"], "lat": 52.3759, "standard": "TLST",
+    })
+    if r.status_code == 503:
+        pytest.skip("ephemeris unavailable")
+    assert r.status_code == 200, r.text
+    assert r.json()["derivation_trace"]["time_resolution"]["eot_source"] == "meeus_1998"
+
+
+def test_chronometry_exposes_eot_source(client):
+    r = client.post("/chronometry/resolve", json={
+        "birth": {
+            "datetime": _HANNOVER["input"]["birth_local_iso"],
+            "timezone": _HANNOVER["input"]["timezone"],
+            "location": {"lat": 52.3759, "lon": _HANNOVER["input"]["longitude_deg"]},
+        }
+    })
+    if r.status_code == 503:
+        pytest.skip("ephemeris unavailable")
+    assert r.status_code == 200, r.text
+    assert r.json()["chronometry"]["eot_source"] == "meeus_1998"
