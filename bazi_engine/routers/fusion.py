@@ -246,7 +246,7 @@ def _compute_wuxing_response(req: WxRequest) -> Dict[str, Any]:
             "dominant_element": max(wx_dict, key=lambda k: wx_dict[k]),
             "basis":           "western_planetary",
             "equation_of_time": time_ctx.eot_minutes,
-            "true_solar_time":  round(time_ctx.tlst_hours, 4),
+            "true_solar_time":  _tlst_hours_4dp(time_ctx.tlst_hours),
             "contribution_ledger": {"western": wx_ledger},
             "provenance": build_provenance(
                 house_system=normalize_house_system(western_chart.get("house_system")),
@@ -290,6 +290,13 @@ def calculate_wuxing_endpoint(request: Request, req: WxRequest) -> Dict[str, Any
 
 
 # ── /calculate/tst ───────────────────────────────────────────────────────────
+
+def _tlst_hours_4dp(hours: float) -> float:
+    """4-decimal display value of an apparent-solar hour-of-day, kept inside
+    ``[0, 24)``: ``round(23.999999, 4)`` is ``24.0`` (R2 review finding
+    TLST-2). Display rounding only — decisions never use this value."""
+    return min(round(hours, 4), 23.9999)
+
 
 class TSTRequest(BaseModel):
     date: str = Field(..., description="ISO 8601 local date time")
@@ -341,7 +348,7 @@ def calculate_tst_endpoint(request: Request, req: TSTRequest) -> Dict[str, Any]:
             "longitude_correction_hours":   round(req.lon * 4 / 60, 4),
             "equation_of_time_hours":       round(ctx.eot_minutes / 60.0, 4),
             "eot_source":                   ctx.eot_source,
-            "true_solar_time_hours":        round(ctx.tlst_hours, 4),
+            "true_solar_time_hours":        _tlst_hours_4dp(ctx.tlst_hours),
             "true_solar_time_formatted":    f"{hours:02d}:{minutes:02d}",
             "provenance": build_provenance(),
             # FQ-ATT-02 (T9), AC-02-3, refined 2026-07-01 (user decision): /calculate/tst

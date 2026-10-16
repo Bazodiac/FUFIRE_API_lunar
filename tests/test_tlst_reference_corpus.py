@@ -603,3 +603,55 @@ def test_tlst_hours_never_reaches_24_after_rounding(client):
     assert r.status_code == 200, r.text
     assert r.json()["true_solar_time_hours"] < 24.0
     assert r.json()["true_solar_time_formatted"] == "23:59"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 10. R2 (Codex) review findings — regression guards
+# ═══════════════════════════════════════════════════════════════════════════
+
+def test_tlst_hours_is_truncated_not_rounded_at_the_23h_edge(client):
+    """R2 TLST-1: 2024-06-16T23:00:56.243413Z, lon 0 → TLST 22:59:59.9995.
+    ``round(…, 6)`` made that 23.000000, flipping the hour branch to Zi and
+    advancing the zi day. Truncation keeps it at 22.999999 → Hai, no advance."""
+    from bazi_engine.constants import BRANCHES
+    ctx = compute_effective_time_context("2024-06-16T23:00:56.243413", "UTC", 0.0)
+    assert ctx.tlst_hours == 22.999999, ctx.tlst_hours
+    assert hour_branch_index_from_tlst(ctx.tlst_hours) == BRANCHES.index("Hai")
+    payload = {"date": "2024-06-16T23:00:56.243413", "tz": "UTC", "lon": 0.0, "lat": 50.0,
+               "standard": "TLST", "boundary": "zi"}
+    r = client.post("/calculate/bazi", json=payload)
+    if r.status_code == 503:
+        pytest.skip("ephemeris unavailable")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["pillars"]["hour"]["zweig"] == "Hai", body["pillars"]["hour"]
+    assert body["derivation_trace"]["hour"]["branch_index"] == BRANCHES.index("Hai")
+    noon = client.post("/calculate/bazi", json={"date": "2024-06-16T12:00:00", "tz": "UTC", "lon": 0.0,
+                                                "lat": 50.0, "standard": "CIVIL", "boundary": "midnight"})
+    assert body["pillars"]["day"] == noon.json()["pillars"]["day"]
+
+
+def test_truncation_is_exact_for_whole_microseconds():
+    """The 6-decimal value is derived from the integer microsecond count, so a
+    wall-clock with whole microseconds maps exactly (no 1e-6 float drift)."""
+    from bazi_engine.solar_time import jd_ut_from_datetime
+    ctx = compute_effective_time_context("2024-06-16T12:00:00", "UTC", 0.0)
+    eot_min = equation_of_time_jd(jd_ut_from_datetime(ctx.utc))   # unrounded, as the engine uses it
+    wall = datetime(2024, 6, 16, 12, 0, 0) + timedelta(minutes=eot_min)
+    wall_us = ((wall.hour * 60 + wall.minute) * 60 + wall.second) * 1_000_000 + wall.microsecond
+    assert ctx.tlst_hours == (wall_us // 3600) / 1e6
+
+
+def test_four_decimal_display_values_never_reach_24(client):
+    """R2 TLST-2: ``round(23.999999, 4) == 24.0`` leaked onto /calculate/tst and
+    /calculate/wuxing while /chart and the trace kept 23.999999."""
+    r = client.post("/calculate/tst", json={"date": "2024-06-16T00:00:43.800000", "tz": "UTC", "lon": 0.0})
+    assert r.status_code == 200, r.text
+    assert r.json()["true_solar_time_hours"] == 23.9999
+    assert r.json()["true_solar_time_formatted"] == "23:59"
+    w = client.post("/calculate/wuxing", json={"date": "2024-06-16T00:00:43.800000", "tz": "UTC",
+                                                "lon": 0.0, "lat": 50.0})
+    if w.status_code == 503:
+        pytest.skip("ephemeris unavailable")
+    assert w.status_code == 200, w.text
+    assert w.json()["true_solar_time"] == 23.9999
