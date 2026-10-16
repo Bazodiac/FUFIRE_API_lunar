@@ -52,9 +52,10 @@
     "time_resolution": {
       "civil_local": "1980-12-25T06:00:00+09:00",
       "effective_standard": "CIVIL",
-      "eot_minutes": -0.157,
+      "eot_minutes": 0.0911,
+      "eot_source": "meeus_1998",
       "lmt": "1980-12-25T06:18:46.008000+09:18:46.008000",
-      "tlst_hours": 6.310163,
+      "tlst_hours": 6.314298,
       "tz_offset_minutes": 540,
       "utc": "1980-12-24T21:00:00+00:00"
     },
@@ -106,7 +107,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc4-20261016",
+    "engine_version": "1.0.0-rc5-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {

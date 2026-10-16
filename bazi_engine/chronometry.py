@@ -96,6 +96,7 @@ class ChronometryFrame:
     julian_day_number: int                  # jdn_gregorian of resolved civil date
     delta_t_seconds: float
     equation_of_time_minutes: float
+    eot_source: str                         # provenance of the EoT (ctx.eot_source, FBP-TST-006)
     longitude_correction_minutes: float     # = lon * 4
     true_solar_time: Optional[str]          # "HH:MM" from ctx.tlst_hours; None if time unknown
     solar_longitude_degrees: float          # SwissEphBackend.sun_lon_deg_ut
@@ -241,6 +242,7 @@ def resolve_chronometry(
         julian_day_number=jdn,
         delta_t_seconds=delta_t,
         equation_of_time_minutes=ctx.eot_minutes,
+        eot_source=ctx.eot_source,
         longitude_correction_minutes=lon * 4,
         true_solar_time=true_solar_time,
         solar_longitude_degrees=sun_lon,

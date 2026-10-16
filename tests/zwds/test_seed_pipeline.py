@@ -170,5 +170,15 @@ def test_tlst_uses_apparent_solar_offset_anchored_to_utc() -> None:
     # Apparent solar offset = longitude offset + equation-of-time (early Feb EoT
     # is ~ -13 min), so the offset is a bit under the LMT longitude offset.
     assert r.day_boundary_offset_hours < 121.4737 / 15.0
-    assert r.day_boundary_offset_hours == pytest.approx(7.8787, abs=1e-3)
+    # Oracle: swe.time_equ at the UT instant (FBP-TST-006 — the engine EoT is
+    # the Meeus formula, within 0.1 min of swisseph). Before S-2 the day-of-year
+    # approximation pinned 7.8787 h here; the exact value is 7.8721 h (swe) /
+    # 7.8726 h (Meeus).
+    import swisseph as swe
+    jd_ut = swe.julday(1984, 2, 1, 15.5)
+    r_eot = swe.time_equ(jd_ut)
+    eot_min = (r_eot[0] if isinstance(r_eot, tuple) else r_eot) * 1440.0
+    expected = (121.4737 * 4.0 + eot_min) / 60.0
+    assert r.day_boundary_offset_hours == pytest.approx(expected, abs=0.1 / 60.0)
+    assert r.day_boundary_offset_hours == pytest.approx(7.8726, abs=1e-3)
     assert r.hour_branch_id == "ZI"

@@ -118,7 +118,7 @@
     ]
   },
   "dominant_element": "Holz",
-  "equation_of_time": -7.549,
+  "equation_of_time": -7.2615,
   "input": {
     "date": "1960-03-21T08:30:00",
     "lat": 48.8566,
@@ -126,7 +126,7 @@
     "tz": "Europe/Paris"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc4-20261016",
+    "engine_version": "1.0.0-rc5-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {
@@ -213,7 +213,7 @@
     "chart_type_quality": null,
     "ephemeris_mode": "SWIEPH"
   },
-  "true_solar_time": 7.531,
+  "true_solar_time": 7.5358,
   "wu_xing_vector": {
     "Erde": 0.3050977522,
     "Feuer": 0.4377489488,

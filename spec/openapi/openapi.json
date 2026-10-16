@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc4-20261016"
+    "version": "1.0.0-rc5-20261016"
   },
   "paths": {
     "/": {
@@ -8751,6 +8751,11 @@
             "type": "number",
             "title": "Equation Of Time Minutes"
           },
+          "eot_source": {
+            "type": "string",
+            "title": "Eot Source",
+            "description": "Provenance of equation_of_time_minutes, e.g. \"meeus_1998\" (FBP-TST-006)"
+          },
           "longitude_correction_minutes": {
             "type": "number",
             "title": "Longitude Correction Minutes",
@@ -8790,6 +8795,7 @@
           "julian_day_number",
           "delta_t_seconds",
           "equation_of_time_minutes",
+          "eot_source",
           "longitude_correction_minutes",
           "solar_longitude_degrees",
           "solar_term",
@@ -10021,7 +10027,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc4-20261016"
+          "version": "1.0.0-rc5-20261016"
         }
       },
       "HourDerivationTrace": {
@@ -12977,6 +12983,11 @@
             "type": "number",
             "title": "Equation Of Time Hours"
           },
+          "eot_source": {
+            "type": "string",
+            "title": "Eot Source",
+            "description": "Provenance of the equation of time, e.g. \"meeus_1998\" (FBP-TST-006)."
+          },
           "true_solar_time_hours": {
             "type": "number",
             "title": "True Solar Time Hours"
@@ -12995,6 +13006,7 @@
           "civil_time_hours",
           "longitude_correction_hours",
           "equation_of_time_hours",
+          "eot_source",
           "true_solar_time_hours",
           "true_solar_time_formatted",
           "provenance"
@@ -13068,6 +13080,10 @@
             "type": "number",
             "title": "Eot Minutes"
           },
+          "eot_source": {
+            "type": "string",
+            "title": "Eot Source"
+          },
           "tz_offset_minutes": {
             "type": "integer",
             "title": "Tz Offset Minutes"
@@ -13085,6 +13101,7 @@
           "lmt",
           "tlst_hours",
           "eot_minutes",
+          "eot_source",
           "tz_offset_minutes",
           "effective_standard"
         ],

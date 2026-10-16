@@ -52,9 +52,10 @@
     "time_resolution": {
       "civil_local": "2000-02-04T09:00:00-05:00",
       "effective_standard": "CIVIL",
-      "eot_minutes": -13.614,
+      "eot_minutes": -13.8678,
+      "eot_source": "meeus_1998",
       "lmt": "2000-02-04T09:03:58.560000-04:56:01.440000",
-      "tlst_hours": 8.839367,
+      "tlst_hours": 8.835137,
       "tz_offset_minutes": -300,
       "utc": "2000-02-04T14:00:00+00:00"
     },
@@ -106,7 +107,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc4-20261016",
+    "engine_version": "1.0.0-rc5-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {

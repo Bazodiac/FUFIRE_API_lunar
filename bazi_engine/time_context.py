@@ -7,7 +7,7 @@ FBP-01-002 / FBP-01-006 / FBP-TST-002 / FBP-TST-003:
 - ``LMT``   = mean solar time at the given longitude (tz-aware, with a
               constant-offset tzinfo derived purely from longitude;
               NOT DST-sensitive, NOT registered with ``zoneinfo``).
-- ``TLST``  = apparent solar time = LMT + equation_of_time. Stored as
+- ``TLST``  = apparent solar time = LMT + equation of time (Meeus). Stored as
               a float hour-of-day plus an integer ``date_rollover``.
               **Not** a tzinfo. TLST is not a legal/civil zone, and
               modeling it as a tzinfo would invite false symmetry with
@@ -38,7 +38,7 @@ from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-from .solar_time import equation_of_time
+from .solar_time import EOT_SOURCE_MEEUS, equation_of_time_jd, jd_ut_from_datetime
 
 
 class _LongitudeMeanTime(tzinfo):
@@ -86,6 +86,7 @@ class EffectiveTimeContext:
     eot_minutes: float              # equation of time, minutes
     tz_offset_minutes: int          # civil_local UTC offset, minutes
     date_rollover: int              # day shift of TLST relative to civil date
+    eot_source: str = EOT_SOURCE_MEEUS  # provenance label of eot_minutes (FBP-TST-006)
 
 
 def compute_effective_time_context_from_instant(
@@ -118,11 +119,12 @@ def compute_effective_time_context_from_instant(
     utc = civil_local.astimezone(timezone.utc)
     lmt_local = utc.astimezone(_LongitudeMeanTime(longitude_deg))
 
-    # EoT keyed on the civil calendar day (as every other consumer in the
-    # engine does); the approximation's error budget is < 0.8 min, see
-    # tests/test_tlst_reference_corpus.py::test_eot_approximation_bound_full_year_vs_swisseph.
-    day_of_year = civil_local.timetuple().tm_yday
-    eot_min = float(equation_of_time(day_of_year))
+    # FBP-TST-006 (E6-M): EoT evaluated at the exact UT instant with the
+    # pure-math Meeus formula (no Swiss Ephemeris call — attestation
+    # invariant F3). Agreement with swe.time_equ is < 0.1 min, see
+    # tests/test_solar_time.py::TestMeeusEquationOfTime and
+    # tests/test_tlst_reference_corpus.py::test_eot_meeus_bound_full_year_vs_swisseph.
+    eot_min = equation_of_time_jd(jd_ut_from_datetime(utc))
 
     # TLST on the UTC axis: one timedelta applied to the instant. The
     # result is kept as a *naive* wall-clock (hour-of-day + calendar date)
@@ -149,6 +151,7 @@ def compute_effective_time_context_from_instant(
         eot_minutes=round(eot_min, 4),
         tz_offset_minutes=tz_off_min,
         date_rollover=rollover,
+        eot_source=EOT_SOURCE_MEEUS,
     )
 
 

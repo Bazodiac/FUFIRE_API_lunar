@@ -11,13 +11,20 @@ Reference values derived from:
 from __future__ import annotations
 
 import ast
+from datetime import datetime, timedelta, timezone
 from math import isclose
 from pathlib import Path
 
 import pytest
 
 # ── Direct imports from the new module ──────────────────────────────────────
-from bazi_engine.solar_time import equation_of_time, true_solar_time
+from bazi_engine.solar_time import (
+    EOT_SOURCE_MEEUS,
+    equation_of_time,
+    equation_of_time_jd,
+    jd_ut_from_datetime,
+    true_solar_time,
+)
 
 # ============================================================================
 # Module isolation guard
@@ -43,7 +50,7 @@ class TestModuleIsolation:
         path = Path(__file__).resolve().parents[1] / "bazi_engine" / "solar_time.py"
         source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
-        STDLIB_ALLOWED = {"math", "__future__", "typing"}
+        STDLIB_ALLOWED = {"math", "__future__", "typing", "datetime"}
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
@@ -255,3 +262,115 @@ class TestFusionReexportParity:
             assert direct == via_fusion, (
                 f"TST mismatch: solar_time={direct}, fusion={via_fusion}"
             )
+
+
+# ============================================================================
+# FBP-TST-006 — Meeus equation of time (engine path) vs Swiss Ephemeris oracle
+# ============================================================================
+
+class TestMeeusEquationOfTime:
+    """``equation_of_time_jd`` is pure stdlib math (attestation invariant F3:
+    no Swiss-Ephemeris call on the ``/calculate/tst`` path) and must agree
+    with ``swe.time_equ`` to < 0.1 min. The oracle calls below are confined to
+    the test; ``swe.time_equ`` is identical on SWIEPH and the Moshier fallback
+    (< 1e-3 min), so this runs unchanged without SE1 files."""
+
+    MEEUS_TOL_MIN = 0.1   # hard bound (sprint-2 plan §4.2); measured max 0.058 min 1950–2030
+
+    @pytest.fixture(autouse=True)
+    def _pin_swisseph_global_state(self):
+        import swisseph as swe
+
+        from bazi_engine.ephemeris import _resolve_ephe_path
+        swe.set_ephe_path(str(_resolve_ephe_path(None)))
+        swe.set_sid_mode(0)
+        yield
+
+    @staticmethod
+    def _oracle_min(jd_ut: float) -> float:
+        import swisseph as swe
+        r = swe.time_equ(jd_ut)
+        return (r[0] if isinstance(r, tuple) else r) * 1440.0
+
+    def test_label_constant(self):
+        assert EOT_SOURCE_MEEUS == "meeus_1998"
+
+    def test_vs_swisseph_1950_2030_every_6h(self):
+        import swisseph as swe
+        jd = swe.julday(1950, 1, 1, 0.0)
+        end = swe.julday(2030, 12, 31, 18.0)
+        worst = 0.0
+        worst_jd = jd
+        while jd <= end:
+            d = abs(equation_of_time_jd(jd) - self._oracle_min(jd))
+            if d > worst:
+                worst, worst_jd = d, jd
+            jd += 0.25
+        assert worst < self.MEEUS_TOL_MIN, (worst, swe.revjul(worst_jd))
+
+    @pytest.mark.parametrize("ymd_h, expected_min", [
+        ((1990, 7, 15, 13.7333), -5.919),    # Hannover corpus case
+        ((2024, 2, 11, 12.0), -14.193),        # near the annual minimum (early Feb)
+        ((2024, 11, 3, 12.0), 16.45),         # near the annual maximum (early Nov)
+        ((2024, 6, 13, 12.0), -0.197),         # near the mid-June zero crossing
+    ])
+    def test_known_values(self, ymd_h, expected_min):
+        """Literal pins (``swe.time_equ`` × 1440, rounded to 1e-3 min) so a
+        regression is visible without the oracle."""
+        import swisseph as swe
+        jd = swe.julday(*ymd_h)
+        assert isclose(equation_of_time_jd(jd), expected_min, abs_tol=self.MEEUS_TOL_MIN)
+
+    def test_continuous_across_year_boundary(self):
+        """No wrap-around artefact at the L0/α discontinuity: consecutive
+        hourly samples around 2024/2025 New Year differ by < 0.05 min."""
+        import swisseph as swe
+        jd = swe.julday(2024, 12, 31, 0.0)
+        prev = equation_of_time_jd(jd)
+        for _ in range(48):
+            jd += 1 / 24
+            cur = equation_of_time_jd(jd)
+            assert abs(cur - prev) < 0.05, (jd, cur, prev)
+            prev = cur
+
+    def test_physical_range_full_year(self):
+        import swisseph as swe
+        jd = swe.julday(2024, 1, 1, 0.0)
+        for _ in range(366 * 4):
+            assert -14.5 < equation_of_time_jd(jd) < 16.6
+            jd += 0.25
+
+    def test_better_than_day_of_year_approximation(self):
+        """The reason for E6-M: the Meeus path must beat the Spencer form at
+        the Spencer form's worst 2024 sample by a wide margin."""
+        import swisseph as swe
+        worst_spencer = 0.0
+        worst_meeus = 0.0
+        d = datetime(2024, 1, 1)
+        while d.year == 2024:
+            jd = swe.julday(d.year, d.month, d.day, 12.0)
+            ref = self._oracle_min(jd)
+            worst_spencer = max(worst_spencer, abs(equation_of_time(d.timetuple().tm_yday) - ref))
+            worst_meeus = max(worst_meeus, abs(equation_of_time_jd(jd) - ref))
+            d += timedelta(days=1)
+        assert worst_meeus < 0.1 < worst_spencer
+
+    def test_jd_ut_from_datetime_matches_ephemeris_helper(self):
+        from bazi_engine.ephemeris import datetime_utc_to_jd_ut
+        for dt in (
+            datetime(1950, 1, 1, tzinfo=timezone.utc),
+            datetime(1990, 7, 15, 13, 44, tzinfo=timezone.utc),
+            datetime(2024, 2, 21, 23, 59, 59, 999999, tzinfo=timezone.utc),
+            datetime(2030, 12, 31, 18, tzinfo=timezone.utc),
+        ):
+            assert isclose(jd_ut_from_datetime(dt), datetime_utc_to_jd_ut(dt), abs_tol=1e-9)
+
+    def test_jd_ut_from_datetime_accepts_non_utc_aware_and_rejects_naive(self):
+        from zoneinfo import ZoneInfo
+        berlin = datetime(1990, 7, 15, 15, 44, tzinfo=ZoneInfo("Europe/Berlin"))
+        assert jd_ut_from_datetime(berlin) == jd_ut_from_datetime(berlin.astimezone(timezone.utc))
+        with pytest.raises(ValueError):
+            jd_ut_from_datetime(datetime(1990, 7, 15, 15, 44))
+
+    def test_j2000_epoch(self):
+        assert jd_ut_from_datetime(datetime(2000, 1, 1, 12, tzinfo=timezone.utc)) == 2451545.0

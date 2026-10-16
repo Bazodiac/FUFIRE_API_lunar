@@ -50,6 +50,7 @@ def test_endpoint_200_shape():
         "julian_day_number",
         "delta_t_seconds",
         "equation_of_time_minutes",
+        "eot_source",
         "longitude_correction_minutes",
         "true_solar_time",
         "solar_longitude_degrees",

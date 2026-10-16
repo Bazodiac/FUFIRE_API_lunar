@@ -348,6 +348,7 @@ def _compute_chronometry_for(req: PersonalizeRequest) -> Dict[str, Any]:
         "julian_day_number": frame.julian_day_number,
         "delta_t_seconds": frame.delta_t_seconds,
         "equation_of_time_minutes": frame.equation_of_time_minutes,
+        "eot_source": frame.eot_source,
         "longitude_correction_minutes": frame.longitude_correction_minutes,
         "true_solar_time": frame.true_solar_time,
         "solar_longitude_degrees": frame.solar_longitude_degrees,
