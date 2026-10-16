@@ -117,7 +117,7 @@ POST `/v1/validate` validates engine configurations against JSON Schema Draft-07
 {
   "validate_level": "FULL",
   "engine_config": {
-    "engine_version": "1.0.0-rc3-20261016",
+    "engine_version": "1.0.0-rc4-20261016",
     "parameter_set_id": "standard",
     "deterministic": true,
     "compliance_mode": "RELAXED",

@@ -2,7 +2,7 @@
 
 **Datum:** 2026-10-16
 **Vorgänger:** `docs/plans/2026-10-15-true-solar-time-remediation.md` (T1–T4 gemerged: #55, #56, #57; Engine-Label `1.0.0-rc3-20261016`)
-**Status:** Plan, wartet auf drei Owner-Entscheidungen (E5, E6, E8) — siehe §1
+**Status:** Entscheidungen gefallen (Owner, 2026-10-16): **E5 = A**, **E6 = E6-M (Meeus)**, **E7 = ja**, **E8 = R3**. S-1 umgesetzt (dieser PR); S-2, S-3, S-4 folgen.
 **Branch-Regel:** jeder Sprint-PR startet neu von `origin/master` auf `claude/vibrant-faraday-ki071b` (Session-Regel); nach jedem Merge Reset.
 
 ---
@@ -208,3 +208,15 @@ Keine Änderungen pushen; Findings als PR-Review auf dem offenen Sprint-PR hinte
 Risiken: (1) E6-M-Genauigkeit unter 0,1 min nicht erreicht → Fallback E6-S mit Attestierungs-Umbau, vorher Owner-Rückfrage. (2) Codex nicht verfügbar → R1 allein, im Report vermerkt. (3) Snapshot-Churn durch zwei Label-Bumps → mit Minimierungsskript eine Zeile pro Datei.
 
 Aufwand (Netto-Arbeitszeit in dieser Session, inklusive Suiten auf beiden Backends): S-1 ≈ 1 h, S-2 ≈ 1,5 h, S-3 ≈ 45 min, S-4 ≈ 1 h plus Codex-Laufzeit.
+
+---
+
+## 8. Umsetzungsstand
+
+| PR | Stand |
+|---|---|
+| S-1 (T5) | **Umgesetzt** (2026-10-16). `bazi.py::_dt_for_day_pillar`: TLST-Pfad nimmt `chart_local_dt + date_rollover` als Basis, Zi-Regel +1 bei `tlst_hours ≥ 23`. Neue Testdatei `tests/test_bazi_tlst_day_pillar.py`: Boundary-Matrix (Madrid west / Auckland ost × 22:58, 23:02, 23:58, 00:02, 00:58, 01:02 × midnight/zi), Orakel per `swe.lat_to_lmt`-Inversion, Erwartung = CIVIL-Säule am erwarteten Datum; Rollover −1/+1-Fälle; TLST==LMT-Invariante; CIVIL/LMT-Regressionsguard. Korpus ohne `xfail` (DoD D1). Label `1.0.0-rc4-20261016`. `scripts/minimize_snapshot_diff.py` (E7) eingeführt und für die Snapshot-Regeneration genutzt. |
+| S-2 (T6) | offen |
+| S-3 (T7) | offen (CLAUDE.md-Abschnitt zu E7 folgt hier) |
+| S-4 | offen |
+

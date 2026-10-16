@@ -16,14 +16,12 @@ Two kinds of tests live here:
    ``solar_time.true_solar_time`` (when given the zone offset), the LMT
    half of ``EffectiveTimeContext``, the EoT approximation bound, and the
    half-open hour-branch rule.
-2. **Strict ``xfail`` tripwires** for the deviations still open in
-   ``docs/precision/deviations.md`` (DEV-2026-011). They
-   pin the *correct* expectation; ``strict=True`` makes them flip RED the
-   moment the corresponding fix lands, so the marker (and the deviation
-   status) must be removed in the same commit as the fix. This mirrors the
-   GT6 convention. DEV-2026-009 / -010 / -012 were fixed by FBP-TST-001…003
-   and DEV-2026-008 by FBP-TST-004; their former tripwires now run as plain
-   regression tests.
+2. **Regression tests that started life as strict ``xfail`` tripwires** for
+   DEV-2026-008 … DEV-2026-012 (GT6 convention: a tripwire pins the *correct*
+   expectation and flips RED when the fix lands). All five deviations are
+   resolved (FBP-TST-001…005), so no ``xfail`` marker remains in this file; if
+   a new TLST deviation is registered, add its tripwire here with
+   ``xfail(strict=True)`` and remove it in the fix commit.
 
 Remediation plan: ``docs/plans/2026-10-15-true-solar-time-remediation.md``.
 """
@@ -52,7 +50,6 @@ EOT_APPROX_TOL_MIN = 0.8      # measured: max |Spencer/NOAA approx - swe.time_eq
 HOURS_TOL_APPROX = EOT_APPROX_TOL_MIN / 60.0 + 1e-4
 HOURS_TOL_EXACT = 1e-3        # for quantities that do not depend on the EoT approximation
 
-DEV_011 = "DEV-2026-011: compute_bazi ignores EffectiveTimeContext.date_rollover for the TLST day pillar"
 
 
 @pytest.fixture(autouse=True)
@@ -464,10 +461,10 @@ def test_all_tst_surfaces_agree(client, case_id):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 8. Tripwire — DEV-2026-011: TLST day pillar ignores date_rollover
+# 8. Regression — DEV-2026-011 (fixed by FBP-TST-005, decision E5-A): TLST day
+#    pillar follows the apparent-solar date. Full matrix: tests/test_bazi_tlst_day_pillar.py
 # ═══════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.xfail(strict=True, reason=DEV_011)
 def test_tlst_day_pillar_uses_tlst_date_before_solar_midnight(client):
     """Madrid 2024-02-22 00:30 CET has TLST 23:01 on 2024-02-21. With
     ``standard=TLST, boundary=midnight`` the day pillar must therefore be the

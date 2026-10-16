@@ -105,16 +105,25 @@ def _dt_for_day_pillar(
     ctx: EffectiveTimeContext | None,
 ) -> datetime:
     day_change_policy = (ruleset or {}).get("day_change_policy", {}) or {}
+    if ctx is None:
+        # CIVIL / LMT: chart_local_dt already carries the standard's own
+        # calendar date (LMT via to_chart_local); legacy boundary rule.
+        return apply_day_boundary(chart_local_dt, inp.day_boundary)
+
+    # TLST — FBP-TST-005 (DEV-2026-011, owner decision E5-A): the day pillar
+    # follows the APPARENT-SOLAR calendar date, exactly as the LMT path
+    # follows the LMT date. chart_local_dt is civil for TLST (TLST is not a
+    # tzinfo, FBP-01-006), so shift it by the day the TLST instant falls on.
+    solar_day_dt = chart_local_dt + timedelta(days=ctx.date_rollover)
     if (
         inp.day_boundary == "zi"
-        and ctx is not None
         and day_change_policy.get("time_standard_for_day_rollover") == "TLST"
     ):
         zi_start = float(day_change_policy.get("zi_start_hour", 23.0))
         if ctx.tlst_hours >= zi_start:
-            return chart_local_dt + timedelta(days=1)
-        return chart_local_dt
-    return apply_day_boundary(chart_local_dt, inp.day_boundary)
+            return solar_day_dt + timedelta(days=1)
+        return solar_day_dt
+    return apply_day_boundary(solar_day_dt, inp.day_boundary)
 
 
 def _month_index_for_chart(
