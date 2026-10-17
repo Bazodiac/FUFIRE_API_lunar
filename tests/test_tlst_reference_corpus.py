@@ -210,8 +210,9 @@ def test_eot_meeus_bound_full_year_vs_swisseph():
 
 
 def test_leaf_day_of_year_approximation_bound_unchanged():
-    """The retained ``equation_of_time(day_of_year)`` leaf (``/validate``
-    degraded path) keeps its documented ≤ 0.8 min budget."""
+    """The retained ``equation_of_time(day_of_year)`` leaf (no production
+    caller since /validate moved to the shared context; kept for the
+    ``true_solar_time`` helper) keeps its documented ≤ 0.8 min budget."""
     worst = 0.0
     d = datetime(2024, 1, 1)
     while d.year == 2024:

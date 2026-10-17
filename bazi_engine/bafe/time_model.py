@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
-from ..solar_time import EOT_SOURCE_SPENCER, true_solar_time
+from ..time_context import compute_effective_time_context_from_instant
 from .errors import make_issue
 
 
@@ -79,6 +79,49 @@ def _resolve_local_time(naive: datetime, tz: ZoneInfo, dst_policy: str) -> Tuple
     fold = 0 if fold2 is None else fold2
     return nudged.replace(tzinfo=tz, fold=fold), None
 
+
+def _aware_birth_instant(
+    birth_event: Dict[str, Any], dst_policy: str, errors: List[Dict[str, Any]]
+) -> Optional[datetime]:
+    """The birth instant as an aware datetime, or ``None`` when the event
+    carries neither ``tz_id`` nor ``tz_offset_sec``. A DST issue raised by the
+    ``dst_policy`` is appended to ``errors`` and yields ``None``."""
+    naive = _parse_local_datetime(str(birth_event["local_datetime"]))
+    tz_id = birth_event.get("tz_id", None)
+    tz_offset_sec = birth_event.get("tz_offset_sec", None)
+    if tz_id:
+        dt_aware, issue = _resolve_local_time(naive, ZoneInfo(str(tz_id)), dst_policy)
+        if issue:
+            errors.append(issue)
+        return dt_aware
+    if tz_offset_sec is not None:
+        return naive.replace(tzinfo=timezone(timedelta(seconds=int(tz_offset_sec))))
+    return None
+
+
+def _tlst_from_birth_event(
+    birth_event: Dict[str, Any], dst_policy: str, errors: List[Dict[str, Any]]
+) -> Tuple[Optional[float], Optional[str], str]:
+    """``(tlst_hours, eot_provenance, tlst_quality)`` for a TLST validation.
+
+    Owner decision 1 after the sprint-2 TLST review: ``/validate`` uses the
+    SAME UTC-axis decomposition as ``/calculate/tst``, the BaZi trace and
+    chronometry (``time_context``, Meeus EoT, pure math — no Swiss-Ephemeris
+    call) instead of the day-of-year Spencer approximation that could put
+    the hour branch on the other side of a 2-hour edge (R2 review finding
+    F2). ``tlst_quality`` keeps its UT1 semantics: ``"degraded"`` means
+    computed without a UT1 time scale, not an approximate EoT.
+    """
+    try:
+        dt_aware = _aware_birth_instant(birth_event, dst_policy, errors)
+        if dt_aware is None:
+            return None, None, "missing"
+        ctx = compute_effective_time_context_from_instant(dt_aware, float(birth_event["geo_lon_deg"]))
+        return float(ctx.tlst_hours), ctx.eot_source, "degraded"
+    except Exception:
+        return None, None, "missing"
+
+
 def evaluate_time(
     *,
     engine_config: Dict[str, Any],
@@ -120,37 +163,7 @@ def evaluate_time(
         if birth_event and isinstance(birth_event, dict):
             # Compute TLST even without UT1 if explicitly allowed (or in non-strict modes).
             if allow_compute_tlst_without_ut1 or ut1_quality != "missing" or compliance_mode in {"RELAXED", "DEV"}:
-                try:
-                    naive = _parse_local_datetime(str(birth_event["local_datetime"]))
-                    lon = float(birth_event["geo_lon_deg"])
-                    tz_id = birth_event.get("tz_id", None)
-                    tz_offset_sec = birth_event.get("tz_offset_sec", None)
-
-                    if tz_id:
-                        tz = ZoneInfo(str(tz_id))
-                        dt_local, issue = _resolve_local_time(naive, tz, dst_policy)
-                        if issue:
-                            errors.append(issue)
-                        if dt_local is not None:
-                            utc_offset = dt_local.utcoffset()
-                            offset_h = utc_offset.total_seconds() / 3600.0 if utc_offset else 0.0
-                            civil_time = dt_local.hour + dt_local.minute/60.0 + dt_local.second/3600.0
-                            day_of_year = int(dt_local.timetuple().tm_yday)
-                            tlst_hours = float(true_solar_time(civil_time, lon, day_of_year, offset_h))
-                            tlst_quality = "degraded"
-                            eot_prov = EOT_SOURCE_SPENCER
-                    elif tz_offset_sec is not None:
-                        offset_h = float(tz_offset_sec) / 3600.0
-                        civil_time = naive.hour + naive.minute/60.0 + naive.second/3600.0
-                        day_of_year = int(naive.timetuple().tm_yday)
-                        tlst_hours = float(true_solar_time(civil_time, lon, day_of_year, offset_h))
-                        tlst_quality = "degraded"
-                        eot_prov = EOT_SOURCE_SPENCER
-                    else:
-                        # No timezone info: cannot compute
-                        tlst_quality = "missing"
-                except Exception:
-                    tlst_quality = "missing"
+                tlst_hours, eot_prov, tlst_quality = _tlst_from_birth_event(birth_event, dst_policy, errors)
             else:
                 tlst_quality = "missing"
         else:
