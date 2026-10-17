@@ -22,7 +22,7 @@ from pathlib import Path
 BASELINE: dict[str, int] = {
     "bazi_engine/bafe/service.py:validate_request": 53,
     "bazi_engine/bafe/refdata.py:evaluate_refdata": 44,
-    "bazi_engine/bafe/time_model.py:evaluate_time": 33,
+    "bazi_engine/bafe/time_model.py:evaluate_time": 27,
     "bazi_engine/routers/webhooks.py:elevenlabs_chart_webhook": 27,
     "bazi_engine/research/pattern_analysis.py:detect_pipeline_bias": 21,
     "bazi_engine/western.py:compute_western_chart": 21,

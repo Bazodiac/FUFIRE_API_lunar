@@ -7,7 +7,9 @@ No internal imports, no third-party imports. Provides:
                            the engine path (FBP-TST-006, decision E6-M)
   - equation_of_time()     Equation of Time in minutes keyed on day-of-year
                            (Spencer/NOAA approximation, ≤ 0.8 min error) —
-                           retained for the /validate degraded path only
+                           legacy leaf, no production caller since /validate
+                           moved to the shared context (kept for the
+                           true_solar_time() helper and its reference tests)
   - true_solar_time()      Civil time → True Solar Time conversion (leaf helper)
 
 Extracted from fusion.py so that bafe/time_model.py (Level 5) can import
@@ -121,12 +123,13 @@ def equation_of_time(day_of_year: int, use_precise: bool = True) -> float:
     """
     Calculate Equation of Time (E_t) in minutes (day-of-year approximation).
 
-    **Not the engine path.** Since FBP-TST-006 the BaZi/fusion/chronometry
-    surfaces use :func:`equation_of_time_jd` (Meeus, exact to < 0.1 min).
-    This day-of-year form (Spencer 1971 / NOAA, max error ≈ 0.8 min vs
-    Swiss Ephemeris, measured 1950–2026) is kept for the ``/validate``
-    degraded path in ``bafe/time_model.py`` (``eot_provenance =
-    "spencer_1971"``) and for :func:`true_solar_time`.
+    **Not the engine path.** Since FBP-TST-006 every production surface
+    (BaZi, fusion, chronometry and — since the sprint-2 review decision 1 —
+    ``/validate``) uses :func:`equation_of_time_jd` (Meeus, exact to
+    < 0.1 min). This day-of-year form (Spencer 1971 / NOAA, max error
+    ≈ 0.8 min vs Swiss Ephemeris, measured 1950–2026) has no production
+    caller any more; it is kept for the :func:`true_solar_time` leaf helper
+    and the reference tests that pin its documented error budget.
 
     The Equation of Time quantifies the discrepancy between
     apparent solar time and mean solar time due to:

@@ -68,7 +68,7 @@ Gates: ruff, mypy, `check_complexity.py --check`, `export_openapi.py --check`, `
 
 ## 5. Offene Owner-Entscheidungen
 
-1. F9: `/validate` auf den gemeinsamen Zeitkontext migrieren (Meeus statt Spencer) — berührt die Attestierungsregeln für `/validate`.
+1. ~~F9: `/validate` auf den gemeinsamen Zeitkontext migrieren~~ — **freigegeben und umgesetzt** (2026-10-17): `bafe/time_model.py` nutzt `compute_effective_time_context_from_instant` (tz_id- und tz_offset_sec-Zweig), `eot_provenance = "meeus_1998"`; `tlst_quality` behält seine UT1-Semantik. Kein Swiss-Ephemeris-Aufruf (reine Mathematik), daher keine Attestierungsänderung. Tests `tests/test_validate_tlst_shared_context.py` (Kantenfall aus R2 F2: Chou statt Zi, `boundary_distance_deg` konsistent mit `/calculate/tst`).
 2. ~~F10: `ambiguousTime`/`nonexistentTime` additiv ins `/chronometry/resolve`-Request-Modell~~ — **freigegeben und umgesetzt** (2026-10-16, Label `1.0.0-rc7-20261016`): `BirthContext.ambiguousTime`/`nonexistentTime`, durchgereicht an `resolve_chronometry(…, ambiguous_time, nonexistent_time)`; Tests `tests/test_chronometry_dst_policy_and_rollover.py`.
 3. ~~F11: additives Feld `tlst_date_rollover` auf `TimeResolutionTrace` und `ChronometryFrame`~~ — **freigegeben und umgesetzt** (2026-10-16): `tlst_date_rollover` auf Trace `time_resolution` (int), `ChronometryFrame`/`/chronometry/resolve`/`/personalize` (int, `null` bei unbekannter Geburtszeit); `julian_day_number` bleibt vertragsgemäß das zivile Datum.
 4. ~~F12: `OverflowError` → 422~~ — **freigegeben und umgesetzt** (2026-10-17): `time_utils._roundtrip_ok` und `time_context` fangen `OverflowError` an der Quelle und werfen `LocalTimeError`/`InputError` (422, ohne PII-Echo); Tests `tests/test_time_range_and_skipped_day.py`.

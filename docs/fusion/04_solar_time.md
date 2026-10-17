@@ -122,8 +122,8 @@ Eigenschaften:
   Zeitgleichung um < 0,003″, vernachlässigbar.
 - Provenance: jede Oberfläche, die `eot_minutes` ausgibt (`/calculate/tst`,
   Trace `time_resolution`, Chronometrie, `/personalize`), trägt
-  `eot_source = "meeus_1998"`. Der `/validate`-Degraded-Pfad nutzt weiterhin
-  die Tagesformel und meldet `eot_provenance = "spencer_1971"`.
+  `eot_source = "meeus_1998"`; `/validate` meldet dieselbe Quelle als
+  `time_evidence.eot_provenance` (seit 2026-10-17; davor `spencer_1971`).
 
 ---
 
@@ -178,10 +178,10 @@ stdlib (kein Swiss-Ephemeris-Aufruf; `/calculate/tst` bleibt
 ephemeridenfrei). Abweichung zu `swe.time_equ`: max 0,058 min
 (1950–2030). Die oben beschriebene NOAA/Spencer-Tagesformel
 `equation_of_time(day_of_year)` (Fehler ≤ 0,8 min) ist **nicht** mehr der
-Engine-Pfad; sie bleibt nur für den Degraded-Pfad von `/validate`
-(`eot_provenance = "spencer_1971"`) bestehen. Jede Oberfläche, die
-`eot_minutes` ausgibt, trägt das Provenance-Feld `eot_source`
-(`"meeus_1998"`).
+Engine-Pfad und hat seit der Review-Entscheidung 1 (2026-10-17, `/validate`
+auf den gemeinsamen Kontext migriert, `eot_provenance = "meeus_1998"`)
+keinen Produktionsaufrufer mehr. Jede Oberfläche, die `eot_minutes`
+ausgibt, trägt das Provenance-Feld `eot_source` (`"meeus_1998"`).
 
 Der Einstieg erwartet ein zeitzonen-bewusstes `datetime` (DST-Fold bereits
 aufgelöst); die String-Variante `compute_effective_time_context(iso, tz, lon,
