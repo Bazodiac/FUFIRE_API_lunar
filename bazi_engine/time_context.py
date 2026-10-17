@@ -38,7 +38,14 @@ from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Optional
 from zoneinfo import ZoneInfo
 
+from .exc import InputError
 from .solar_time import EOT_SOURCE_MEEUS, equation_of_time_jd, jd_ut_from_datetime
+
+_OUT_OF_RANGE_MESSAGE = (
+    "Instant is outside the supported calendar range: applying the longitude "
+    "and equation-of-time corrections leaves years 1–9999. Use a date inside "
+    "that range."
+)
 
 
 class _LongitudeMeanTime(tzinfo):
@@ -116,8 +123,14 @@ def compute_effective_time_context_from_instant(
     if civil_local.tzinfo is None or civil_local.utcoffset() is None:
         raise ValueError("civil_local must be timezone-aware (resolve DST first).")
 
-    utc = civil_local.astimezone(timezone.utc)
-    lmt_local = utc.astimezone(_LongitudeMeanTime(longitude_deg))
+    try:
+        utc = civil_local.astimezone(timezone.utc)
+        lmt_local = utc.astimezone(_LongitudeMeanTime(longitude_deg))
+    except OverflowError as e:
+        # Year 1 / 9999 instants whose longitude-shifted image leaves the
+        # datetime range (owner decision 4 after the sprint-2 review, R1
+        # finding F12): caller input → InputError (HTTP 422), never a 500.
+        raise InputError(_OUT_OF_RANGE_MESSAGE) from e
 
     # FBP-TST-006 (E6-M): EoT evaluated at the exact UT instant with the
     # pure-math Meeus formula (no Swiss Ephemeris call — attestation
@@ -129,9 +142,12 @@ def compute_effective_time_context_from_instant(
     # TLST on the UTC axis: one timedelta applied to the instant. The
     # result is kept as a *naive* wall-clock (hour-of-day + calendar date)
     # on purpose — TLST is not a tzinfo (FBP-01-006).
-    tlst_wall = utc.replace(tzinfo=None) + timedelta(
-        minutes=longitude_deg * 4.0 + eot_min
-    )
+    try:
+        tlst_wall = utc.replace(tzinfo=None) + timedelta(
+            minutes=longitude_deg * 4.0 + eot_min
+        )
+    except OverflowError as e:
+        raise InputError(_OUT_OF_RANGE_MESSAGE) from e
     # Hour-of-day to 6 decimals by TRUNCATION of the integer microsecond
     # count, never by rounding: rounding lifted 22:59:59.9995 to 23.000000
     # and flipped the hour branch (Hai → Zi) plus the zi day advance for an
