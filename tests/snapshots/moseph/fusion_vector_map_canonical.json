@@ -10,7 +10,7 @@
     "tz": "Europe/Berlin"
   },
   "metadata": {
-    "algorithm_version": "1.0.0-rc6-20261016",
+    "algorithm_version": "1.0.0-rc7-20261016",
     "mapping_version": "fufire-wuxing-map-v1"
   },
   "vector_map": {

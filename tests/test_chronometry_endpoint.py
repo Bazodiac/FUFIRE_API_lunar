@@ -53,6 +53,7 @@ def test_endpoint_200_shape():
         "eot_source",
         "longitude_correction_minutes",
         "true_solar_time",
+        "tlst_date_rollover",
         "solar_longitude_degrees",
         "solar_term",
         "boundary_flags",

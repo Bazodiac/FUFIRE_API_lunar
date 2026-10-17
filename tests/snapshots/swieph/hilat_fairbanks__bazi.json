@@ -55,6 +55,7 @@
       "eot_minutes": 7.6055,
       "eot_source": "meeus_1998",
       "lmt": "2024-09-22T12:09:08.064000-09:50:51.936000",
+      "tlst_date_rollover": 0,
       "tlst_hours": 12.278998,
       "tz_offset_minutes": -480,
       "utc": "2024-09-22T22:00:00+00:00"
@@ -107,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc6-20261016",
+    "engine_version": "1.0.0-rc7-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {

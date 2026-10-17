@@ -12,7 +12,7 @@
   "julian_day_number": 2448058,
   "longitude_correction_minutes": 53.62,
   "precision": {
-    "algorithm_version": "1.0.0-rc6-20261016",
+    "algorithm_version": "1.0.0-rc7-20261016",
     "grade": "degraded",
     "warnings": [
       "Computed with the analytical Moshier ephemeris (MOSEPH). Solar longitude precision is degraded relative to the Swiss Ephemeris SE1 data files."
@@ -20,5 +20,6 @@
   },
   "solar_longitude_degrees": 84.1494648038,
   "solar_term": "Mang Zhong",
+  "tlst_date_rollover": 0,
   "true_solar_time": "13:23"
 }

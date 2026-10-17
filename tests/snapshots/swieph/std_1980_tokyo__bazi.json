@@ -55,7 +55,8 @@
       "eot_minutes": 0.0758,
       "eot_source": "meeus_1998",
       "lmt": "1980-12-25T06:18:46.008000+09:18:46.008000",
-      "tlst_hours": 6.314044,
+      "tlst_date_rollover": 0,
+      "tlst_hours": 6.314043,
       "tz_offset_minutes": 540,
       "utc": "1980-12-24T21:00:00+00:00"
     },
@@ -107,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc6-20261016",
+    "engine_version": "1.0.0-rc7-20261016",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {

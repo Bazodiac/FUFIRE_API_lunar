@@ -130,6 +130,7 @@ def _chronometry_sample() -> dict:
         "eot_source": "meeus_1998",
         "longitude_correction_minutes": 53.62,
         "true_solar_time": "13:23",
+        "tlst_date_rollover": 0,
         "solar_longitude_degrees": 84.31,
         "solar_term": "Mangzhong",
         "boundary_flags": {
@@ -728,6 +729,7 @@ def _real_derivation_trace_model(anchor_verification: str = "unverified"):
             tlst_hours=14.38,
             eot_minutes=-0.027,
             eot_source="meeus_1998",
+            tlst_date_rollover=0,
             tz_offset_minutes=120,
             effective_standard="CIVIL",
         ),

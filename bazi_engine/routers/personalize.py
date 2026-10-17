@@ -351,6 +351,7 @@ def _compute_chronometry_for(req: PersonalizeRequest) -> Dict[str, Any]:
         "eot_source": frame.eot_source,
         "longitude_correction_minutes": frame.longitude_correction_minutes,
         "true_solar_time": frame.true_solar_time,
+        "tlst_date_rollover": frame.tlst_date_rollover,
         "solar_longitude_degrees": frame.solar_longitude_degrees,
         "solar_term": frame.solar_term,
         "boundary_flags": frame.boundary_flags,

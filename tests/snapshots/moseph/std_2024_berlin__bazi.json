@@ -55,6 +55,7 @@
       "eot_minutes": -14.1907,
       "eot_source": "meeus_1998",
       "lmt": "2024-02-10T14:23:37.200000+00:53:37.200000",
+      "tlst_date_rollover": 0,
       "tlst_hours": 14.157154,
       "tz_offset_minutes": 60,
       "utc": "2024-02-10T13:30:00+00:00"
@@ -107,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc6-20261016",
+    "engine_version": "1.0.0-rc7-20261016",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
