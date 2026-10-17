@@ -77,9 +77,28 @@ class ResolvedInstant:
     warning: Optional[str]
 
 
+# Upper bound for ``nonexistentTime='shift_forward'``. DST gaps are 30–120 min,
+# but a zone can skip a whole calendar day (Samoa 2011-12-30 jumped from UTC−10
+# to UTC+14: a noon input needs +720 min), so the window covers two full days.
+# Owner decision 5 after the sprint-2 review (R2 out-of-range observation).
+SHIFT_FORWARD_MAX_MINUTES = 48 * 60
+
+_OUT_OF_RANGE_MESSAGE = (
+    "Local time is outside the supported calendar range: converting it to UTC "
+    "or applying the timezone offset leaves years 1–9999. Use a date inside "
+    "that range."
+)
+
+
 def _roundtrip_ok(naive_local: datetime, tz: ZoneInfo, fold: int) -> bool:
     dt = naive_local.replace(tzinfo=tz, fold=fold)
-    back = dt.astimezone(timezone.utc).astimezone(tz)
+    try:
+        back = dt.astimezone(timezone.utc).astimezone(tz)
+    except OverflowError as e:
+        # Year 1 / 9999 inputs whose UTC image leaves the datetime range used
+        # to surface as HTTP 500 (owner decision 4 after the sprint-2 review,
+        # R1 finding F12). It is caller input, so it is a 422.
+        raise LocalTimeError(_OUT_OF_RANGE_MESSAGE) from e
     return back.replace(tzinfo=None) == naive_local
 
 
@@ -137,9 +156,14 @@ def resolve_local_iso(
                 "Nonexistent local time due to DST transition (spring-forward "
                 "gap). Provide a valid time or set nonexistentTime='shift_forward'."
             )
-        # Shift forward to next valid minute (DST gaps are typically 30-60 min).
-        for minutes in range(1, 181):
-            candidate = naive + timedelta(minutes=minutes)
+        # Shift forward to the next valid minute. DST gaps are 30–120 min; a
+        # skipped calendar day (Samoa 2011) needs up to 24 h, see
+        # SHIFT_FORWARD_MAX_MINUTES.
+        for minutes in range(1, SHIFT_FORWARD_MAX_MINUTES + 1):
+            try:
+                candidate = naive + timedelta(minutes=minutes)
+            except OverflowError as e:
+                raise LocalTimeError(_OUT_OF_RANGE_MESSAGE) from e
             if _roundtrip_ok(candidate, tz, fold=0) or _roundtrip_ok(candidate, tz, fold=1):
                 dt = candidate.replace(tzinfo=tz, fold=0)
                 return dt, LocalTimeResolution(
@@ -156,7 +180,8 @@ def resolve_local_iso(
                 )
         # Raw values omitted from the client-facing message (PII — see above).
         raise LocalTimeError(
-            "Could not resolve nonexistent local time within 180 minutes."
+            f"Could not resolve nonexistent local time within "
+            f"{SHIFT_FORWARD_MAX_MINUTES // 60} hours."
         )
 
     # Normal or ambiguous
