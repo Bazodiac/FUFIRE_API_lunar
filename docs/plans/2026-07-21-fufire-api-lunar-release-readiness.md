@@ -205,6 +205,8 @@ Vollständige Matrix, Artefaktidentität, Smoke, Last, Approval und Rollback.
 **Validation:** GitHub branch metadata, workflow run IDs, Railway staging build commit.  
 **Rollback:** Default-Branch zurücksetzen und Workflows temporär auf `master` retargeten.
 
+**Status 2026-10-18:** Phase A (CI `workflow_dispatch`, getesteter Branch-Wiring-Vertrag, Runbook) als PR; Schritt 1 rot belegt (Dispatch auf `main` abgelehnt). Phasen B/C und der Blocker `RELEASE_PLEASE_TOKEN` siehe `docs/runbooks/default-branch-migration.md`.
+
 ### TASK-003: Atomaren `release-gate` und Branch Protection einführen
 
 **Objective:** Eine einzige verpflichtende Freigabe über alle CI-Jobs.  
