@@ -5,6 +5,9 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  # TASK-002: manual dispatch is the branch-reachability probe for the
+  # master -> main normalization (docs/runbooks/default-branch-migration.md).
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
