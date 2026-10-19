@@ -1,15 +1,34 @@
 # Runbook: Default-branch normalization `master` → `main` (TASK-002)
 
 **Plan:** `docs/plans/2026-07-21-fufire-api-lunar-release-readiness.md`, TASK-002 (REQ-A-001).
-**Goal:** `main` is the default, deployed and release branch; no active consumer points at `master`.
+**Goal:** `main` is the default and release branch; no active consumer points at `master`. No branch drives
+deployment; the VPS is promoted through the ETBZ gates (ADR-006).
 
 The work is split into three phases. Only phase A is a code change; phase B needs
-repository-admin and Railway access; phase C is a small follow-up PR.
+repository-admin access plus a runtime step that depends on the deployment-target
+decision below; phase C is a small follow-up PR.
+
+> **Correction 2026-10-18 (reconcile).** The first version of this runbook assumed, from
+> CLAUDE.md, that Railway deploys `master`. Runtime readback contradicts that:
+> - The only reachable live engine is a Docker container on the Hostinger VPS,
+>   `https://srv1308064.hstgr.cloud/lunar`. It reports engine label `1.0.0-rc1-20260220`,
+>   has no `source_revision` in `/build`, and serves OpenAPI SHA-256
+>   `6c1db67207b4df71c9ee1a06d20458bede518962ba0a619788efade2d8ffc8da`, the pre-cutover
+>   state recorded in Confluence ETBZ page 60784641 on 2026-09-16.
+> - That runtime is rebuilt from an exact SHA behind human gates. It does not follow a branch,
+>   so the default-branch switch does not affect it.
+> - `bafe-production.up.railway.app`, `fufireapilive-production.up.railway.app` and
+>   `api.fufire.space` return Railway's `Application not found` edge 404, identical to a
+>   made-up `*.up.railway.app` host.
+>
+> **Decided 2026-10-19:** REC-2026-10-18-01 = **A, VPS only**
+> (`docs/adr/ADR-006-deployment-target-vps.md`). Railway is not a target, so phase B has no
+> runtime step.
 
 | Phase | Who | What | Reversible |
 |-------|-----|------|------------|
 | A | PR | CI gains `workflow_dispatch`; branch wiring becomes a tested contract; this runbook | yes (revert) |
-| B | Repo admin + Railway owner | switch default branch and Railway source branch in one sitting | yes (see Rollback) |
+| B | Repo admin | switch the default branch (no runtime step, ADR-006) | yes (see Rollback) |
 | C | PR | drop `master` from CI triggers and docs | yes (revert) |
 
 ---
@@ -26,7 +45,8 @@ repository-admin and Railway access; phase C is a small follow-up PR.
 | release-please trigger | `push` on `[main]` only | `.github/workflows/release-please.yml` |
 | release-please health | runs 2–5 on `main` all failed: `Input required and not supplied: token` | run 29973352302, job 89099889396 |
 | CI dispatch on `main` | refused: `Workflow does not have 'workflow_dispatch' trigger` | dispatch attempt, 2026-10-18 (red pre-state for plan step 1) |
-| Railway source branch | **unknown from the repo** (CLAUDE.md says Railway deploys `master`) | must be read in the Railway dashboard |
+| Railway | not a deployment target (ADR-006); all known hostnames unbound | decision 2026-10-19 |
+| Live runtime | Hostinger VPS `srv1308064.hstgr.cloud/lunar`, engine label `1.0.0-rc1-20260220`, no `source_revision` | unauthenticated `/health`, `/build`, `/openapi.json` readback, 2026-10-18 |
 
 ### Blocker independent of the branch switch
 
@@ -44,7 +64,7 @@ in `release-please-config.json` for that one release.
 
 ---
 
-## Phase B — switch (repo admin + Railway owner, same sitting)
+## Phase B — switch (repo admin)
 
 Two ways exist. **Use B-rename.** B-switch is the fallback if deleting `main` is not acceptable.
 
@@ -70,7 +90,7 @@ git ls-remote --symref origin HEAD                # expect refs/heads/master
 ```
 
 Also: no PR open against `main` (GitHub → Pull requests → filter `base:main`), and no
-in-flight Railway deploy.
+in-flight VPS cutover (ETBZ gates).
 
 ### B1 — GitHub (B-rename)
 
@@ -88,13 +108,11 @@ in-flight Railway deploy.
 3. Recreate any branch rules for `main`; retarget or close the Dependabot PRs.
 4. Freeze `master`: a ruleset that blocks pushes, or delete it after phase C.
 
-### B2 — Railway (immediately after B1)
+### B2 — runtime: not applicable
 
-1. Railway → service → Settings → Source → Branch: set `main`. Keep auto-deploy on.
-2. Note the value it had before (needed for rollback and for the evidence ledger).
-
-If this step is late, nothing breaks: Railway keeps running the last `master` deploy and
-simply does not deploy merges to `main` until the source is switched.
+REC-2026-10-18-01 was decided A on 2026-10-19 (ADR-006). The VPS build is rebuilt from an
+exact SHA behind the ETBZ gates and does not follow a branch, so the default-branch switch
+needs no runtime step.
 
 ### B3 — verification
 
@@ -102,10 +120,9 @@ simply does not deploy merges to `main` until the source is switched.
 2. CI: a `push` run of `CI` on `main` for that merge commit, with `release-gate` green.
 3. Dispatch: Actions → CI → Run workflow → branch `main` succeeds (green post-state of plan step 1).
 4. release-please: a run on `main`; green once the token exists, else it fails with the token error above.
-5. Railway: a deploy for the merge commit; then `GET /build` returns that commit as
-   `source_revision`.
-6. Record run IDs, the Railway deployment ID and the `/build` SHA in
-   `evidence/release-readiness/ledger.md`.
+5. Runtime: not part of TASK-002. The `/build` check for a promoted commit belongs to the
+   ETBZ cutover gate on the VPS (ADR-006).
+6. Record the run IDs in `evidence/release-readiness/ledger.md`.
 
 ---
 
@@ -113,8 +130,7 @@ simply does not deploy merges to `main` until the source is switched.
 
 1. `.github/workflows/ci.yml`: `branches: [main]` for `push` and `pull_request`.
 2. `tests/test_release_workflow_contract.py`: `TRANSITIONAL_BRANCHES = ()`.
-3. `CLAUDE.md`: "Repo Lineage & Branches", the deploy command (`git push origin main`)
-   and the release-please caveat.
+3. `CLAUDE.md`: "Repo Lineage & Branches" (default branch now `main`) and the release-please caveat.
 4. Session/branch rules that say `origin/master` (for example the sprint plans) point at `main`.
 5. `evidence/release-readiness/live-production-gates.json`: `github_default_branch: "main"`
    with the evidence from B3.
@@ -125,8 +141,8 @@ simply does not deploy merges to `main` until the source is switched.
 
 | Situation | Action |
 |-----------|--------|
-| After B-rename | rename `main` back to `master` (same dialog); set Railway source back to `master` |
-| After B-switch | set default back to `master`; set Railway source back to `master` |
+| After B-rename | rename `main` back to `master` (same dialog) |
+| After B-switch | set default back to `master` |
 | After phase C merged | revert the phase-C PR first, then the steps above |
 
 CI keeps triggering on both names until phase C, so CI coverage holds during any rollback

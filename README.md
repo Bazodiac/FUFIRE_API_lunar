@@ -79,7 +79,7 @@ python scripts/calibrate_baselines.py    # Monte Carlo calibration (5000 trials)
 
 ## Deployment
 
-- **Production:** Railway (auto-deploys on push to `main` via `Dockerfile` + `railway.toml`)
+- **Production:** Docker container on the Hostinger VPS behind nginx (`/lunar/`), rebuilt from an exact SHA behind human gates; a push deploys nothing (`docs/adr/ADR-006-deployment-target-vps.md`)
 - **Docker:** `docker build -t fufire . && docker run -p 8080:8080 fufire`
 - **Mock Server:** `python tests/mock_server.py --port 8081` (no ephemeris needed)
 
