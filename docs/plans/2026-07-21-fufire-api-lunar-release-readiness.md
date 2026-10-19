@@ -207,6 +207,8 @@ Vollständige Matrix, Artefaktidentität, Smoke, Last, Approval und Rollback.
 
 **Status 2026-10-18:** Phase A (CI `workflow_dispatch`, getesteter Branch-Wiring-Vertrag, Runbook) als PR; Schritt 1 rot belegt (Dispatch auf `main` abgelehnt). Phasen B/C und der Blocker `RELEASE_PLEASE_TOKEN` siehe `docs/runbooks/default-branch-migration.md`.
 
+**Entscheidung 2026-10-19:** Deployment-Ziel ist ausschließlich der VPS (REC-2026-10-18-01 = A, `docs/adr/ADR-006-deployment-target-vps.md`). Der Railway-Schritt entfällt; Phase B besteht nur aus dem GitHub-Default-Branch-Wechsel.
+
 ### TASK-003: Atomaren `release-gate` und Branch Protection einführen
 
 **Objective:** Eine einzige verpflichtende Freigabe über alle CI-Jobs.  

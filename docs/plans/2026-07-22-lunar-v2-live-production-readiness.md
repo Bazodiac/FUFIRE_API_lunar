@@ -54,7 +54,7 @@ Out of scope: new interpretation features, topocentric Moon calculations, rise/s
 
 | ID | Priority | Gate | Current status | Closure evidence |
 |---|---|---|---|---|
-| LR-001 | P0 | Canonical branch/default/Railway source converge on `main` | PARTIAL | GitHub default-branch export, Railway source export, same-SHA `/build` proof |
+| LR-001 | P0 | Canonical branch/default converge on `main` (Railway source dropped: VPS-only target, ADR-006, 2026-10-19) | PARTIAL | GitHub default-branch export; same-SHA `/build` proof on the VPS after the ETBZ cutover |
 | LR-002 | P0 | Protected branch rules with required checks and no bypass | MISSING | Ruleset export and check-suite IDs |
 | LR-003 | P0 | Least-privilege release-please identity | MISSING | Successful bot PR and audit/check evidence; never token value |
 | LR-004 | P0 | Swiss Ephemeris license path approved | BLOCKED | Legal approval/evidence ID and artifact license inventory |
