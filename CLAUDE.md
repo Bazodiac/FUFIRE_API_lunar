@@ -18,7 +18,9 @@ Two engines live here: the mature BaZi/Western fusion engine, and a second, inde
 ### Repo Lineage & Branches
 
 - This repo (DYAI2025/FUFIRE_API_lunar) is a fresh "Lunar" cut of the canonical DYAI2025/FuFirE repo. Git history starts at `fe8f019` ("Initial commit" — the `bootstrap-sha` in `release-please-config.json`). CHANGELOG entries ≤ 1.5.0 link to commits in the **upstream** repo; those SHAs do not exist here — a failing `git show` on them is not corruption.
-- **`master` is the default AND deployed branch.** Railway deploys master; CI runs on both master and main (commit 9d19a3e: "cover master with full CI while it remains deployed"). `main` is a periodically synced mirror, currently behind master. The master→main normalization is TASK-002 (`docs/plans/2026-07-21-fufire-api-lunar-release-readiness.md`); its three-phase procedure (repo PR → admin/Railway switch → cleanup PR) is `docs/runbooks/default-branch-migration.md`, and `tests/test_release_workflow_contract.py` pins the transitional wiring (`CANONICAL_BRANCH`/`TRANSITIONAL_BRANCHES`). Next release is fixed at 1.6.0.
+- **`master` is the default branch; deployment is not branch-driven.** CI runs on both master and main (commit 9d19a3e). `main` is a periodically synced mirror, currently behind master.
+- **Observed runtime (read 2026-10-18):** the only reachable live engine is a Docker container on the Hostinger VPS, `https://srv1308064.hstgr.cloud/lunar` (nginx `/lunar/` → `127.0.0.1:8110`). It reports engine label `1.0.0-rc1-20260220`, has no `source_revision` in `/build`, and serves the pre-ETBZ-35 OpenAPI (SHA-256 `6c1db672…f8da`), i.e. code older than #45 and without the TLST fixes #56–#64. It is rebuilt from an exact SHA behind human gates (Confluence ETBZ page 60784641, Gate B cutover not authorized). All known Railway hostnames (`bafe-production`, `fufireapilive-production`, `api.fufire.space`) return Railway's `Application not found` edge 404, the same as a made-up host. Which runtime is the authorized Lunar V2 target is the open owner decision REC-2026-10-18-01; until it is answered, do not claim that a merge or push deploys anything.
+- The master→main normalization is TASK-002 (`docs/plans/2026-07-21-fufire-api-lunar-release-readiness.md`); its three-phase procedure (repo PR → GitHub admin switch, plus a runtime step that depends on REC-2026-10-18-01 → cleanup PR) is `docs/runbooks/default-branch-migration.md`, and `tests/test_release_workflow_contract.py` pins the transitional wiring (`CANONICAL_BRANCH`/`TRANSITIONAL_BRANCHES`). Next release is fixed at 1.6.0.
 
 ### Versioning (two independent axes)
 
@@ -33,7 +35,7 @@ Task-progress source of truth: **`3-code/tasks.md`** (TASK-* and FBP-* status ta
 - **BAZI-PRECISION-V2** (44 tasks, phased, test-first, review-gated): Phase 0 ✅ 8/8; Phase 1 ✅ 5/5 (Effective Time Model CIVIL/LMT/TLST); Phase 2 — 2/8 (FBP-02-002/003/007 need domain reviewer — DEV-2026-004); Phase 3 — 5/6 done (only FBP-03-006 open); Phases 4–7 not started.
 - Recently shipped (CHANGELOG 1.1.0–1.5.0, July 2026): dayun solar-years + interpretation, ZWDS core-seed natal engine, natal-analysis endpoint, canonical BaZi Wu-Xing endpoint, release-readiness work toward 1.6.0.
 
-> ⚠️ **Stale sibling docs:** `AGENTS.md`, `SDLC.md`, and `ARCHITECTURE_DE.md` are outdated snapshots (Fly.io deploy targets, pre-router-refactor architecture, wrong webhook paths, 3-of-4 ephemeris files). Fly.io is decommissioned; Railway is the sole deployment target. On any conflict, this file plus the repo itself win.
+> ⚠️ **Stale sibling docs:** `AGENTS.md`, `SDLC.md`, and `ARCHITECTURE_DE.md` are outdated snapshots (Fly.io deploy targets, pre-router-refactor architecture, wrong webhook paths, 3-of-4 ephemeris files). Fly.io is decommissioned. `railway.toml` is still in the repo, but no live Railway service is evidenced (see Repo Lineage & Branches). On any conflict, this file plus the repo itself win.
 
 ## Development Commands
 
@@ -76,10 +78,11 @@ SE_EPHE_PATH=/tmp/ephe python scripts/tlst_grid_check.py   # 18k-sample TLST gri
 # Docker — FUFIRE_ENV is mandatory (image bakes FUFIRE_REQUIRE_EXPLICIT_ENV=1; omitting it crashes startup)
 docker build -t bazi_engine . && docker run -e FUFIRE_ENV=dev -p 8080:8080 bazi_engine
 
-# Deploy: push to MASTER (Railway auto-deploys; railway.toml noCache=true → every build is full/uncached)
-git push origin master
-# Railway healthcheck = GET /ready (503 when a required dependency is degraded); /health = liveness only
-# Verify the live commit after deploy: GET /build (exposes RAILWAY_GIT_COMMIT_SHA when EXPOSE_BUILD_METADATA=1)
+# Deploy: NOT a git push. The observed production engine (Hostinger VPS, see Repo Lineage & Branches) is
+# rebuilt from an exact SHA behind human gates (Confluence ETBZ 60784641); `git push origin master` deploys
+# nothing observable. railway.toml (noCache=true) serves a Railway target that is unverified (REC-2026-10-18-01).
+# Readiness probe = GET /ready (503 when a required dependency is degraded); /health = liveness only
+# Verify the live commit after deploy: GET /build → `source_revision` (since #45; the current VPS build predates it)
 ```
 
 ### Dependency & Toolchain Lock Contract (fail-closed)
