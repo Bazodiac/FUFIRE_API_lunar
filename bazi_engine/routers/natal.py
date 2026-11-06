@@ -9,6 +9,8 @@ the ``/bazi-hehun`` pair matcher):
 * **Ten Gods relative to the day master** for every pillar stem AND every
   hidden stem (ruleset ``ten_gods`` table via ``match.ten_gods``; Pinyin /
   ``element_relation`` / ``label_de`` via the dayun relation module),
+* **hidden-stem affinity facts** relative to the day master (not a Tong Gen
+  strength verdict),
 * the **month command** (Yue Ling) — deterministic ruleset facts only
   (``match.individual.MonthCommand``). NO seasonal-strength assessment
   (Wang/Xiang/Xiu/Qiu/Si) is emitted: that would need the domain-reviewed
@@ -31,6 +33,8 @@ logic of its own:
      names, element relation and German labels (the vocabulary
      ``/calculate/bazi/dayun`` already ships; its stem-index arguments are
      generic heavenly stems, not decade-specific).
+  6. ``match.natal_facts.hidden_stem_affinities()`` — factual identity/phase
+     occurrence lists only, not Tong Gen or Day Master Strength judgments.
 
 Element vocabulary note: the response uses the English lowercase element
 labels of the dayun endpoint (``wood``/``fire``/``earth``/``metal``/
@@ -61,6 +65,7 @@ from ..dayun.relation import compute_relation_to_day_master
 from ..exc import BaziEngineError
 from ..limiter import limiter, tier_limit
 from ..match.individual import IndividualAnalysis, analyze_individual
+from ..match.natal_facts import hidden_stem_affinities
 from ..match.normalize import normalize_chart
 from ..match.ten_gods import ten_god_for_stems
 from ..match.types import NormalizedChart, StemSource, WuxingLedgerEntry
@@ -151,7 +156,8 @@ class NatalPrecision(BaseModel):
 class NatalResponse(BaseModel):
     """Top-level shape for POST /calculate/bazi/natal.
 
-    The nested ``pillars`` / ``day_master`` / ``month_command`` blocks are
+    The nested ``pillars`` / ``day_master`` / ``month_command`` /
+    ``hidden_stem_affinities`` blocks are
     intentionally schemaless at the Pydantic level (``Dict[str, Any]``) —
     like the dayun endpoint, their true contract is enforced by
     ``schemas/calculate/bazi/natal.response.schema.json`` via the
@@ -163,6 +169,7 @@ class NatalResponse(BaseModel):
     pillars: Dict[str, Any]
     day_master: Dict[str, Any]
     month_command: Dict[str, Any]
+    hidden_stem_affinities: Dict[str, Any]
     provenance: NatalProvenance
     precision: NatalPrecision
     warnings: List[str] = Field(default_factory=list)
@@ -303,6 +310,9 @@ def _assemble_response(
         },
         "day_master": _day_master_block(chart.day_master),
         "month_command": _month_command_block(analysis),
+        "hidden_stem_affinities": hidden_stem_affinities(
+            chart.day_master, chart.wuxing_ledger, birth_time_known=req.birth_time_known
+        ),
         "provenance": {
             "source": "FuFirE",
             "ruleset_id": str(ruleset.get("ruleset_id", "MISSING")),

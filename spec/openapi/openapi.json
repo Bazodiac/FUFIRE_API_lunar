@@ -11591,6 +11591,11 @@
             "type": "object",
             "title": "Month Command"
           },
+          "hidden_stem_affinities": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Hidden Stem Affinities"
+          },
           "provenance": {
             "$ref": "#/components/schemas/NatalProvenance"
           },
@@ -11611,11 +11616,12 @@
           "pillars",
           "day_master",
           "month_command",
+          "hidden_stem_affinities",
           "provenance",
           "precision"
         ],
         "title": "NatalResponse",
-        "description": "Top-level shape for POST /calculate/bazi/natal.\n\nThe nested ``pillars`` / ``day_master`` / ``month_command`` blocks are\nintentionally schemaless at the Pydantic level (``Dict[str, Any]``) —\nlike the dayun endpoint, their true contract is enforced by\n``schemas/calculate/bazi/natal.response.schema.json`` via the\n``test_response_validates_against_response_schema`` regression test."
+        "description": "Top-level shape for POST /calculate/bazi/natal.\n\nThe nested ``pillars`` / ``day_master`` / ``month_command`` /\n``hidden_stem_affinities`` blocks are\nintentionally schemaless at the Pydantic level (``Dict[str, Any]``) —\nlike the dayun endpoint, their true contract is enforced by\n``schemas/calculate/bazi/natal.response.schema.json`` via the\n``test_response_validates_against_response_schema`` regression test."
       },
       "PairLayerModel": {
         "properties": {
