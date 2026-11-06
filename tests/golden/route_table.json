@@ -576,6 +576,22 @@
     true
   ],
   [
+    "/v2/calculate/bazi",
+    [
+      "POST"
+    ],
+    true,
+    true
+  ],
+  [
+    "/v2/calculate/bazi/natal",
+    [
+      "POST"
+    ],
+    true,
+    true
+  ],
+  [
     "/validate",
     [
       "POST"

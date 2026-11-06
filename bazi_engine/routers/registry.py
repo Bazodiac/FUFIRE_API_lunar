@@ -23,6 +23,7 @@ from . import (
     admin,
     astronomy,
     bazi,
+    bazi_tlst_v2,
     chart,
     chronometry,
     dayun,
@@ -111,6 +112,16 @@ MOUNTS: tuple[Mount, ...] = (
     # semantics must not appear under frozen V1 or a bare legacy alias.
     Mount(
         astronomy.router,
+        legacy_prefix=None,
+        v1_prefix=None,
+        v2_prefix="/v2",
+    ),
+    # Opt-in True-Local-Solar-Time BaZi + Natal (FU-TLST-POLICY / INC-1).
+    # V2 only: TLST-required, no location defaults, no silent DST fold choice —
+    # semantics the frozen V1 / legacy routes must not inherit (their default
+    # stays CIVIL). Protected by the default API key.
+    Mount(
+        bazi_tlst_v2.router,
         legacy_prefix=None,
         v1_prefix=None,
         v2_prefix="/v2",

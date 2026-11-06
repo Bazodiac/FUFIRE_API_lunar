@@ -7410,6 +7410,246 @@
           }
         ]
       }
+    },
+    "/v2/calculate/bazi": {
+      "post": {
+        "tags": [
+          "BaZi v2 (TLST)"
+        ],
+        "summary": "BaZi Four Pillars in True Local Solar Time (opt-in)",
+        "description": "**Opt-in True Local Solar Time (TLST).** `standard` must be `\"TLST\"`; the v1 and legacy routes keep their `CIVIL` default and are unchanged. Flow: local wall-clock + IANA zone → explicit DST resolution → exact UTC instant → TLST (UTC + longitude × 4 min + Meeus equation of time) → pillars. The hour branch is taken from the TLST hour; the day pillar follows the apparent-solar calendar date (`boundary=\"midnight\"`) or advances at TLST 23:00 (`boundary=\"zi\"`).\n\n`time_basis` reports the instant, TLST value, equation of time, solar date rollover and day rule the engine actually used, and `time_basis.uncertainty` flags decisions inside the 0.1-minute EoT tolerance or the solar-term search accuracy.\n\n**Not a verified production standard:** the sexagenary day-cycle anchor of the shipped ruleset is `unverified` (see `policy.day_anchor_verification`); domain sign-off is pending. Missing `tz`/`lat`/`lon`, a non-TLST `standard`, an unresolved ambiguous DST time or a nonexistent DST time (without `nonexistentTime=\"shift_forward\"`) are rejected with 422.",
+        "operationId": "calculate_bazi_tlst_v2_endpoint_v2_calculate_bazi_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TlstV2Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaziTlstV2Response"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "UUID correlation ID — client-provided value is echoed when present.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "X-API-Version": {
+                "description": "Engine build version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Response-Time-ms": {
+                "description": "Server processing time in milliseconds.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Requests per minute allowed for the key's tier. `unlimited` for enterprise.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining quota in the current window. Currently reflects the full tier limit (persistent per-key counters are not yet implemented).",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests — rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable — ephemeris or external dependency not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v2/calculate/bazi/natal": {
+      "post": {
+        "tags": [
+          "BaZi v2 (TLST)"
+        ],
+        "summary": "BaZi natal analysis in True Local Solar Time (opt-in)",
+        "description": "**Opt-in True Local Solar Time (TLST).** `standard` must be `\"TLST\"`; the v1 and legacy routes keep their `CIVIL` default and are unchanged. Flow: local wall-clock + IANA zone → explicit DST resolution → exact UTC instant → TLST (UTC + longitude × 4 min + Meeus equation of time) → pillars. The hour branch is taken from the TLST hour; the day pillar follows the apparent-solar calendar date (`boundary=\"midnight\"`) or advances at TLST 23:00 (`boundary=\"zi\"`).\n\n`time_basis` reports the instant, TLST value, equation of time, solar date rollover and day rule the engine actually used, and `time_basis.uncertainty` flags decisions inside the 0.1-minute EoT tolerance or the solar-term search accuracy.\n\n**Not a verified production standard:** the sexagenary day-cycle anchor of the shipped ruleset is `unverified` (see `policy.day_anchor_verification`); domain sign-off is pending. Missing `tz`/`lat`/`lon`, a non-TLST `standard`, an unresolved ambiguous DST time or a nonexistent DST time (without `nonexistentTime=\"shift_forward\"`) are rejected with 422.\n\nSame instant, TLST policy and four pillars as `POST /v2/calculate/bazi` for identical input; hidden stems, Ten Gods and the month command are the v1 natal facts computed on that shared chart. No day-master strength or yong shen is emitted.",
+        "operationId": "calculate_natal_tlst_v2_endpoint_v2_calculate_bazi_natal_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TlstV2Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NatalTlstV2Response"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "UUID correlation ID — client-provided value is echoed when present.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "X-API-Version": {
+                "description": "Engine build version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Response-Time-ms": {
+                "description": "Server processing time in milliseconds.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Requests per minute allowed for the key's tier. `unlimited` for enterprise.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining quota in the current window. Currently reflects the full tier limit (persistent per-key counters are not yet implemented).",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests — rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable — ephemeris or external dependency not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -8031,6 +8271,63 @@
           "dates"
         ],
         "title": "BaziSection"
+      },
+      "BaziTlstV2Response": {
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/TlstV2InputEcho"
+          },
+          "pillars": {
+            "$ref": "#/components/schemas/BaziPillarsResponse"
+          },
+          "chinese": {
+            "$ref": "#/components/schemas/ChineseSection"
+          },
+          "dates": {
+            "$ref": "#/components/schemas/BaziDatesResponse"
+          },
+          "transition": {
+            "$ref": "#/components/schemas/BaziTransitionResponse"
+          },
+          "solar_terms_count": {
+            "type": "integer",
+            "title": "Solar Terms Count"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ProvenanceResponse"
+          },
+          "quality_flags": {
+            "$ref": "#/components/schemas/MinimalQualityFlags"
+          },
+          "precision": {
+            "$ref": "#/components/schemas/PrecisionBlock"
+          },
+          "derivation_trace": {
+            "$ref": "#/components/schemas/BaziDerivationTrace"
+          },
+          "time_basis": {
+            "$ref": "#/components/schemas/TlstTimeBasis"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/TlstPolicy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "input",
+          "pillars",
+          "chinese",
+          "dates",
+          "transition",
+          "solar_terms_count",
+          "provenance",
+          "quality_flags",
+          "precision",
+          "derivation_trace",
+          "time_basis",
+          "policy"
+        ],
+        "title": "BaziTlstV2Response"
       },
       "BaziTransition": {
         "properties": {
@@ -11617,6 +11914,61 @@
         "title": "NatalResponse",
         "description": "Top-level shape for POST /calculate/bazi/natal.\n\nThe nested ``pillars`` / ``day_master`` / ``month_command`` blocks are\nintentionally schemaless at the Pydantic level (``Dict[str, Any]``) —\nlike the dayun endpoint, their true contract is enforced by\n``schemas/calculate/bazi/natal.response.schema.json`` via the\n``test_response_validates_against_response_schema`` regression test."
       },
+      "NatalTlstV2Response": {
+        "properties": {
+          "pillars": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Pillars"
+          },
+          "day_master": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Day Master"
+          },
+          "month_command": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Month Command"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/NatalProvenance"
+          },
+          "precision": {
+            "$ref": "#/components/schemas/NatalPrecision"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "input": {
+            "$ref": "#/components/schemas/TlstV2InputEcho"
+          },
+          "time_basis": {
+            "$ref": "#/components/schemas/TlstTimeBasis"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/TlstPolicy"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "pillars",
+          "day_master",
+          "month_command",
+          "provenance",
+          "precision",
+          "input",
+          "time_basis",
+          "policy"
+        ],
+        "title": "NatalTlstV2Response",
+        "description": "The v1 natal shape plus the shared TLST ``input``/``time_basis``/``policy``."
+      },
       "PairLayerModel": {
         "properties": {
           "name": {
@@ -12623,6 +12975,41 @@
         ],
         "title": "SignatureDeltaResponse"
       },
+      "SolarTermUncertainty": {
+        "properties": {
+          "nearest_boundary_utc": {
+            "type": "string",
+            "title": "Nearest Boundary Utc",
+            "description": "Nearest jie (month) boundary incl. LiChun, UTC."
+          },
+          "distance_seconds": {
+            "type": "number",
+            "title": "Distance Seconds"
+          },
+          "accuracy_seconds": {
+            "type": "number",
+            "title": "Accuracy Seconds",
+            "description": "Solar-term crossing search accuracy used by the engine."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "clear",
+              "within_accuracy"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "nearest_boundary_utc",
+          "distance_seconds",
+          "accuracy_seconds",
+          "status"
+        ],
+        "title": "SolarTermUncertainty"
+      },
       "SourceStatus": {
         "type": "string",
         "enum": [
@@ -13090,6 +13477,32 @@
         "title": "TextBlockModel",
         "description": "AC-008a — exactly these seven fields; this schema IS the text contract.\n\nBlocks carry ``source_status``/``evidence_ids`` only; the contract makes\nno downstream-model readiness claim of any kind (D4). Any downstream\nconsumption of these blocks requires its own separately-gated spec."
       },
+      "TimeBasisUncertainty": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "clear",
+              "boundary_within_tolerance"
+            ],
+            "title": "Status"
+          },
+          "tlst_edge": {
+            "$ref": "#/components/schemas/TlstEdgeUncertainty"
+          },
+          "solar_term": {
+            "$ref": "#/components/schemas/SolarTermUncertainty"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "tlst_edge",
+          "solar_term"
+        ],
+        "title": "TimeBasisUncertainty"
+      },
       "TimeResolutionTrace": {
         "properties": {
           "civil_local": {
@@ -13254,6 +13667,424 @@
           "days"
         ],
         "title": "TimelineResponse"
+      },
+      "TlstEdgeUncertainty": {
+        "properties": {
+          "edge_hours": {
+            "type": "number",
+            "title": "Edge Hours",
+            "description": "Nearest decision edge on the TLST dial (0.0 = solar midnight)."
+          },
+          "kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "hour_branch",
+                "zi_day_start",
+                "solar_midnight"
+              ]
+            },
+            "type": "array",
+            "title": "Kinds"
+          },
+          "distance_minutes": {
+            "type": "number",
+            "title": "Distance Minutes"
+          },
+          "tolerance_minutes": {
+            "type": "number",
+            "title": "Tolerance Minutes",
+            "description": "Documented Meeus-vs-Swiss-Ephemeris EoT bound."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "clear",
+              "within_eot_tolerance"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "edge_hours",
+          "kinds",
+          "distance_minutes",
+          "tolerance_minutes",
+          "status"
+        ],
+        "title": "TlstEdgeUncertainty"
+      },
+      "TlstPolicy": {
+        "properties": {
+          "time_standard": {
+            "type": "string",
+            "const": "TLST",
+            "title": "Time Standard"
+          },
+          "opt_in": {
+            "type": "boolean",
+            "title": "Opt In"
+          },
+          "v1_default_standard": {
+            "type": "string",
+            "title": "V1 Default Standard"
+          },
+          "ruleset_id": {
+            "type": "string",
+            "title": "Ruleset Id"
+          },
+          "ruleset_version": {
+            "type": "string",
+            "title": "Ruleset Version"
+          },
+          "day_anchor_id": {
+            "type": "string",
+            "title": "Day Anchor Id"
+          },
+          "day_anchor_verification": {
+            "type": "string",
+            "title": "Day Anchor Verification",
+            "description": "Verbatim ruleset status; \"unverified\" = no domain sign-off."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "time_standard",
+          "opt_in",
+          "v1_default_standard",
+          "ruleset_id",
+          "ruleset_version",
+          "day_anchor_id",
+          "day_anchor_verification"
+        ],
+        "title": "TlstPolicy"
+      },
+      "TlstTimeBasis": {
+        "properties": {
+          "standard": {
+            "type": "string",
+            "const": "TLST",
+            "title": "Standard"
+          },
+          "input_local": {
+            "type": "string",
+            "title": "Input Local"
+          },
+          "resolved_local": {
+            "type": "string",
+            "title": "Resolved Local"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "fold": {
+            "type": "integer",
+            "title": "Fold"
+          },
+          "local_time_status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "ambiguous",
+              "nonexistent_shifted"
+            ],
+            "title": "Local Time Status"
+          },
+          "adjusted_minutes": {
+            "type": "integer",
+            "title": "Adjusted Minutes"
+          },
+          "local_time_warning_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Local Time Warning Code"
+          },
+          "utc_offset_minutes": {
+            "type": "integer",
+            "title": "Utc Offset Minutes"
+          },
+          "utc": {
+            "type": "string",
+            "title": "Utc"
+          },
+          "longitude_deg": {
+            "type": "number",
+            "title": "Longitude Deg"
+          },
+          "lmt": {
+            "type": "string",
+            "title": "Lmt"
+          },
+          "tlst_hours": {
+            "type": "number",
+            "title": "Tlst Hours",
+            "description": "Apparent solar hour-of-day in [0, 24), truncated to 1 µs·h⁻¹ steps."
+          },
+          "tlst_date": {
+            "type": "string",
+            "title": "Tlst Date",
+            "description": "Apparent-solar calendar date (civil date + tlst_date_rollover)."
+          },
+          "tlst_date_rollover": {
+            "type": "integer",
+            "title": "Tlst Date Rollover"
+          },
+          "eot_minutes": {
+            "type": "number",
+            "title": "Eot Minutes"
+          },
+          "eot_source": {
+            "type": "string",
+            "title": "Eot Source"
+          },
+          "hour_branch_basis": {
+            "type": "string",
+            "const": "tlst_hours",
+            "title": "Hour Branch Basis"
+          },
+          "day_boundary": {
+            "type": "string",
+            "enum": [
+              "midnight",
+              "zi"
+            ],
+            "title": "Day Boundary"
+          },
+          "day_boundary_rule": {
+            "type": "string",
+            "enum": [
+              "tlst_solar_midnight",
+              "tlst_zi_hour"
+            ],
+            "title": "Day Boundary Rule"
+          },
+          "zi_start_hour": {
+            "type": "number",
+            "title": "Zi Start Hour"
+          },
+          "day_pillar_date": {
+            "type": "string",
+            "title": "Day Pillar Date",
+            "description": "Calendar date whose sexagenary day was used for the day pillar."
+          },
+          "uncertainty": {
+            "$ref": "#/components/schemas/TimeBasisUncertainty"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "standard",
+          "input_local",
+          "resolved_local",
+          "timezone",
+          "fold",
+          "local_time_status",
+          "adjusted_minutes",
+          "local_time_warning_code",
+          "utc_offset_minutes",
+          "utc",
+          "longitude_deg",
+          "lmt",
+          "tlst_hours",
+          "tlst_date",
+          "tlst_date_rollover",
+          "eot_minutes",
+          "eot_source",
+          "hour_branch_basis",
+          "day_boundary",
+          "day_boundary_rule",
+          "zi_start_hour",
+          "day_pillar_date",
+          "uncertainty"
+        ],
+        "title": "TlstTimeBasis",
+        "description": "What the engine actually used for this chart."
+      },
+      "TlstV2InputEcho": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "tz": {
+            "type": "string",
+            "title": "Tz"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "standard": {
+            "type": "string",
+            "const": "TLST",
+            "title": "Standard"
+          },
+          "boundary": {
+            "type": "string",
+            "enum": [
+              "midnight",
+              "zi"
+            ],
+            "title": "Boundary"
+          },
+          "ambiguousTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "earlier",
+                  "later"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ambiguoustime"
+          },
+          "nonexistentTime": {
+            "type": "string",
+            "enum": [
+              "error",
+              "shift_forward"
+            ],
+            "title": "Nonexistenttime"
+          },
+          "birth_time_known": {
+            "type": "boolean",
+            "title": "Birth Time Known"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "tz",
+          "lat",
+          "lon",
+          "standard",
+          "boundary",
+          "ambiguousTime",
+          "nonexistentTime",
+          "birth_time_known"
+        ],
+        "title": "TlstV2InputEcho"
+      },
+      "TlstV2Request": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Date",
+            "description": "Local ISO 8601 birth wall-clock WITHOUT a UTC offset (seconds and microseconds allowed)."
+          },
+          "tz": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tz",
+            "description": "IANA timezone of the birth place."
+          },
+          "lat": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Lat",
+            "description": "Birth latitude, degrees north."
+          },
+          "lon": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Lon",
+            "description": "Birth longitude, degrees east (negative = west). Drives the TLST correction."
+          },
+          "standard": {
+            "type": "string",
+            "const": "TLST",
+            "title": "Standard",
+            "description": "Time standard. Only \"TLST\" is accepted on this route."
+          },
+          "boundary": {
+            "type": "string",
+            "enum": [
+              "midnight",
+              "zi"
+            ],
+            "title": "Boundary",
+            "description": "Day rule: apparent-solar midnight, or zi hour start (TLST 23:00)."
+          },
+          "ambiguousTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "earlier",
+                  "later"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ambiguoustime",
+            "description": "Required when the wall-clock is ambiguous (DST fall-back): \"earlier\" = first occurrence (fold 0), \"later\" = second (fold 1). Omitted + ambiguous → 422."
+          },
+          "nonexistentTime": {
+            "type": "string",
+            "enum": [
+              "error",
+              "shift_forward"
+            ],
+            "title": "Nonexistenttime",
+            "description": "DST spring-forward gap: reject (default) or shift to the next valid minute.",
+            "default": "error"
+          },
+          "birth_time_known": {
+            "type": "boolean",
+            "title": "Birth Time Known",
+            "description": "False if the birth time is uncertain — flags the hour pillar as provisional.",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "tz",
+          "lat",
+          "lon",
+          "standard",
+          "boundary"
+        ],
+        "title": "TlstV2Request",
+        "description": "Birth data for the opt-in TLST routes. No location or zone defaults.",
+        "example": {
+          "birth_time_known": true,
+          "boundary": "midnight",
+          "date": "1990-07-15T15:44:00",
+          "lat": 52.3759,
+          "lon": 9.732,
+          "nonexistentTime": "error",
+          "standard": "TLST",
+          "tz": "Europe/Berlin"
+        }
       },
       "TransitContribution": {
         "properties": {
@@ -15348,6 +16179,10 @@
     {
       "name": "Astronomy v2",
       "description": "Canonical UTC/JD-rooted astronomy contracts. Lunar State returns geocentric Sun/Moon positions, physical phase metrics, true-new-moon events, and corrected phase-centred eight-phase classification without changing frozen V1 semantics."
+    },
+    {
+      "name": "BaZi v2 (TLST)",
+      "description": "Opt-in True Local Solar Time BaZi and natal analysis (/v2 only). standard=\"TLST\", location, zone and day boundary are required; ambiguous or nonexistent DST wall-clocks are never resolved silently. Both routes share one instant and one four-pillar chart and report the time basis (UTC, TLST hour, equation of time, solar-date rollover, day rule, tolerance flags) actually used. V1 and legacy defaults stay CIVIL. The day-cycle anchor is unverified: not a domain-verified production standard."
     }
   ],
   "servers": [
