@@ -44,10 +44,12 @@ BAZI_PILLARS_STANDARD = {
 }
 
 # Pure-element bodies for edge-case testing
+# Since sign-element-consensus-v1 the sign decides the element: Aries, Leo and
+# Sagittarius (0°, 120°, 240°) are the fire signs.
 BODIES_PURE_FIRE = {
     "Sun":  {"longitude": 0.0,   "is_retrograde": False},
-    "Mars": {"longitude": 90.0,  "is_retrograde": False},
-    "Pluto":{"longitude": 180.0, "is_retrograde": False},
+    "Mars": {"longitude": 120.0, "is_retrograde": False},
+    "Pluto":{"longitude": 240.0, "is_retrograde": False},
 }
 
 BODIES_PURE_WATER = {
@@ -422,14 +424,21 @@ class TestLogikBPipeline:
         assert len(result.tension_elements()) >= 1
 
     def test_same_element_produces_no_tension(self):
-        """Reines Holz West + Reines Holz BaZi → kein TENSION (d ≈ 0 für Holz)."""
+        """Wasser-Zeichen West + reines Wasser BaZi → kein TENSION bei Wasser.
+
+        Seit sign-element-consensus-v1 trägt kein Zeichen reines Holz; der
+        Wasserpol (westliches Wasser → Wasser 0,593) ist der klarste Gleichklang.
+        """
         _, result = _fusion_to_zones(
-            {"Jupiter": {"longitude": 0.0, "is_retrograde": False},
-             "Uranus":  {"longitude": 60.0, "is_retrograde": False}},
-            PILLARS_PURE_WOOD,
+            {"Moon":    {"longitude": 95.0,  "is_retrograde": False},
+             "Neptune": {"longitude": 215.0, "is_retrograde": False},
+             "Venus":   {"longitude": 335.0, "is_retrograde": False}},
+            {"year":  {"stem": "Ren", "branch": "Zi"},
+             "month": {"stem": "Gui", "branch": "Zi"},
+             "day":   {"stem": "Ren", "branch": "Zi"},
+             "hour":  {"stem": "Gui", "branch": "Zi"}},
         )
-        # Holz sollte kein Tension haben (beide Seiten hoch, d klein)
-        assert result.zones["Holz"] != "TENSION"
+        assert result.zones["Wasser"] != "TENSION"
 
     def test_report_sections_present_for_active_elements(self):
         """Wenn Tension-Elemente existieren, muss SPANNUNGSFELDER im Report sein."""

@@ -355,7 +355,7 @@
           "Info"
         ],
         "summary": "Get Wuxing Mapping",
-        "description": "Wu-Xing planet mapping. Returns the canonical mapping of Western planets to Chinese Five Elements (Wu-Xing) used by the fusion engine. No authentication required.",
+        "description": "Wu-Xing planet mapping. Returns the name-based mapping of Western planets to Chinese Five Elements (Wu-Xing). Since 2026-11-06 the Fusion layer no longer uses it: the western Fusion vector translates each body through the element of its sign (mapping id sign-element-consensus-v1, see /calculate/fusion/vector-map metadata). This planet mapping remains in use by the impact/transit layers. No authentication required.",
         "operationId": "get_wuxing_mapping_info_wuxing_mapping_get",
         "responses": {
           "200": {
@@ -3868,7 +3868,7 @@
           "Info"
         ],
         "summary": "Get Wuxing Mapping",
-        "description": "Wu-Xing planet mapping. Returns the canonical mapping of Western planets to Chinese Five Elements (Wu-Xing) used by the fusion engine. No authentication required.",
+        "description": "Wu-Xing planet mapping. Returns the name-based mapping of Western planets to Chinese Five Elements (Wu-Xing). Since 2026-11-06 the Fusion layer no longer uses it: the western Fusion vector translates each body through the element of its sign (mapping id sign-element-consensus-v1, see /calculate/fusion/vector-map metadata). This planet mapping remains in use by the impact/transit layers. No authentication required.",
         "operationId": "get_wuxing_mapping_v1_info_wuxing_mapping_get",
         "responses": {
           "200": {
@@ -7805,7 +7805,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "default": "CIVIL"
+            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
+            "default": "TLST"
           },
           "boundary": {
             "type": "string",
@@ -7860,7 +7861,7 @@
           "lat": 52.52,
           "lon": 13.405,
           "nonexistentTime": "error",
-          "standard": "CIVIL",
+          "standard": "TLST",
           "tz": "Europe/Berlin"
         }
       },
@@ -9437,8 +9438,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for interpreting the local datetime.",
-            "default": "CIVIL"
+            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
+            "default": "TLST"
           },
           "direction_method": {
             "type": "string",
@@ -9792,6 +9793,17 @@
             "title": "Birth Time Known",
             "description": "False if birth time is uncertain — flags hour/signature/ascendant/houses as provisional",
             "default": true
+          },
+          "standard": {
+            "type": "string",
+            "enum": [
+              "CIVIL",
+              "LMT",
+              "TLST"
+            ],
+            "title": "Standard",
+            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted.",
+            "default": "TLST"
           },
           "bazi_pillars": {
             "anyOf": [
@@ -10841,7 +10853,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "default": "CIVIL"
+            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
+            "default": "TLST"
           },
           "boundary": {
             "type": "string",
@@ -10914,7 +10927,7 @@
           "lat": 52.52,
           "lon": 13.405,
           "nonexistentTime": "error",
-          "standard": "CIVIL",
+          "standard": "TLST",
           "tz": "Europe/Berlin"
         }
       },
@@ -11513,8 +11526,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for interpreting the local datetime.",
-            "default": "CIVIL"
+            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
+            "default": "TLST"
           },
           "boundary": {
             "type": "string",
@@ -11570,7 +11583,7 @@
           "lat": 52.52,
           "lon": 13.405,
           "nonexistentTime": "error",
-          "standard": "CIVIL",
+          "standard": "TLST",
           "tz": "Europe/Berlin"
         }
       },
@@ -13801,6 +13814,17 @@
             ],
             "title": "Nonexistenttime",
             "default": "error"
+          },
+          "standard": {
+            "type": "string",
+            "enum": [
+              "CIVIL",
+              "LMT",
+              "TLST"
+            ],
+            "title": "Standard",
+            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted.",
+            "default": "TLST"
           },
           "bazi_pillars": {
             "anyOf": [

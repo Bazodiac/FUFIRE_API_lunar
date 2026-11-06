@@ -263,26 +263,30 @@ def test_vector_map_cosine_in_unit_interval() -> None:
     assert 0.0 <= h["elemental_overlap_h"] <= 1.0, h["elemental_overlap_h"]
 
 
-def test_vector_map_western_dominant_element_is_holz() -> None:
-    """Independent chart fact for 1990-06-15: the Wu-Xing-mapped Wood (Holz)
-    bodies — Jupiter (Holz), Uranus (Holz), and the lunar North Node
-    (Holz, counted as both NorthNode and TrueNorthNode) — dominate the western
-    vector. Uranus and the (retrograde) North Node each carry the 1.3×
-    retrograde weight, so Holz = 1.0(Jupiter)+1.3(Uranus)+1.3(NorthNode)+
-    1.0(TrueNorthNode) = 4.6, the single largest element bucket.
-
-    These planet→element facts (PLANET_TO_WUXING) and the 1.3× retrograde rule
-    are the engine's PUBLIC mapping policy, asserted here independently of the
-    live vector arithmetic. A fabricated or constant vector that shifts the
-    dominant element away from Holz is caught even after a golden regeneration.
+@pytest.mark.swieph  # Chiron needs the SE1 asteroid file; MOSEPH drops it and shifts the sums
+def test_vector_map_western_dominant_element_is_wasser() -> None:
+    """Independent chart fact for 1990-06-15 14:30 Berlin under
+    sign-element-consensus-v1 (since 2026-11-06): each body counts through the
+    element of its sign. Body weights per sign element (retrograde = 1.3):
+    Luft 4.3 (Sun, Mercury, NorthNode 1.3, TrueNorthNode), Wasser 5.3 (Moon,
+    Jupiter, Pluto 1.3, Chiron, Lilith), Erde 4.9 (Venus, Saturn 1.3,
+    Uranus 1.3, Neptune 1.3), Feuer 1.0 (Mars). Spread by the published
+    matrix: Wasser = 0.593·5.3 + 0.206·4.9 = 4.1523, Metall = 0.699·4.9 +
+    0.101·5.3 = 3.9604, Erde = 0.095·4.9 + 0.400·4.3 + 0.306·5.3 = 3.8073,
+    Holz = 0.452·1.0 + 0.348·4.3 = 1.9484, Feuer = 0.548·1.0 + 0.252·4.3 = 1.6316.
+    Hand-computed from the chart facts and the public matrix, not from the
+    live vector arithmetic: a constant or fabricated vector fails here.
+    The body list is the SWIEPH chart (MOSEPH has no Chiron), hence swieph-only.
     """
+    from bazi_engine.wuxing.constants import WEST_ELEMENT_TO_WUXING as M
+    by_element = {"Luft": 4.3, "Wasser": 5.3, "Erde": 4.9, "Feuer": 1.0}
+    expected = {p: sum(w * M[e][p] for e, w in by_element.items())
+                for p in ("Holz", "Feuer", "Erde", "Metall", "Wasser")}
     body = _resolve_canonical_vector_map()
     west_raw = body["vector_map"]["western_planets"]["raw"]
-    dominant = max(west_raw, key=lambda k: west_raw[k])
-    assert dominant == "Holz", (
-        f"western dominant element={dominant!r} (raw={west_raw}); expected "
-        f"'Holz' — Jupiter+Uranus+both Nodes are Wood-mapped and dominate."
-    )
+    for phase, value in expected.items():
+        assert abs(west_raw[phase] - value) < 1e-3, (phase, west_raw, expected)
+    assert max(west_raw, key=lambda k: west_raw[k]) == "Wasser", west_raw
 
 
 def test_vector_map_bazi_dominant_element_is_feuer() -> None:

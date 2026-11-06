@@ -1,7 +1,7 @@
 {
   "chinese": {
-    "day_master": "Geng",
-    "hour_master": "Bing",
+    "day_master": "Xin",
+    "hour_master": "Wu",
     "month_master": "Geng",
     "year": {
       "animal": "Dragon",
@@ -23,19 +23,19 @@
         "ruleset_id": "standard_bazi_2026",
         "ruleset_version": "1.0.0"
       },
-      "day_master_stem": "Geng",
+      "day_master_stem": "Xin",
       "day_offset_used": 49,
-      "julian_day_number": 2460477,
-      "sexagenary_index": 46
+      "julian_day_number": 2460478,
+      "sexagenary_index": 47
     },
     "hour": {
       "branch_index": 0,
       "hour_branch_time_policy": null,
       "lmt_used": false,
-      "local_hour": 23,
-      "time_standard_requested": "CIVIL",
-      "time_standard_used": "CIVIL",
-      "true_solar_time_used": false
+      "local_hour": 0,
+      "time_standard_requested": "TLST",
+      "time_standard_used": "TLST",
+      "true_solar_time_used": true
     },
     "month": {
       "jieqi_crossing_utc": "2024-06-05T04:09:53.815112+00:00",
@@ -46,12 +46,12 @@
       "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
       "ruleset_id": "standard_bazi_2026",
       "ruleset_version": "1.0.0",
-      "time_policy_id": "civil_midnight",
+      "time_policy_id": "tlst_midnight",
       "vector_model_id": "wuxing_v1.1.0"
     },
     "time_resolution": {
       "civil_local": "2024-06-15T23:59:00+09:00",
-      "effective_standard": "CIVIL",
+      "effective_standard": "TLST",
       "eot_minutes": -0.6489,
       "eot_source": "meeus_1998",
       "lmt": "2024-06-16T00:17:46.008000+09:18:46.008000",
@@ -74,19 +74,19 @@
     "lat": 35.6895,
     "lon": 139.6917,
     "nonexistentTime": "error",
-    "standard": "CIVIL",
+    "standard": "TLST",
     "tz": "Asia/Tokyo"
   },
   "pillars": {
     "day": {
       "element": "Metall",
-      "stamm": "Geng",
-      "tier": "Hund",
-      "zweig": "Xu"
+      "stamm": "Xin",
+      "tier": "Schwein",
+      "zweig": "Hai"
     },
     "hour": {
-      "element": "Feuer",
-      "stamm": "Bing",
+      "element": "Erde",
+      "stamm": "Wu",
       "tier": "Ratte",
       "zweig": "Zi"
     },

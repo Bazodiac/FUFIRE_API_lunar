@@ -159,9 +159,12 @@ class TestWebhookVoiceProfileIsCalibrated:
 
         assert voice["harmonyIndex"] == fusion["calibration"]["h_calibrated"]
         assert voice["harmonyIndexRaw"] == fusion["calibration"]["h_raw"]
-        assert voice["harmonyInterpretation"] == (
-            "Keine messbare Kongruenz über Baseline"
-        )
+        # The band text follows the calibration; the voice must speak exactly it.
+        assert voice["harmonyInterpretation"] == fusion["calibration"]["interpretation_band"]
+        assert fusion["calibration"]["interpretation_band"] in {
+            "Keine messbare Kongruenz über Baseline",
+            "Unterdurchschnittliche Kongruenz",
+        }
         # Spoken percent derives from the calibrated value, not the raw one.
         assert voice["harmonie"] == f"{fusion['calibration']['h_calibrated']:.0%}"
         _assert_claim_safe(voice["harmonyInterpretation"], "webhook harmonyInterpretation")

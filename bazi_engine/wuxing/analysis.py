@@ -3,7 +3,7 @@ wuxing/analysis.py — Wu-Xing calculation functions.
 
 Contains:
   planet_to_wuxing()                  — planet → element mapping
-  calculate_wuxing_vector_from_planets() — planetary positions → WuXingVector
+  calculate_wuxing_vector_from_planets() — body positions → sign element → WuXingVector
   is_night_chart()                    — day/night chart detection
   calculate_wuxing_from_bazi()        — BaZi pillars → WuXingVector
   calculate_harmony_index()           — cosine harmony between two vectors
@@ -13,7 +13,14 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from .constants import PLANET_TO_WUXING, WUXING_INDEX
+from .constants import (
+    PLANET_TO_WUXING,
+    SIGN_ELEMENT,
+    WEST_ELEMENT_TO_WUXING,
+    WESTERN_MAPPING_ID,
+    WUXING_INDEX,
+    WUXING_ORDER,
+)
 from .vector import WuXingVector
 
 
@@ -82,10 +89,16 @@ def calculate_wuxing_vector_from_planets(
     *,
     strict: bool = False,
 ) -> WuXingVector:
-    """Calculate Wu-Xing vector from a set of planetary positions.
+    """Calculate the western Wu-Xing vector from a set of body positions.
+
+    Each body contributes through the classical element of the sign it occupies
+    (``SIGN_ELEMENT``), spread over the five phases by ``WEST_ELEMENT_TO_WUXING``
+    (mapping id ``WESTERN_MAPPING_ID``). The planet's name no longer selects
+    the element.
 
     Args:
-        bodies:                 Planetary data dict from compute_western_chart().
+        bodies:                 Planetary data dict from compute_western_chart();
+                                bodies without a ``longitude`` are skipped.
         use_retrograde_weight:  If True, retrograde planets carry 1.3× weight.
         ascendant:              Ascendant longitude for day/night detection.
                                 If None, defaults to day chart (assumed_day quality).
@@ -129,24 +142,26 @@ def calculate_wuxing_vector_from_planets_with_ledger(
     ledger: list[dict[str, Any]] = []
     sun_data = bodies.get("Sun", {})
     sun_lon = sun_data.get("longitude", 0)
-    night = is_night_chart(sun_lon, ascendant, strict=strict)
+    # Day/night no longer changes any element (the Mercury dual rule belonged to
+    # the name-based mapping). It is still evaluated so that strict callers keep
+    # failing loudly on a missing ascendant and chart_type_quality stays reported.
+    is_night_chart(sun_lon, ascendant, strict=strict)
     chart_type_quality = "exact" if ascendant is not None else "assumed_day"
 
     traditional_planets = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"}
     modern_planets = {"Uranus", "Neptune", "Pluto"}
 
     for planet, data in bodies.items():
-        if "error" in data:
+        if "error" in data or "longitude" not in data:
             continue
         is_retrograde = data.get("is_retrograde", False)
-        element = planet_to_wuxing(planet, night)
         weight = 1.3 if (use_retrograde_weight and is_retrograde) else 1.0
-        values[WUXING_INDEX[element]] += weight
-
-        rationale = "Classical rulership"
-        if planet == "Mercury":
-            chart_type = "night chart" if night else "day chart"
-            rationale = f"Dual element — {element} ({chart_type})"
+        sign_index = int(float(data["longitude"]) // 30) % 12
+        west_element = SIGN_ELEMENT[sign_index]
+        shares = WEST_ELEMENT_TO_WUXING[west_element]
+        distribution = {phase: round(weight * shares[phase], 6) for phase in WUXING_ORDER if shares[phase] > 0}
+        for phase, amount in distribution.items():
+            values[WUXING_INDEX[phase]] += amount
 
         if planet in traditional_planets:
             category = "traditional"
@@ -157,10 +172,14 @@ def calculate_wuxing_vector_from_planets_with_ledger(
 
         entry: dict[str, Any] = {
             "planet": planet,
-            "element": element,
+            # Main phase of this body's share (backward-compatible single field).
+            "element": max(distribution, key=lambda p: distribution[p]),
             "weight": weight,
             "is_retrograde": is_retrograde,
-            "rationale": rationale,
+            "sign_index": sign_index,
+            "west_element": west_element,
+            "distribution": distribution,
+            "rationale": f"Sign element {west_element} via {WESTERN_MAPPING_ID}",
             "category": category,
         }
         if planet == "Mercury":

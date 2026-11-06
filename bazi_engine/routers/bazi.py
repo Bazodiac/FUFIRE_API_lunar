@@ -41,7 +41,7 @@ class BaziRequest(BaseModel):
             "tz": "Europe/Berlin",
             "lon": 13.405,
             "lat": 52.52,
-            "standard": "CIVIL",
+            "standard": "TLST",
             "boundary": "midnight",
             "ambiguousTime": "earlier",
             "nonexistentTime": "error",
@@ -53,7 +53,7 @@ class BaziRequest(BaseModel):
     tz: str = Field("Europe/Berlin", description="IANA timezone name")
     lon: float = Field(13.4050, ge=-180.0, le=180.0, description="Longitude in degrees")
     lat: float = Field(52.52, ge=-90.0, le=90.0, description="Latitude in degrees")
-    standard: Literal["CIVIL", "LMT", "TLST"] = Field("CIVIL")
+    standard: Literal["CIVIL", "LMT", "TLST"] = Field("TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.")
     boundary: Literal["midnight", "zi"] = Field("midnight")
     ambiguousTime: AmbiguousTimeChoice = Field("earlier")
     nonexistentTime: NonexistentTimePolicy = Field("error")

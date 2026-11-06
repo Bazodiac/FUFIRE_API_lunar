@@ -1,5 +1,7 @@
 # 01 — Wu-Xing Konstanten: Die fünf Elemente als Koordinatensystem
 
+> **Seit 2026-11-06:** Der Fusion-Layer ordnet westliche Körper nicht mehr nach Planetennamen zu, sondern über das Element ihres Zeichens (`WEST_ELEMENT_TO_WUXING`, siehe [12_west_element_mapping.md](12_west_element_mapping.md)). Die unten beschriebene Planet-Element-Tabelle gilt nur noch für Impact/Transit.
+
 **Modul:** `bazi_engine/wuxing/constants.py`  
 **Level:** 4 (reine Daten, keine Logik, keine Importe aus anderen Modulen)
 

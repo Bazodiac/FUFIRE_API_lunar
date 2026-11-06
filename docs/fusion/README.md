@@ -18,6 +18,7 @@ BaZi-Vierparameterberechnung in einem gemeinsamen Symbolraum verbindet.
 | [08_deutungslogiken.md](08_deutungslogiken.md) | Zwei Deutungslogiken: narrativ vs. diagnostisch (Logik B v3, exklusiv/hierarchisch) |
 | [09_nutzertest_design.md](09_nutzertest_design.md) | A/B-Testdesign und Fragebogen |
 | [10_sheng_zyklus.md](10_sheng_zyklus.md) | Sheng-Zyklus: Struktur vs. Messung vs. Interpretation; Ke-Zyklus als nächste Erweiterung |
+| [12_west_element_mapping.md](12_west_element_mapping.md) | Westen → Wu Xing über das Zeichen-Element (sign-element-consensus-v1, seit 2026-11-06) |
 
 
 ## Konzept in einem Satz
