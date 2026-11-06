@@ -104,6 +104,7 @@ LAYERS: Dict[str, int] = {
     "routers.webhooks":     5,
     "routers.registry":     5,  # declarative mount table extracted from app.py (Task 3.23)
     "routers.astronomy":    5,
+    "routers.bazi_tlst_v2": 5,  # FU-TLST-POLICY / INC-1: opt-in /v2 TLST BaZi + Natal
     "services.geocoding":   5,
     "services.auth":        5,
 }

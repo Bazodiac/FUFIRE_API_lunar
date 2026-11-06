@@ -35,7 +35,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone, tzinfo
-from typing import Optional
+from typing import Literal, Optional
 from zoneinfo import ZoneInfo
 
 from .exc import InputError
@@ -173,6 +173,66 @@ def compute_effective_time_context_from_instant(
         tz_offset_minutes=tz_off_min,
         date_rollover=rollover,
         eot_source=EOT_SOURCE_MEEUS,
+    )
+
+
+# Documented agreement bound of the engine EoT (Meeus 1998) with Swiss
+# Ephemeris ``swe.time_equ``: measured max |Δ| 0.038 min (1950–2030), hard
+# bound 0.1 min in tests/test_tlst_reference_corpus.py (FBP-TST-006). A TLST
+# decision closer than this to its edge is not resolvable by the EoT model.
+EOT_MODEL_TOLERANCE_MINUTES = 0.1
+
+TlstEdgeKind = Literal["hour_branch", "zi_day_start", "solar_midnight"]
+
+
+@dataclass(frozen=True)
+class TlstDecisionEdge:
+    """Nearest apparent-solar decision edge of a TLST instant.
+
+    ``edge_hours`` is the edge on the 24 h dial (``0.0`` = solar midnight),
+    ``kinds`` the decisions that flip there for the requested day boundary,
+    ``distance_minutes`` the circular distance of ``tlst_hours`` to it.
+    """
+
+    edge_hours: float
+    kinds: tuple[TlstEdgeKind, ...]
+    distance_minutes: float
+
+    @property
+    def within_eot_tolerance(self) -> bool:
+        return self.distance_minutes <= EOT_MODEL_TOLERANCE_MINUTES
+
+
+def nearest_tlst_decision_edge(
+    tlst_hours: float,
+    *,
+    day_boundary: str,
+    zi_start_hour: float = 23.0,
+) -> TlstDecisionEdge:
+    """Nearest edge at which a TLST-derived pillar decision flips.
+
+    Edges: the twelve half-open hour-branch edges (odd hours, Zi = [23, 1)),
+    plus — for ``day_boundary="zi"`` — the zi day start ``zi_start_hour``, or —
+    for ``"midnight"`` — apparent solar midnight (the TLST calendar date, which
+    the day pillar follows under TLST, FBP-TST-005). Pure arithmetic on the
+    published value; it does not re-derive TLST.
+    """
+    edges: dict[float, list[TlstEdgeKind]] = {
+        float(h): ["hour_branch"] for h in range(1, 24, 2)
+    }
+    if day_boundary == "zi":
+        edges.setdefault(float(zi_start_hour) % 24.0, []).append("zi_day_start")
+    else:
+        edges.setdefault(0.0, []).append("solar_midnight")
+
+    def _dist_min(edge: float) -> float:
+        return abs(((tlst_hours - edge + 12.0) % 24.0) - 12.0) * 60.0
+
+    edge = min(sorted(edges), key=_dist_min)
+    return TlstDecisionEdge(
+        edge_hours=edge,
+        kinds=tuple(edges[edge]),
+        distance_minutes=_dist_min(edge),
     )
 
 
