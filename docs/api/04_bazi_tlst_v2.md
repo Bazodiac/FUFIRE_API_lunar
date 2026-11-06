@@ -69,7 +69,7 @@ curl -s http://localhost:8080/v2/calculate/bazi \
 without keys accepts the request without it.) The natal route takes the same
 body at `/v2/calculate/bazi/natal`.
 
-Response excerpt (real output, SWIEPH, engine label `1.0.0-rc7-20261016`):
+Response excerpt (real output, SWIEPH, engine label `1.0.0-rc8-20261106`):
 
 ```json
 "pillars": {"year": "Geng-Wu", "month": "Gui-Wei", "day": "Xin-Si", "hour": "Yi-Wei"},
