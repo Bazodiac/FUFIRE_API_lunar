@@ -1,6 +1,8 @@
 """Tests for Monte Carlo calibration simulation."""
 from __future__ import annotations
 
+import pytest
+
 
 def test_simulate_baseline_returns_mean_and_std():
     from scripts.calibrate_baselines import simulate_baseline
@@ -28,13 +30,19 @@ def test_sparse_baseline_lower_than_dense():
 
 
 def test_baseline_table_matches_simulation():
-    """Verify calibration.py values match reproducible simulation."""
-    from bazi_engine.wuxing.calibration import _BASELINE_TABLE
+    """Verify calibration.py values match reproducible simulation.
+
+    Cells listed in BIRTHS_CALIBRATED_CELLS come from shuffled real births and
+    are checked by test_births_cells_match_real_birth_simulation instead.
+    """
+    from bazi_engine.wuxing.calibration import _BASELINE_TABLE, BIRTHS_CALIBRATED_CELLS
     from scripts.calibrate_baselines import run_full_simulation
 
     results = run_full_simulation(n_trials=5000, seed=42)
     for r in results:
         key = (r["west_bucket"], r["bazi_bucket"])
+        if key in BIRTHS_CALIBRATED_CELLS:
+            continue
         existing_mean, existing_std = _BASELINE_TABLE[key]
         assert abs(r["mean"] - existing_mean) < 0.001, (
             f"{key}: mean {existing_mean} != simulated {r['mean']}"
@@ -50,3 +58,17 @@ def test_simulation_stable_across_trial_counts():
     r5k = simulate_baseline_pair(n_west=11, n_bazi=12, n_trials=5000, seed=42)
     r10k = simulate_baseline_pair(n_west=11, n_bazi=12, n_trials=10000, seed=42)
     assert abs(r5k["mean"] - r10k["mean"]) < 0.01, "Baseline unstable at 5000 trials"
+
+
+@pytest.mark.swieph
+def test_births_cells_match_real_birth_simulation():
+    """The real-birth cells reproduce from the documented command (seed 42)."""
+    from bazi_engine.wuxing.calibration import _BASELINE_TABLE, BIRTHS_CALIBRATED_CELLS
+    from scripts.calibrate_baselines import simulate_births_baseline
+
+    results = {(r["west_bucket"], r["bazi_bucket"]): r
+               for r in simulate_births_baseline(n_births=3000, seed=42)}
+    for key in BIRTHS_CALIBRATED_CELLS:
+        mean, std = _BASELINE_TABLE[key]
+        assert abs(results[key]["mean"] - mean) < 0.001, (key, results[key], mean)
+        assert abs(results[key]["std"] - std) < 0.001, (key, results[key], std)

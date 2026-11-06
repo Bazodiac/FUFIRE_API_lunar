@@ -96,9 +96,13 @@ class TestCalculateWuxingVectorFromPlanets:
         assert v.feuer > 0
 
     def test_moon_contributes_wasser(self):
-        bodies = {"Moon": {"longitude": 0.0, "is_retrograde": False}}
+        # Since sign-element-consensus-v1 the SIGN carries the element: a Moon in
+        # Cancer (water sign, 90–120°) contributes Wasser; one in Aries does not.
+        bodies = {"Moon": {"longitude": 95.0, "is_retrograde": False}}
         v = calculate_wuxing_vector_from_planets(bodies)
         assert v.wasser > 0
+        in_aries = calculate_wuxing_vector_from_planets({"Moon": {"longitude": 0.0, "is_retrograde": False}})
+        assert in_aries.wasser == 0
 
     def test_jupiter_contributes_holz(self):
         bodies = {"Jupiter": {"longitude": 0.0, "is_retrograde": False}}

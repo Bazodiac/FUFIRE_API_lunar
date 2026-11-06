@@ -204,6 +204,90 @@ def patch_calibration_file(results: list[dict]) -> None:
     print(f"Patched: {cal_path}")
 
 
+def _random_birth_vectors(n_births: int, seed: int) -> list[tuple[list[float], list[float], int]]:
+    """Real charts for random births: (western raw, BaZi raw, n_bazi contributions).
+
+    Births are drawn uniformly over 1940–2010 (minute resolution) at random
+    places (|lat| ≤ 60°, any longitude); the moment is given in UTC, the BaZi
+    pillars use TLST (time-zone independent), the western vector uses the
+    production path (sign element × consensus matrix). Needs the Swiss
+    Ephemeris files (SE_EPHE_PATH).
+    """
+    import datetime as dt
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from bazi_engine.bazi import compute_bazi
+    from bazi_engine.routers.shared import format_pillar
+    from bazi_engine.types import BaziInput
+    from bazi_engine.western import compute_western_chart
+    from bazi_engine.wuxing.analysis import (
+        calculate_wuxing_from_bazi,
+        calculate_wuxing_vector_from_planets,
+    )
+    from bazi_engine.wuxing.calibration import _count_bazi_contributions
+
+    rng = random.Random(seed)
+    start = dt.datetime(1940, 1, 1)
+    span_minutes = int((dt.datetime(2011, 1, 1) - start).total_seconds() // 60)
+    out = []
+    while len(out) < n_births:
+        moment = start + dt.timedelta(minutes=rng.randrange(span_minutes))
+        lat = rng.uniform(-60.0, 60.0)
+        lon = rng.uniform(-180.0, 180.0)
+        try:
+            western = compute_western_chart(moment.replace(tzinfo=dt.timezone.utc), lat, lon)
+            bazi = compute_bazi(BaziInput(
+                birth_local=moment.isoformat(), timezone="UTC",
+                longitude_deg=lon, latitude_deg=lat,
+                time_standard="TLST", day_boundary="midnight", strict_local_time=False,
+            ))
+        except Exception:  # noqa: BLE001 — skip charts the engine rejects (e.g. polar houses)
+            continue
+        pillars = {k: format_pillar(getattr(bazi.pillars, k)) for k in ("year", "month", "day", "hour")}
+        asc = western.get("angles", {}).get("Ascendant")
+        west = calculate_wuxing_vector_from_planets(western["bodies"], ascendant=asc).to_list()
+        bz = calculate_wuxing_from_bazi(pillars).to_list()
+        out.append((west, bz, _count_bazi_contributions(pillars)))
+    return out
+
+
+def simulate_births_baseline(n_births: int = 3000, permutations: int = 5, seed: int = 42) -> list[dict]:
+    """Baseline from REAL random births: harmony of shuffled (west_i, bazi_j) pairs.
+
+    The synthetic null (uniform random bins, weight 1.0) does not match real
+    charts: real western vectors carry ~14 bodies with retrograde weights and a
+    fixed matrix, real BaZi vectors carry 1.0/0.5/0.3 Qi weights. Shuffling
+    real pairs keeps both marginal distributions and removes any link between
+    the two sides — exactly the "no relation" reference the calibration needs.
+    Results are grouped by the BaZi density bucket of the pair; the western
+    side of a full chart is always "dense".
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from bazi_engine.wuxing.analysis import calculate_harmony_index
+    from bazi_engine.wuxing.calibration import _n_bazi_bucket
+    from bazi_engine.wuxing.vector import WuXingVector
+
+    charts = _random_birth_vectors(n_births, seed)
+    rng = random.Random(seed + 1)
+    buckets: dict[str, list[float]] = {}
+    for _ in range(permutations):
+        order = list(range(len(charts)))
+        rng.shuffle(order)
+        for i, j in enumerate(order):
+            if i == j:
+                continue
+            h = calculate_harmony_index(WuXingVector(*charts[i][0]), WuXingVector(*charts[j][1]))["harmony_index"]
+            buckets.setdefault(_n_bazi_bucket(charts[j][2]), []).append(h)
+    results = []
+    for bb, values in sorted(buckets.items()):
+        results.append({
+            "west_bucket": "dense", "bazi_bucket": bb, "n_pairs": len(values),
+            "mean": round(statistics.mean(values), 4), "std": round(statistics.pstdev(values), 4),
+            "source": f"real births, n={n_births}, permutations={permutations}, seed={seed}",
+        })
+    return results
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Monte Carlo Wu-Xing baseline calibration")
     parser.add_argument("--trials", type=int, default=5000, help="Trials per config (default: 5000)")
@@ -211,7 +295,31 @@ def main() -> int:
     parser.add_argument("--json", type=str, help="Export results to JSON file")
     parser.add_argument("--patch", action="store_true", help="Update calibration.py with new values")
     parser.add_argument("--quiet", action="store_true", help="Suppress comparison output")
+    parser.add_argument("--null", choices=["synthetic", "births"], default="synthetic",
+                        help="Null model: synthetic random bins (default) or shuffled real births")
+    parser.add_argument("--births", type=int, default=3000, help="Random births for --null births")
+    parser.add_argument("--min-pairs", type=int, default=500,
+                        help="Minimum pairs before a births cell replaces the synthetic cell")
     args = parser.parse_args()
+
+    if args.null == "births":
+        print(f"Real-birth null model: {args.births} births, seed={args.seed}")
+        births = simulate_births_baseline(n_births=args.births, seed=args.seed)
+        synthetic = run_full_simulation(n_trials=args.trials, seed=args.seed)
+        by_key = {(r["west_bucket"], r["bazi_bucket"]): r for r in synthetic}
+        for r in births:
+            print(f"  dense/{r['bazi_bucket']}: n_pairs={r['n_pairs']} mean={r['mean']} std={r['std']}")
+            if r["n_pairs"] >= args.min_pairs:
+                by_key[(r["west_bucket"], r["bazi_bucket"])] = r
+        results = [by_key[(c["west_bucket"], c["bazi_bucket"])] for c in DENSITY_CONFIGS]
+        if not args.quiet:
+            print(compare_with_existing(results))
+            print(format_baseline_table(results))
+        if args.json:
+            Path(args.json).write_text(json.dumps(results, indent=2))
+        if args.patch:
+            patch_calibration_file(results)
+        return 0
 
     print(f"Running Monte Carlo simulation: {args.trials} trials/config, seed={args.seed}")
     print(f"Configurations: {len(DENSITY_CONFIGS)}")

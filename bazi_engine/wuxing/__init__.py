@@ -14,7 +14,14 @@ from .analysis import (
     is_night_chart,
     planet_to_wuxing,
 )
-from .constants import PLANET_TO_WUXING, WUXING_INDEX, WUXING_ORDER
+from .constants import (
+    PLANET_TO_WUXING,
+    SIGN_ELEMENT,
+    WEST_ELEMENT_TO_WUXING,
+    WESTERN_MAPPING_ID,
+    WUXING_INDEX,
+    WUXING_ORDER,
+)
 from .ke_cycle import (
     KE_CYCLE,
     KE_INVERSE,
@@ -36,6 +43,9 @@ from .zones import (
 
 __all__ = [
     "PLANET_TO_WUXING",
+    "SIGN_ELEMENT",
+    "WEST_ELEMENT_TO_WUXING",
+    "WESTERN_MAPPING_ID",
     "WUXING_ORDER",
     "WUXING_INDEX",
     "WuXingVector",

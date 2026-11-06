@@ -67,12 +67,16 @@ class TestWesternContributionLedger:
         assert entry["element"] in ("Holz", "Feuer", "Erde", "Metall", "Wasser")
         assert entry["category"] in ("traditional", "modern_heuristic", "experimental")
 
-    def test_mercury_shows_day_night_rationale(self, fusion_response):
+    def test_mercury_entry_names_sign_element_and_chart_type(self, fusion_response):
+        # sign-element-consensus-v1: the rationale names the sign element and the
+        # mapping; Mercury still reports the chart-type quality of the chart.
         mercury = [e for e in fusion_response["contribution_ledger"]["western"]
                    if e["planet"] == "Mercury"]
         assert len(mercury) == 1
-        assert "rationale" in mercury[0]
-        assert "chart" in mercury[0]["rationale"].lower()
+        assert "sign-element-consensus-v1" in mercury[0]["rationale"]
+        assert mercury[0]["west_element"] in {"Feuer", "Erde", "Luft", "Wasser"}
+        assert mercury[0]["chart_type_quality"] in {"exact", "assumed_day"}
+        assert abs(sum(mercury[0]["distribution"].values()) - mercury[0]["weight"]) < 1e-6
 
     def test_retrograde_weight_is_1_3(self, fusion_response):
         for entry in fusion_response["contribution_ledger"]["western"]:

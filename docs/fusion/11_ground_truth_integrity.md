@@ -61,6 +61,8 @@ H_calibrated: mean=0.32  std=0.29  min=0.00  max=0.97
 ```
 Der volle [0, 1]-Bereich ist jetzt nutzbar.
 
+**Nachtrag 2026-11-06:** Das synthetische Nullmodell (gleichverteilte Würfe, Gewicht 1,0, n_west = 11) bildet echte Horoskope nicht ab (real: 14 Körper, Retro-Gewicht, Qi-Gewichte 1,0/0,5/0,3). Die Zelle `(dense, medium)` stammt deshalb aus vertauschten echten Zufallsgeburten (`scripts/calibrate_baselines.py --null births`, 3000 Geburten, Seed 42; Mittel 0,8358, sd 0,1023). Siehe [12](12_west_element_mapping.md).
+
 **Implementation:** `bazi_engine/wuxing/calibration.py`  
 **Eingang:** H_raw + n_west + n_bazi_contributions + Rohvektoren  
 **Ausgang:** `CalibrationResult` mit h_calibrated, quality, sigma_above

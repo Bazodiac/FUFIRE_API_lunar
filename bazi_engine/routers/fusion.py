@@ -42,11 +42,13 @@ from .western import HouseQuality
 
 _log = logging.getLogger(__name__)
 
-# Version of the planet→element / pillar→element mapping policy exposed by
-# /calculate/fusion/vector-map. Bump when the mapping (PLANET_TO_WUXING, hidden
-# stems, Qi weights, or the view definitions) changes. Anchors REQ-F-007 /
-# GT5; the engine math version is bazi_engine.__version__ (algorithm_version).
-FUSION_MAPPING_VERSION = "fufire-wuxing-map-v1"
+# Version of the western→element / pillar→element mapping policy exposed by
+# /calculate/fusion/vector-map. Bump when the mapping (WEST_ELEMENT_TO_WUXING,
+# SIGN_ELEMENT, hidden stems, Qi weights, or the view definitions) changes.
+# Anchors REQ-F-007 / GT5; the engine math version is bazi_engine.__version__
+# (algorithm_version). v2 (2026-11-06): western side by sign element through the
+# consensus matrix instead of by planet name.
+FUSION_MAPPING_VERSION = "fufire-wuxing-map-v2"
 
 router = APIRouter(prefix="/calculate", tags=["Fusion / Wu-Xing"])
 
@@ -71,6 +73,9 @@ class FusionRequest(BaseModel):
     ambiguousTime: AmbiguousTimeChoice = "earlier"
     nonexistentTime: NonexistentTimePolicy = "error"
     birth_time_known: bool = Field(True, description="False if birth time is uncertain — flags hour/signature/ascendant/houses as provisional")
+    standard: Literal["CIVIL", "LMT", "TLST"] = Field(
+        "TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted."
+    )
     bazi_pillars: Optional[Dict[str, Dict[str, str]]] = Field(
         None, description="BaZi pillars (auto-computed if omitted)"
     )
@@ -111,7 +116,7 @@ def calculate_fusion_endpoint(request: Request, req: FusionRequest) -> Dict[str,
                 timezone=req.tz,
                 longitude_deg=req.lon,
                 latitude_deg=req.lat,
-                time_standard="CIVIL",
+                time_standard=req.standard,
                 day_boundary="midnight",
                 strict_local_time=True,
                 fold=fold,
@@ -387,6 +392,9 @@ class VectorMapRequest(BaseModel):
     lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude in degrees")
     ambiguousTime: AmbiguousTimeChoice = "earlier"
     nonexistentTime: NonexistentTimePolicy = "error"
+    standard: Literal["CIVIL", "LMT", "TLST"] = Field(
+        "TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted."
+    )
     bazi_pillars: Optional[Dict[str, Dict[str, str]]] = Field(
         None, description="BaZi pillars (auto-computed if omitted)"
     )
@@ -475,7 +483,7 @@ def calculate_fusion_vector_map_endpoint(
                 timezone=req.tz,
                 longitude_deg=req.lon,
                 latitude_deg=req.lat,
-                time_standard="CIVIL",
+                time_standard=req.standard,
                 day_boundary="midnight",
                 strict_local_time=True,
                 fold=fold,

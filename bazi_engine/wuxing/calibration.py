@@ -16,6 +16,17 @@ Wobei H_baseline = empirischer Erwartungswert für die gegebene Input-Dichte.
 
 KALIBRIERUNGSPARAMETER (empirisch, 5000 Monte-Carlo-Trials je Zelle, Seed=42):
 Reproduzierbar via: python scripts/calibrate_baselines.py --trials 5000 --seed 42
+
+  Seit 2026-11-06 (sign-element-consensus-v1) stammt die Zelle (dense, medium)
+  — die Zelle aller vollständigen Geburtshoroskope — aus ECHTEN Zufallsgeburten:
+  3000 Geburten 1940–2010, zufällige Orte (|lat| ≤ 60°), BaZi in TLST, je
+  5 Vertauschungen von (West_i, BaZi_j). Das synthetische Nullmodell (gleich-
+  verteilte Würfe, Gewicht 1,0) bildet echte Charts nicht ab. Die übrigen
+  Zellen (spärliche Eingaben) bleiben synthetisch; echte Geburten erreichen
+  sie kaum (dense/sparse: 50 Paare).
+  Reproduzierbar via:
+    SE_EPHE_PATH=… python scripts/calibrate_baselines.py --null births --births 3000 --seed 42 --patch
+  Seeds 7 / 42 / 99 liefern 0,8357 / 0,8358 / 0,8381 (Mittel) – stabil.
   - n_west:  Anzahl nicht-Error-Planeten
   - n_bazi:  Gesamtzahl Qi-Beiträge aus Vier Pfeilern (Stämme + verborgene Stämme)
 
@@ -37,14 +48,6 @@ from typing import Literal
 from .vector import WuXingVector
 
 # ── BEGIN BASELINE_TABLE (do not edit manually — use scripts/calibrate_baselines.py) ──
-# Format: (n_west_bucket, n_bazi_bucket) → (H_baseline_mean, H_baseline_std)
-#
-# n_west_bucket: 1–3 → "sparse", 4–8 → "medium", 9+ → "dense"
-# n_bazi_bucket: 1–8 → "sparse", 9–16 → "medium", 17+ → "dense"
-#
-# Baselines aus 5000 Monte-Carlo-Trials je Zelle (Seed=42)
-# Reproduzierbar: python scripts/calibrate_baselines.py --trials 5000 --seed 42
-
 _BASELINE_TABLE: dict[tuple[str, str], tuple[float, float]] = {
     ("sparse",  "sparse"):   (0.4489, 0.2672),
     ("sparse",  "medium"):   (0.5235, 0.2083),
@@ -53,11 +56,14 @@ _BASELINE_TABLE: dict[tuple[str, str], tuple[float, float]] = {
     ("medium",  "medium"):   (0.6904, 0.1759),
     ("medium",  "dense"):    (0.7274, 0.1497),
     ("dense",   "sparse"):   (0.665, 0.1866),
-    ("dense",   "medium"):   (0.7614, 0.1445),
+    ("dense",   "medium"):   (0.8358, 0.1023),
     ("dense",   "dense"):    (0.7958, 0.1224),
 }
 # ── END BASELINE_TABLE ──
 
+# Cells whose baseline comes from shuffled REAL births (scripts/calibrate_baselines.py
+# --null births --births 3000 --seed 42) instead of the synthetic null model.
+BIRTHS_CALIBRATED_CELLS: frozenset[tuple[str, str]] = frozenset({("dense", "medium")})
 QualityFlag = Literal["ok", "sparse", "degenerate"]
 
 

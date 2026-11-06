@@ -1,14 +1,14 @@
 {
   "calibration": {
-    "h_baseline": 0.7614,
-    "h_calibrated": 0.1526,
-    "h_raw": 0.7978,
-    "h_sigma": 0.1445,
+    "h_baseline": 0.8358,
+    "h_calibrated": 0.2923,
+    "h_raw": 0.8838,
+    "h_sigma": 0.1023,
     "interpretation_band": "Unterdurchschnittliche Kongruenz",
-    "n_bazi_contributions": 9,
+    "n_bazi_contributions": 10,
     "n_west": 14,
     "quality": "ok",
-    "sigma_above": 0.252
+    "sigma_above": 0.469
   },
   "contribution_ledger": {
     "bazi": [
@@ -46,14 +46,14 @@
       },
       {
         "category": "traditional",
-        "element": "Erde",
+        "element": "Feuer",
         "pillar": "day",
         "source": "stem",
-        "stem_name": "Wu",
+        "stem_name": "Ding",
         "weight": 1.0
       },
       {
-        "branch_name": "Wu",
+        "branch_name": "Si",
         "category": "traditional",
         "element": "Feuer",
         "pillar": "day",
@@ -61,19 +61,27 @@
         "weight": 1.0
       },
       {
-        "branch_name": "Wu",
+        "branch_name": "Si",
         "category": "traditional",
-        "element": "Erde",
+        "element": "Metall",
         "pillar": "day",
         "source": "hidden_middle",
         "weight": 0.5
       },
       {
+        "branch_name": "Si",
         "category": "traditional",
-        "element": "Wasser",
+        "element": "Erde",
+        "pillar": "day",
+        "source": "hidden_residual",
+        "weight": 0.3
+      },
+      {
+        "category": "traditional",
+        "element": "Metall",
         "pillar": "hour",
         "source": "stem",
-        "stem_name": "Ren",
+        "stem_name": "Geng",
         "weight": 1.0
       },
       {
@@ -89,165 +97,256 @@
     "western": [
       {
         "category": "traditional",
-        "element": "Feuer",
+        "distribution": {
+          "Erde": 0.095,
+          "Metall": 0.699,
+          "Wasser": 0.206
+        },
+        "element": "Metall",
         "is_retrograde": false,
         "planet": "Sun",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Erde via sign-element-consensus-v1",
+        "sign_index": 9,
+        "weight": 1.0,
+        "west_element": "Erde"
       },
       {
         "category": "traditional",
+        "distribution": {
+          "Erde": 0.306,
+          "Metall": 0.101,
+          "Wasser": 0.593
+        },
         "element": "Wasser",
         "is_retrograde": false,
         "planet": "Moon",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Wasser via sign-element-consensus-v1",
+        "sign_index": 7,
+        "weight": 1.0,
+        "west_element": "Wasser"
       },
       {
         "category": "traditional",
         "chart_type_quality": "exact",
+        "distribution": {
+          "Erde": 0.095,
+          "Metall": 0.699,
+          "Wasser": 0.206
+        },
         "element": "Metall",
         "is_retrograde": false,
         "planet": "Mercury",
-        "rationale": "Dual element — Metall (night chart)",
-        "weight": 1.0
+        "rationale": "Sign element Erde via sign-element-consensus-v1",
+        "sign_index": 9,
+        "weight": 1.0,
+        "west_element": "Erde"
       },
       {
         "category": "traditional",
-        "element": "Metall",
-        "is_retrograde": false,
-        "planet": "Venus",
-        "rationale": "Classical rulership",
-        "weight": 1.0
-      },
-      {
-        "category": "traditional",
+        "distribution": {
+          "Feuer": 0.548,
+          "Holz": 0.452
+        },
         "element": "Feuer",
         "is_retrograde": false,
-        "planet": "Mars",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "planet": "Venus",
+        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "sign_index": 8,
+        "weight": 1.0,
+        "west_element": "Feuer"
       },
       {
         "category": "traditional",
-        "element": "Holz",
+        "distribution": {
+          "Erde": 0.4,
+          "Feuer": 0.252,
+          "Holz": 0.348
+        },
+        "element": "Erde",
+        "is_retrograde": false,
+        "planet": "Mars",
+        "rationale": "Sign element Luft via sign-element-consensus-v1",
+        "sign_index": 10,
+        "weight": 1.0,
+        "west_element": "Luft"
+      },
+      {
+        "category": "traditional",
+        "distribution": {
+          "Feuer": 0.548,
+          "Holz": 0.452
+        },
+        "element": "Feuer",
         "is_retrograde": false,
         "planet": "Jupiter",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "sign_index": 0,
+        "weight": 1.0,
+        "west_element": "Feuer"
       },
       {
         "category": "traditional",
-        "element": "Erde",
+        "distribution": {
+          "Erde": 0.1235,
+          "Metall": 0.9087,
+          "Wasser": 0.2678
+        },
+        "element": "Metall",
         "is_retrograde": true,
         "planet": "Saturn",
-        "rationale": "Classical rulership",
-        "weight": 1.3
+        "rationale": "Sign element Erde via sign-element-consensus-v1",
+        "sign_index": 1,
+        "weight": 1.3,
+        "west_element": "Erde"
       },
       {
         "category": "modern_heuristic",
-        "element": "Holz",
+        "distribution": {
+          "Erde": 0.4,
+          "Feuer": 0.252,
+          "Holz": 0.348
+        },
+        "element": "Erde",
         "is_retrograde": false,
         "planet": "Uranus",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Luft via sign-element-consensus-v1",
+        "sign_index": 10,
+        "weight": 1.0,
+        "west_element": "Luft"
       },
       {
         "category": "modern_heuristic",
-        "element": "Wasser",
+        "distribution": {
+          "Erde": 0.4,
+          "Feuer": 0.252,
+          "Holz": 0.348
+        },
+        "element": "Erde",
         "is_retrograde": false,
         "planet": "Neptune",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Luft via sign-element-consensus-v1",
+        "sign_index": 10,
+        "weight": 1.0,
+        "west_element": "Luft"
       },
       {
         "category": "modern_heuristic",
+        "distribution": {
+          "Feuer": 0.548,
+          "Holz": 0.452
+        },
         "element": "Feuer",
         "is_retrograde": false,
         "planet": "Pluto",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "sign_index": 8,
+        "weight": 1.0,
+        "west_element": "Feuer"
       },
       {
         "category": "experimental",
-        "element": "Wasser",
+        "distribution": {
+          "Feuer": 0.548,
+          "Holz": 0.452
+        },
+        "element": "Feuer",
         "is_retrograde": false,
         "planet": "Chiron",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "sign_index": 8,
+        "weight": 1.0,
+        "west_element": "Feuer"
       },
       {
         "category": "experimental",
-        "element": "Wasser",
+        "distribution": {
+          "Feuer": 0.548,
+          "Holz": 0.452
+        },
+        "element": "Feuer",
         "is_retrograde": false,
         "planet": "Lilith",
-        "rationale": "Classical rulership",
-        "weight": 1.0
+        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "sign_index": 8,
+        "weight": 1.0,
+        "west_element": "Feuer"
       },
       {
         "category": "experimental",
-        "element": "Holz",
+        "distribution": {
+          "Feuer": 0.7124,
+          "Holz": 0.5876
+        },
+        "element": "Feuer",
         "is_retrograde": true,
         "planet": "NorthNode",
-        "rationale": "Classical rulership",
-        "weight": 1.3
+        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "sign_index": 4,
+        "weight": 1.3,
+        "west_element": "Feuer"
       },
       {
         "category": "experimental",
-        "element": "Holz",
+        "distribution": {
+          "Feuer": 0.7124,
+          "Holz": 0.5876
+        },
+        "element": "Feuer",
         "is_retrograde": true,
         "planet": "TrueNorthNode",
-        "rationale": "Classical rulership",
-        "weight": 1.3
+        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "sign_index": 4,
+        "weight": 1.3,
+        "west_element": "Feuer"
       }
     ]
   },
-  "cosmic_state": 0.7978,
+  "cosmic_state": 0.8838,
   "elemental_comparison": {
     "Erde": {
-      "bazi": 0.556,
-      "difference": -0.375,
-      "western": 0.181
+      "bazi": 0.307,
+      "difference": -0.062,
+      "western": 0.245
     },
     "Feuer": {
-      "bazi": 0.444,
-      "difference": -0.028,
-      "western": 0.417
+      "bazi": 0.708,
+      "difference": -0.045,
+      "western": 0.663
     },
     "Holz": {
-      "bazi": 0.222,
-      "difference": 0.417,
-      "western": 0.639
+      "bazi": 0.236,
+      "difference": 0.368,
+      "western": 0.604
     },
     "Metall": {
-      "bazi": 0.0,
-      "difference": 0.278,
-      "western": 0.278
+      "bazi": 0.354,
+      "difference": -0.03,
+      "western": 0.325
     },
     "Wasser": {
-      "bazi": 0.667,
-      "difference": -0.111,
-      "western": 0.556
+      "bazi": 0.472,
+      "difference": -0.301,
+      "western": 0.172
     }
   },
-  "fusion_interpretation": "Kalibrierte Kohärenz: 15.26% (Unterdurchschnittliche Kongruenz)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.80 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Holz\nÖstliche Dominanz: Wasser",
+  "fusion_interpretation": "Kalibrierte Kohärenz: 29.23% (Unterdurchschnittliche Kongruenz)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.88 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Feuer\nÖstliche Dominanz: Feuer",
   "harmony_index": {
     "bazi_vector": {
-      "Erde": 0.5555555556,
-      "Feuer": 0.4444444444,
-      "Holz": 0.2222222222,
-      "Metall": 0.0,
-      "Wasser": 0.6666666667
+      "Erde": 0.306924907,
+      "Feuer": 0.708288247,
+      "Holz": 0.2360960823,
+      "Metall": 0.3541441235,
+      "Wasser": 0.4721921646
     },
-    "harmony_index": 0.7978,
-    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.80 — Expertendiagnostik, kein Nutzerurteil",
+    "harmony_index": 0.8838,
+    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.88 — Expertendiagnostik, kein Nutzerurteil",
     "method": "dot_product",
     "western_vector": {
-      "Erde": 0.1805381434,
-      "Feuer": 0.4166264847,
-      "Holz": 0.6388272766,
-      "Metall": 0.2777509898,
-      "Wasser": 0.5555019796
+      "Erde": 0.2453299008,
+      "Feuer": 0.6634896268,
+      "Holz": 0.6039470689,
+      "Metall": 0.3246390779,
+      "Wasser": 0.1716163219
     }
   },
   "house_quality": {
@@ -359,18 +458,18 @@
   },
   "wu_xing_vectors": {
     "bazi_pillars": {
-      "Erde": 0.5555555556,
-      "Feuer": 0.4444444444,
-      "Holz": 0.2222222222,
-      "Metall": 0.0,
-      "Wasser": 0.6666666667
+      "Erde": 0.306924907,
+      "Feuer": 0.708288247,
+      "Holz": 0.2360960823,
+      "Metall": 0.3541441235,
+      "Wasser": 0.4721921646
     },
     "western_planets": {
-      "Erde": 0.1805381434,
-      "Feuer": 0.4166264847,
-      "Holz": 0.6388272766,
-      "Metall": 0.2777509898,
-      "Wasser": 0.5555019796
+      "Erde": 0.2453299008,
+      "Feuer": 0.6634896268,
+      "Holz": 0.6039470689,
+      "Metall": 0.3246390779,
+      "Wasser": 0.1716163219
     }
   }
 }
