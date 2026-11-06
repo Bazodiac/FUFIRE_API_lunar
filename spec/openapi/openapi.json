@@ -11576,57 +11576,39 @@
       },
       "NatalResponse": {
         "properties": {
-          "pillars": [
-            "pillars",
-            {
-              "additionalProperties": true,
-              "type": "object",
-              "title": "Pillars"
-            }
-          ],
-          "day_master": [
-            "day_master",
-            {
-              "additionalProperties": true,
-              "type": "object",
-              "title": "Day Master"
-            }
-          ],
-          "month_command": [
-            "month_command",
-            {
-              "additionalProperties": true,
-              "type": "object",
-              "title": "Month Command"
-            }
-          ],
+          "pillars": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Pillars"
+          },
+          "day_master": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Day Master"
+          },
+          "month_command": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Month Command"
+          },
           "hidden_stem_affinities": {
             "additionalProperties": true,
             "type": "object",
             "title": "Hidden Stem Affinities"
           },
-          "provenance": [
-            "provenance",
-            {
-              "$ref": "#/components/schemas/NatalProvenance"
-            }
-          ],
-          "precision": [
-            "precision",
-            {
-              "$ref": "#/components/schemas/NatalPrecision"
-            }
-          ],
-          "warnings": [
-            "warnings",
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array",
-              "title": "Warnings"
-            }
-          ]
+          "provenance": {
+            "$ref": "#/components/schemas/NatalProvenance"
+          },
+          "precision": {
+            "$ref": "#/components/schemas/NatalPrecision"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
         },
         "additionalProperties": false,
         "type": "object",

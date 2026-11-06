@@ -14,7 +14,7 @@ import pytest
 
 from bazi_engine.bazi import sexagenary_day_index_from_date
 from bazi_engine.bazi_rules import day_offset_from_ruleset
-from bazi_engine.constants import DAY_OFFSET, BRANCHES, STEMS
+from bazi_engine.constants import BRANCHES, DAY_OFFSET, STEMS
 
 _BASE = Path(__file__).resolve().parents[1]
 _ORACLE = json.loads((_BASE / "tests/external_sexagenary_day_oracle.json").read_text(encoding="utf-8"))
