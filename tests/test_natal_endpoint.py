@@ -51,7 +51,7 @@ def _post_reference() -> dict:
 
 def test_happy_path_returns_200_with_all_blocks():
     body = _post_reference()
-    for key in ("pillars", "day_master", "month_command", "provenance", "precision", "warnings"):
+    for key in ("pillars", "day_master", "month_command", "hidden_stem_affinities", "provenance", "precision", "warnings"):
         assert key in body
     assert set(body["pillars"].keys()) == {"year", "month", "day", "hour"}
 
@@ -192,6 +192,39 @@ def test_month_command_carries_no_seasonal_strength():
         assert forbidden not in mc
 
 
+def test_natal_hidden_affinities_are_factual_not_classical_strength():
+    body = _post_reference()
+    facts = body["hidden_stem_affinities"]
+    assert facts["source_status"] == "CALCULATED"
+    assert facts["tong_gen_assessment"] == {
+        "source_status": "NEEDS_DOMAIN_REVIEW", "blocked_by": "MISSING-003",
+    }
+    day_master = body["day_master"]
+    all_hidden = [
+        (name, h)
+        for name, pillar in body["pillars"].items()
+        for h in pillar["hidden_stems"]
+    ]
+    expected_exact = [
+        (name, h["stem"], h["qi"])
+        for name, h in all_hidden if h["stem"] == day_master["stem"]
+    ]
+    assert [
+        (x["pillar"], x["stem"], x["qi"])
+        for x in facts["exact_day_master_stem"]
+    ] == expected_exact
+    assert all(not x["provisional"] for x in facts["exact_day_master_stem"])
+
+
+def test_birth_time_unknown_marks_hour_hidden_affinities_provisional():
+    payload = dict(REFERENCE_PAYLOAD, birth_time_known=False)
+    res = client.post("/calculate/bazi/natal", json=payload)
+    assert res.status_code == 200, res.text
+    facts = res.json()["hidden_stem_affinities"]
+    for entry in facts["exact_day_master_stem"] + facts["same_phase_other_stem"]:
+        assert entry["provisional"] is (entry["pillar"] == "hour")
+
+
 # ── Provenance / precision / warnings ────────────────────────────────────────
 
 
@@ -231,6 +264,7 @@ def test_v1_mount_returns_same_chart():
     assert body["pillars"] == legacy["pillars"]
     assert body["day_master"] == legacy["day_master"]
     assert body["month_command"] == legacy["month_command"]
+    assert body["hidden_stem_affinities"] == legacy["hidden_stem_affinities"]
 
 
 # ── Error contract ───────────────────────────────────────────────────────────

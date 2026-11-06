@@ -68,6 +68,7 @@ LAYERS: Dict[str, int] = {
     "match.textblocks":      4,
     "match.privacy":         4,
     "match.observability":   4,
+    "match.natal_facts":    4,  # derived hidden-stem observations, no strength verdict
     # phases — Level 2 (pure computation, no domain imports upward)
     "phases":                2,
     "phases.jieqi_phase":    2,
