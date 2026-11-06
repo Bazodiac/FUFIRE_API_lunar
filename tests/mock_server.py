@@ -35,6 +35,14 @@ MOCK_EXCLUSIONS: dict[str, str] = {
         "Scientific Lunar V2 values and provider provenance must come from a "
         "real locked ephemeris boundary, not a fabricated endpoint-tester response."
     ),
+    "/v2/calculate/bazi": (
+        "Opt-in TLST pillars, time basis and boundary-uncertainty flags (INC-1) must "
+        "come from a real locked ephemeris boundary, not a fabricated endpoint-tester response."
+    ),
+    "/v2/calculate/bazi/natal": (
+        "Opt-in TLST natal chart and its shared time basis (INC-1) must come from a "
+        "real locked ephemeris boundary, not a fabricated endpoint-tester response."
+    ),
 }
 
 # ---------------------------------------------------------------------------
