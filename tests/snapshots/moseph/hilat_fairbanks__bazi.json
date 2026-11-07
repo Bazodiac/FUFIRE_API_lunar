@@ -1,7 +1,7 @@
 {
   "chinese": {
     "day_master": "Ji",
-    "hour_master": "Geng",
+    "hour_master": "Xin",
     "month_master": "Gui",
     "year": {
       "animal": "Dragon",
@@ -29,13 +29,13 @@
       "sexagenary_index": 25
     },
     "hour": {
-      "branch_index": 6,
+      "branch_index": 7,
       "hour_branch_time_policy": null,
       "lmt_used": false,
-      "local_hour": 12,
-      "time_standard_requested": "TLST",
-      "time_standard_used": "TLST",
-      "true_solar_time_used": true
+      "local_hour": 14,
+      "time_standard_requested": "CIVIL",
+      "time_standard_used": "CIVIL",
+      "true_solar_time_used": false
     },
     "month": {
       "jieqi_crossing_utc": "2024-09-07T03:11:20.070300+00:00",
@@ -46,12 +46,12 @@
       "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
       "ruleset_id": "standard_bazi_2026",
       "ruleset_version": "1.0.0",
-      "time_policy_id": "tlst_midnight",
+      "time_policy_id": "civil_midnight",
       "vector_model_id": "wuxing_v1.2.0"
     },
     "time_resolution": {
       "civil_local": "2024-09-22T14:00:00-08:00",
-      "effective_standard": "TLST",
+      "effective_standard": "CIVIL",
       "eot_minutes": 7.6055,
       "eot_source": "meeus_1998",
       "lmt": "2024-09-22T12:09:08.064000-09:50:51.936000",
@@ -74,7 +74,7 @@
     "lat": 64.8378,
     "lon": -147.7164,
     "nonexistentTime": "error",
-    "standard": "TLST",
+    "standard": "CIVIL",
     "tz": "America/Anchorage"
   },
   "pillars": {
@@ -86,9 +86,9 @@
     },
     "hour": {
       "element": "Metall",
-      "stamm": "Geng",
-      "tier": "Pferd",
-      "zweig": "Wu"
+      "stamm": "Xin",
+      "tier": "Ziege",
+      "zweig": "Wei"
     },
     "month": {
       "element": "Wasser",
@@ -108,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc8-20261107",
+    "engine_version": "1.0.0-rc9-20261107",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {

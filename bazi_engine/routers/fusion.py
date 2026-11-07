@@ -76,7 +76,7 @@ class FusionRequest(BaseModel):
     nonexistentTime: NonexistentTimePolicy = "error"
     birth_time_known: bool = Field(True, description="False if birth time is uncertain — flags hour/signature/ascendant/houses as provisional")
     standard: Literal["CIVIL", "LMT", "TLST"] = Field(
-        "TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted."
+        "CIVIL", description="Time standard for the auto-computed BaZi pillars. Default CIVIL (clock time, the v1 contract); TLST (true local solar time at the birthplace) and LMT on request. Used only when bazi_pillars is omitted."
     )
     bazi_pillars: Optional[Dict[str, Dict[str, str]]] = Field(
         None, description="BaZi pillars (auto-computed if omitted)"
@@ -395,7 +395,7 @@ class VectorMapRequest(BaseModel):
     ambiguousTime: AmbiguousTimeChoice = "earlier"
     nonexistentTime: NonexistentTimePolicy = "error"
     standard: Literal["CIVIL", "LMT", "TLST"] = Field(
-        "TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted."
+        "CIVIL", description="Time standard for the auto-computed BaZi pillars. Default CIVIL (clock time, the v1 contract); TLST (true local solar time at the birthplace) and LMT on request. Used only when bazi_pillars is omitted."
     )
     bazi_pillars: Optional[Dict[str, Dict[str, str]]] = Field(
         None, description="BaZi pillars (auto-computed if omitted)"

@@ -1,7 +1,7 @@
 {
   "chinese": {
     "day_master": "Wu",
-    "hour_master": "Bing",
+    "hour_master": "Ding",
     "month_master": "Yi",
     "year": {
       "animal": "Rabbit",
@@ -29,13 +29,13 @@
       "sexagenary_index": 14
     },
     "hour": {
-      "branch_index": 4,
+      "branch_index": 5,
       "hour_branch_time_policy": null,
       "lmt_used": false,
-      "local_hour": 8,
-      "time_standard_requested": "TLST",
-      "time_standard_used": "TLST",
-      "true_solar_time_used": true
+      "local_hour": 10,
+      "time_standard_requested": "CIVIL",
+      "time_standard_used": "CIVIL",
+      "true_solar_time_used": false
     },
     "month": {
       "jieqi_crossing_utc": "2024-01-05T20:49:23.397700+00:00",
@@ -46,12 +46,12 @@
       "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
       "ruleset_id": "standard_bazi_2026",
       "ruleset_version": "1.0.0",
-      "time_policy_id": "tlst_midnight",
+      "time_policy_id": "civil_midnight",
       "vector_model_id": "wuxing_v1.2.0"
     },
     "time_resolution": {
       "civil_local": "2024-01-15T10:00:00+00:00",
-      "effective_standard": "TLST",
+      "effective_standard": "CIVIL",
       "eot_minutes": -9.2014,
       "eot_source": "meeus_1998",
       "lmt": "2024-01-15T08:32:43.824000-01:27:16.176000",
@@ -74,7 +74,7 @@
     "lat": 64.1466,
     "lon": -21.8174,
     "nonexistentTime": "error",
-    "standard": "TLST",
+    "standard": "CIVIL",
     "tz": "Atlantic/Reykjavik"
   },
   "pillars": {
@@ -86,9 +86,9 @@
     },
     "hour": {
       "element": "Feuer",
-      "stamm": "Bing",
-      "tier": "Drache",
-      "zweig": "Chen"
+      "stamm": "Ding",
+      "tier": "Schlange",
+      "zweig": "Si"
     },
     "month": {
       "element": "Holz",
@@ -108,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc8-20261107",
+    "engine_version": "1.0.0-rc9-20261107",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {

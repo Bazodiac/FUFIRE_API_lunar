@@ -1,7 +1,7 @@
 {
   "chinese": {
     "day_master": "Jia",
-    "hour_master": "Yi",
+    "hour_master": "Jia",
     "month_master": "Bing",
     "year": {
       "animal": "Dragon",
@@ -29,13 +29,13 @@
       "sexagenary_index": 40
     },
     "hour": {
-      "branch_index": 11,
+      "branch_index": 0,
       "hour_branch_time_policy": null,
       "lmt_used": false,
-      "local_hour": 22,
-      "time_standard_requested": "TLST",
-      "time_standard_used": "TLST",
-      "true_solar_time_used": true
+      "local_hour": 23,
+      "time_standard_requested": "CIVIL",
+      "time_standard_used": "CIVIL",
+      "true_solar_time_used": false
     },
     "month": {
       "jieqi_crossing_utc": "2024-02-04T08:27:07.702993+00:00",
@@ -46,12 +46,12 @@
       "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
       "ruleset_id": "standard_bazi_2026",
       "ruleset_version": "1.0.0",
-      "time_policy_id": "tlst_midnight",
+      "time_policy_id": "civil_midnight",
       "vector_model_id": "wuxing_v1.2.0"
     },
     "time_resolution": {
       "civil_local": "2024-02-10T23:00:00+01:00",
-      "effective_standard": "TLST",
+      "effective_standard": "CIVIL",
       "eot_minutes": -14.196,
       "eot_source": "meeus_1998",
       "lmt": "2024-02-10T22:53:37.200000+00:53:37.200000",
@@ -74,7 +74,7 @@
     "lat": 52.52,
     "lon": 13.405,
     "nonexistentTime": "error",
-    "standard": "TLST",
+    "standard": "CIVIL",
     "tz": "Europe/Berlin"
   },
   "pillars": {
@@ -86,9 +86,9 @@
     },
     "hour": {
       "element": "Holz",
-      "stamm": "Yi",
-      "tier": "Schwein",
-      "zweig": "Hai"
+      "stamm": "Jia",
+      "tier": "Ratte",
+      "zweig": "Zi"
     },
     "month": {
       "element": "Feuer",
@@ -108,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc8-20261107",
+    "engine_version": "1.0.0-rc9-20261107",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {

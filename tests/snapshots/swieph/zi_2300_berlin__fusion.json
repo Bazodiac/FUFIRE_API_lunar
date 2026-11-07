@@ -1,14 +1,14 @@
 {
   "calibration": {
     "h_baseline": 0.7974,
-    "h_calibrated": 0.0,
-    "h_raw": 0.7852,
+    "h_calibrated": 0.0444,
+    "h_raw": 0.8064,
     "h_sigma": 0.1282,
     "interpretation_band": "Keine messbare Kongruenz über Baseline",
-    "n_bazi_contributions": 15,
+    "n_bazi_contributions": 14,
     "n_west": 14,
     "quality": "ok",
-    "sigma_above": -0.095
+    "sigma_above": 0.07
   },
   "contribution_ledger": {
     "bazi": [
@@ -113,24 +113,16 @@
         "element": "Holz",
         "pillar": "hour",
         "source": "stem",
-        "stem_name": "Yi",
+        "stem_name": "Jia",
         "weight": 1.0
       },
       {
-        "branch_name": "Hai",
+        "branch_name": "Zi",
         "category": "traditional",
         "element": "Wasser",
         "pillar": "hour",
         "source": "hidden_main",
         "weight": 1.0
-      },
-      {
-        "branch_name": "Hai",
-        "category": "traditional",
-        "element": "Holz",
-        "pillar": "hour",
-        "source": "hidden_middle",
-        "weight": 0.5
       }
     ],
     "chart_type_quality": "exact",
@@ -360,21 +352,21 @@
       }
     ]
   },
-  "cosmic_state": 0.7852,
+  "cosmic_state": 0.8064,
   "elemental_comparison": {
     "Erde": {
-      "bazi": 0.362,
-      "difference": 0.314,
+      "bazi": 0.388,
+      "difference": 0.288,
       "western": 0.676
     },
     "Feuer": {
-      "bazi": 0.236,
-      "difference": 0.074,
+      "bazi": 0.253,
+      "difference": 0.057,
       "western": 0.31
     },
     "Holz": {
-      "bazi": 0.866,
-      "difference": -0.446,
+      "bazi": 0.844,
+      "difference": -0.424,
       "western": 0.42
     },
     "Metall": {
@@ -383,22 +375,22 @@
       "western": 0.319
     },
     "Wasser": {
-      "bazi": 0.252,
-      "difference": 0.159,
+      "bazi": 0.27,
+      "difference": 0.141,
       "western": 0.411
     }
   },
-  "fusion_interpretation": "Kalibrierte Kohärenz: 0.00% (Keine messbare Kongruenz über Baseline)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.79 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Erde\nÖstliche Dominanz: Holz",
+  "fusion_interpretation": "Kalibrierte Kohärenz: 4.44% (Keine messbare Kongruenz über Baseline)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.81 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Erde\nÖstliche Dominanz: Holz",
   "harmony_index": {
     "bazi_vector": {
-      "Erde": 0.3620812755,
-      "Feuer": 0.2361399623,
-      "Holz": 0.8658465284,
+      "Erde": 0.3882167574,
+      "Feuer": 0.2531848418,
+      "Holz": 0.8439494726,
       "Metall": 0.0,
-      "Wasser": 0.2518826264
+      "Wasser": 0.2700638312
     },
-    "harmony_index": 0.7852,
-    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.79 — Expertendiagnostik, kein Nutzerurteil",
+    "harmony_index": 0.8064,
+    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.81 — Expertendiagnostik, kein Nutzerurteil",
     "method": "dot_product",
     "western_vector": {
       "Erde": 0.6762587989,
@@ -425,7 +417,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc8-20261107",
+    "engine_version": "1.0.0-rc9-20261107",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {
@@ -523,11 +515,11 @@
   },
   "wu_xing_vectors": {
     "bazi_pillars": {
-      "Erde": 0.3620812755,
-      "Feuer": 0.2361399623,
-      "Holz": 0.8658465284,
+      "Erde": 0.3882167574,
+      "Feuer": 0.2531848418,
+      "Holz": 0.8439494726,
       "Metall": 0.0,
-      "Wasser": 0.2518826264
+      "Wasser": 0.2700638312
     },
     "western_planets": {
       "Erde": 0.6762587989,

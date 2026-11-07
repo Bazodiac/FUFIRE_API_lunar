@@ -1,7 +1,7 @@
 {
   "chinese": {
-    "day_master": "Ding",
-    "hour_master": "Geng",
+    "day_master": "Wu",
+    "hour_master": "Ren",
     "month_master": "Bing",
     "year": {
       "animal": "Rabbit",
@@ -23,19 +23,19 @@
         "ruleset_id": "standard_bazi_2026",
         "ruleset_version": "1.0.0"
       },
-      "day_master_stem": "Ding",
+      "day_master_stem": "Wu",
       "day_offset_used": 49,
-      "julian_day_number": 2451544,
-      "sexagenary_index": 53
+      "julian_day_number": 2451545,
+      "sexagenary_index": 54
     },
     "hour": {
       "branch_index": 0,
       "hour_branch_time_policy": null,
       "lmt_used": false,
-      "local_hour": 23,
-      "time_standard_requested": "TLST",
-      "time_standard_used": "TLST",
-      "true_solar_time_used": true
+      "local_hour": 0,
+      "time_standard_requested": "CIVIL",
+      "time_standard_used": "CIVIL",
+      "true_solar_time_used": false
     },
     "month": {
       "jieqi_crossing_utc": "1999-12-07T13:47:28.197292+00:00",
@@ -46,12 +46,12 @@
       "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
       "ruleset_id": "standard_bazi_2026",
       "ruleset_version": "1.0.0",
-      "time_policy_id": "tlst_midnight",
+      "time_policy_id": "civil_midnight",
       "vector_model_id": "wuxing_v1.2.0"
     },
     "time_resolution": {
       "civil_local": "2000-01-01T00:01:00+11:00",
-      "effective_standard": "TLST",
+      "effective_standard": "CIVIL",
       "eot_minutes": -2.8445,
       "eot_source": "meeus_1998",
       "lmt": "1999-12-31T23:05:50.232000+10:04:50.232000",
@@ -74,19 +74,19 @@
     "lat": -33.8688,
     "lon": 151.2093,
     "nonexistentTime": "error",
-    "standard": "TLST",
+    "standard": "CIVIL",
     "tz": "Australia/Sydney"
   },
   "pillars": {
     "day": {
-      "element": "Feuer",
-      "stamm": "Ding",
-      "tier": "Schlange",
-      "zweig": "Si"
+      "element": "Erde",
+      "stamm": "Wu",
+      "tier": "Pferd",
+      "zweig": "Wu"
     },
     "hour": {
-      "element": "Metall",
-      "stamm": "Geng",
+      "element": "Wasser",
+      "stamm": "Ren",
       "tier": "Ratte",
       "zweig": "Zi"
     },
@@ -108,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc8-20261107",
+    "engine_version": "1.0.0-rc9-20261107",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {

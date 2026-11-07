@@ -1,5 +1,13 @@
-"""2026-11-07: true local solar time (TLST) at every product entry point, and the
-soulprint sectors derived from the same consensus matrix as the western vector.
+"""2026-11-07: time standard at the product entry points, and the soulprint
+sectors derived from the same consensus matrix as the western vector.
+
+PR #79 made TLST the default at every entry point. PO decision A
+(FU-TLST-POLICY/INC-1) keeps the historical CIVIL default on the public v1 and
+legacy HTTP contracts (/calculate/bazi, /chart, /personalize, /impact/active,
+/experience/*); TLST stays available on request where the contract has a
+standard field. The CLI default (TLST since #79) is not a public v1 HTTP
+contract and is not changed by decision A. The full pre-#77 pins live in
+``tests/test_v1_civil_default_contract.py``.
 
 Berlin 2016-08-15 16:00 CEST is about 14:49 apparent solar time, so the hour
 pillar is Wei under TLST and Shen under civil time.
@@ -31,29 +39,32 @@ def _bazi_hour(**extra):
 
 
 def test_reference_birth_changes_hour_pillar():
-    assert _bazi_hour() == "Wei"
+    assert _bazi_hour() == "Shen"  # v1 default CIVIL (decision A)
     assert _bazi_hour(standard="CIVIL") == "Shen"
+    assert _bazi_hour(standard="TLST") == "Wei"
 
 
-def test_chart_defaults_to_tlst():
+def test_chart_defaults_to_civil():
     default = client.post("/chart", json=CHART)
     civil = client.post("/chart", json={**CHART, "time_standard": "CIVIL"})
-    assert default.status_code == civil.status_code == 200, default.text
-    assert default.json()["bazi"]["pillars"]["hour"]["branch"] == "Wei"
+    tlst = client.post("/chart", json={**CHART, "time_standard": "TLST"})
+    assert default.status_code == civil.status_code == tlst.status_code == 200, default.text
+    assert default.json()["bazi"]["pillars"]["hour"]["branch"] == "Shen"
     assert civil.json()["bazi"]["pillars"]["hour"]["branch"] == "Shen"
+    assert tlst.json()["bazi"]["pillars"]["hour"]["branch"] == "Wei"
 
 
-def test_personalize_uses_tlst():
+def test_personalize_uses_civil():
     r = client.post("/personalize", json={"birth_datetime": LOCAL, "lat": 52.52, "lon": 13.405,
                                           "tz": "Europe/Berlin", "birth_time_known": True, "locale": "en"})
     assert r.status_code == 200, r.text
     body = json.dumps(r.json())
-    assert '"time_standard_used": "TLST"' in body
-    assert '"time_standard_used": "CIVIL"' not in body
+    assert '"time_standard_used": "CIVIL"' in body
+    assert '"time_standard_used": "TLST"' not in body
 
 
 @pytest.mark.parametrize("module", ["bazi_engine.routers.impact", "bazi_engine.routers.experience"])
-def test_internal_bazi_calls_use_tlst(monkeypatch, module):
+def test_internal_bazi_calls_use_civil(monkeypatch, module):
     import importlib
 
     from bazi_engine.bazi import compute_bazi
@@ -72,7 +83,7 @@ def test_internal_bazi_calls_use_tlst(monkeypatch, module):
     else:
         client.post("/experience/bootstrap", json={"birth": {"date": "2016-08-15", "time": "16:00:00",
                                                              "tz": "Europe/Berlin", "lat": 52.52, "lon": 13.405}})
-    assert seen and set(seen) == {"TLST"}, seen
+    assert seen and set(seen) == {"CIVIL"}, seen
 
 
 def test_cli_defaults_to_tlst(monkeypatch, capsys):
