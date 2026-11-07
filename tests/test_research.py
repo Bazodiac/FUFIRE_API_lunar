@@ -165,15 +165,23 @@ class TestNoSpuriousCorrelation:
         kw = kruskal_wallis_test(charts_480, "h_raw", "jieqi", n_comparisons=7)
         assert not kw.is_significant
 
-    def test_diff_feuer_not_significant_vs_jieqi(self, charts_480):
-        kw = kruskal_wallis_test(charts_480, "diff", "jieqi",
-                                 element="Feuer", n_comparisons=7)
-        assert not kw.is_significant
-
-    def test_diff_holz_not_significant_vs_jieqi(self, charts_480):
-        kw = kruskal_wallis_test(charts_480, "diff", "jieqi",
-                                 element="Holz", n_comparisons=7)
-        assert not kw.is_significant
+    @pytest.mark.parametrize("element", ["Feuer", "Holz"])
+    def test_diff_not_systematically_significant_vs_jieqi(self, element):
+        """Bodies, pillars and Jieqi are drawn independently, so a single seed
+        comes out significant with probability alpha/7 ≈ 0.7 % by chance
+        (seed 42 does for Feuer under body-tier-q0.3-v1: p_bonf = 0.004; over
+        60 seeds × 5 elements the rate is 3/300, i.e. chance level). A
+        systematic pipeline artefact shows up as significance across seeds:
+        over 20 fixed seeds at most 2 hits are allowed (P(≥ 3) ≈ 0.04 % under
+        the null)."""
+        hits = [
+            seed for seed in range(1, 21)
+            if kruskal_wallis_test(
+                generate_synthetic_dataset(n_total=N_CHARTS_KW, seed=seed, stratify_by_jieqi=True),
+                "diff", "jieqi", element=element, n_comparisons=7,
+            ).is_significant
+        ]
+        assert len(hits) <= 2, (element, hits)
 
     def test_n_tension_not_significant_vs_jieqi(self, charts_480):
         kw = kruskal_wallis_test(charts_480, "n_tension", "jieqi", n_comparisons=7)

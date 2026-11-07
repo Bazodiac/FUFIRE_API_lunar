@@ -305,7 +305,7 @@ def api_endpoint(
 
 @router.get("/info/wuxing-mapping", response_model=WuxingMappingResponse)
 def get_wuxing_mapping() -> Dict[str, Any]:
-    """Wu-Xing planet mapping. Returns the name-based mapping of Western planets to Chinese Five Elements (Wu-Xing). Since 2026-11-06 the Fusion layer no longer uses it: the western Fusion vector translates each body through the element of its sign (mapping id sign-element-consensus-v1, see /calculate/fusion/vector-map metadata). This planet mapping remains in use by the impact/transit layers. No authentication required."""
+    """Wu-Xing planet mapping. Returns the name-based mapping of Western planets to Chinese Five Elements (Wu-Xing). Since 2026-11-06 the Fusion layer no longer uses it: the western Fusion vector translates each body through the element of its sign (mapping id sign-element-consensus-v1) and, since 2026-11-07, weights each body by tier (body-tier-q0.3-v1; see the provenance parameter_set of /calculate/fusion). This planet mapping remains in use by the impact/transit layers. No authentication required."""
     return {
         "mapping": PLANET_TO_WUXING,
         "order": WUXING_ORDER,

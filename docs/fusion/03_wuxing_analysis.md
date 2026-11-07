@@ -1,5 +1,7 @@
 # 03 — Vektorextraktion: Planeten und Vier Pfeiler → ℝ⁵
 
+> **Veraltet für die Fusion (Stand 2026-11-07):** Gewichte, Rückläufigkeit 1,3 und die Merkur-Tag/Nacht-Regel unten beschreiben die alte Namenszuordnung. Aktuell: [12_west_element_mapping.md](12_west_element_mapping.md).
+
 **Modul:** `bazi_engine/wuxing/analysis.py`  
 **Level:** 4 (Domain-Logik, importiert nur wuxing-interne Module)
 

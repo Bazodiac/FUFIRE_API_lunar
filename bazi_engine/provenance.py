@@ -15,13 +15,28 @@ from . import __version__
 from .exc import EphemerisUnavailableError
 
 WUXING_PARAMETER_SET: Dict[str, Any] = {
-    "version": "1.1.0",
-    "retrograde_weight": 1.3,
+    "version": "1.2.0",
+    # 1.2.0 (2026-11-07): western Fusion vector = sign element × consensus
+    # matrix × tier weight; no retrograde factor, no Mercury day/night rule.
+    # Literal copy of bazi_engine.wuxing.constants (this module is Layer 1 and
+    # may not import Layer 4); tests/test_parameter_set.py pins the two equal.
+    "retrograde_weight": 1.0,
+    "western_mapping_id": "sign-element-consensus-v1",
+    "western_weighting_id": "body-tier-q0.3-v1",
+    "western_tier_weight": {"1": 1.0, "2": 0.3, "3": 0.09, "4": 0.027},
+    "western_body_tier": {
+        "Sun": 1, "Moon": 1, "Ascendant": 1,
+        "Mercury": 2, "Venus": 2, "Mars": 2,
+        "Jupiter": 3, "Saturn": 3,
+        "Uranus": 4, "Neptune": 4, "Pluto": 4,
+        "Chiron": 4, "Lilith": 4, "NorthNode": 4,
+    },
+    "western_excluded_bodies": ["TrueNorthNode"],
     "hidden_stem_main_qi": 1.0,
     "hidden_stem_middle_qi": 0.5,
     "hidden_stem_residual_qi": 0.3,
     "stem_weight": 1.0,
-    "mercury_dual_rule": "earth_day_metal_night",
+    "mercury_dual_rule": "none",
     "harmony_method": "dot_product",
     "aspect_orb_model": "differentiated_v1",
     "aspect_base_orbs": {

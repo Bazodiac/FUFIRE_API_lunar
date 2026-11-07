@@ -47,7 +47,7 @@ def test_same_planet_different_sign_gives_different_vector():
     in_aries = calculate_wuxing_vector_from_planets({"Saturn": {"longitude": 10.0, "is_retrograde": False}})
     in_taurus = calculate_wuxing_vector_from_planets({"Saturn": {"longitude": 40.0, "is_retrograde": False}})
     assert in_aries.to_list() != in_taurus.to_list()
-    assert in_taurus.metall == pytest.approx(0.699)
+    assert in_taurus.metall == pytest.approx(0.699 * 0.09)   # Saturn is tier 3
     assert in_aries.metall == 0
 
 

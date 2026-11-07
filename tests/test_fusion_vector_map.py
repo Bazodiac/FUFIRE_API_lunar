@@ -207,7 +207,7 @@ def test_no_trig_coherence_gt3():
 def test_versions_present():
     data = _resolve()
     meta = data["metadata"]
-    assert meta["mapping_version"] == FUSION_MAPPING_VERSION == "fufire-wuxing-map-v2"
+    assert meta["mapping_version"] == FUSION_MAPPING_VERSION == "fufire-wuxing-map-v3"
     assert meta["algorithm_version"] == ENGINE_VERSION
     assert "request_id" in data
 

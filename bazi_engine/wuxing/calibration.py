@@ -26,7 +26,10 @@ Reproduzierbar via: python scripts/calibrate_baselines.py --trials 5000 --seed 4
   sie kaum (dense/sparse: 50 Paare).
   Reproduzierbar via:
     SE_EPHE_PATH=… python scripts/calibrate_baselines.py --null births --births 3000 --seed 42 --patch
-  Seeds 7 / 42 / 99 liefern 0,8357 / 0,8358 / 0,8381 (Mittel) – stabil.
+  Seit 2026-11-07 (Gewichte body-tier-q0.3-v1, Aszendent als Stufe 1):
+  Seeds 7 / 42 / 99 liefern 0,7958 / 0,7974 / 0,7988 (Mittel) – stabil.
+  Horoskope ohne Aszendenten (unbekannte Geburtszeit) liegen im Mittel etwa
+  0,015 tiefer; sigma_above ist dort um rund -0,1 verschoben.
   - n_west:  Anzahl nicht-Error-Planeten
   - n_bazi:  Gesamtzahl Qi-Beiträge aus Vier Pfeilern (Stämme + verborgene Stämme)
 
@@ -56,7 +59,7 @@ _BASELINE_TABLE: dict[tuple[str, str], tuple[float, float]] = {
     ("medium",  "medium"):   (0.6904, 0.1759),
     ("medium",  "dense"):    (0.7274, 0.1497),
     ("dense",   "sparse"):   (0.665, 0.1866),
-    ("dense",   "medium"):   (0.8358, 0.1023),
+    ("dense",   "medium"):   (0.7974, 0.1282),
     ("dense",   "dense"):    (0.7958, 0.1224),
 }
 # ── END BASELINE_TABLE ──

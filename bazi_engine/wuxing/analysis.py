@@ -17,9 +17,12 @@ from .constants import (
     PLANET_TO_WUXING,
     SIGN_ELEMENT,
     WEST_ELEMENT_TO_WUXING,
+    WESTERN_EXCLUDED_BODIES,
     WESTERN_MAPPING_ID,
+    WESTERN_WEIGHTING_ID,
     WUXING_INDEX,
     WUXING_ORDER,
+    western_body_weight,
 )
 from .vector import WuXingVector
 
@@ -84,7 +87,7 @@ def is_night_chart(
 
 def calculate_wuxing_vector_from_planets(
     bodies: Dict[str, Dict[str, Any]],
-    use_retrograde_weight: bool = True,
+    use_retrograde_weight: bool = False,
     ascendant: Optional[float] = None,
     *,
     strict: bool = False,
@@ -93,15 +96,20 @@ def calculate_wuxing_vector_from_planets(
 
     Each body contributes through the classical element of the sign it occupies
     (``SIGN_ELEMENT``), spread over the five phases by ``WEST_ELEMENT_TO_WUXING``
-    (mapping id ``WESTERN_MAPPING_ID``). The planet's name no longer selects
-    the element.
+    (mapping id ``WESTERN_MAPPING_ID``), scaled by its tier weight
+    (``WESTERN_BODY_TIER``/``WESTERN_TIER_WEIGHT``, id ``WESTERN_WEIGHTING_ID``).
+    A known ascendant contributes like a light (tier 1). The true node is not
+    counted next to the mean node (``WESTERN_EXCLUDED_BODIES``).
 
     Args:
         bodies:                 Planetary data dict from compute_western_chart();
                                 bodies without a ``longitude`` are skipped.
-        use_retrograde_weight:  If True, retrograde planets carry 1.3× weight.
-        ascendant:              Ascendant longitude for day/night detection.
-                                If None, defaults to day chart (assumed_day quality).
+        use_retrograde_weight:  Legacy option, off by default since 2026-11-07.
+                                If True, retrograde bodies carry 1.3× their weight.
+        ascendant:              Ascendant longitude. Contributes with tier-1 weight
+                                and drives the day/night detection. If None, no
+                                ascendant term (unknown birth time) and the chart
+                                type defaults to day (assumed_day quality).
         strict:                 When True, propagate to is_night_chart() so
                                 a missing ascendant raises ValueError instead
                                 of silently degrading to assumed_day. Used at
@@ -122,7 +130,7 @@ def calculate_wuxing_vector_from_planets(
 
 def calculate_wuxing_vector_from_planets_with_ledger(
     bodies: Dict[str, Dict[str, Any]],
-    use_retrograde_weight: bool = True,
+    use_retrograde_weight: bool = False,
     ascendant: Optional[float] = None,
     *,
     strict: bool = False,
@@ -131,9 +139,8 @@ def calculate_wuxing_vector_from_planets_with_ledger(
 
     Args:
         bodies:                 Planetary data dict from compute_western_chart().
-        use_retrograde_weight:  If True, retrograde planets carry 1.3x weight.
-        ascendant:              Ascendant longitude for day/night detection.
-                                If None, defaults to day chart (assumed_day quality).
+        use_retrograde_weight:  Legacy option, off by default (see above).
+        ascendant:              Ascendant longitude; tier-1 term when given.
         strict:                 When True, propagate to is_night_chart() so
                                 a missing ascendant raises ValueError instead
                                 of silently degrading to assumed_day.
@@ -148,45 +155,62 @@ def calculate_wuxing_vector_from_planets_with_ledger(
     is_night_chart(sun_lon, ascendant, strict=strict)
     chart_type_quality = "exact" if ascendant is not None else "assumed_day"
 
-    traditional_planets = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"}
-    modern_planets = {"Uranus", "Neptune", "Pluto"}
+    points: list[tuple[str, float, bool]] = [
+        (planet, float(data["longitude"]), bool(data.get("is_retrograde", False)))
+        for planet, data in bodies.items()
+        if "error" not in data and "longitude" in data and planet not in WESTERN_EXCLUDED_BODIES
+    ]
+    if ascendant is not None:
+        points.append(("Ascendant", float(ascendant), False))
 
-    for planet, data in bodies.items():
-        if "error" in data or "longitude" not in data:
-            continue
-        is_retrograde = data.get("is_retrograde", False)
-        weight = 1.3 if (use_retrograde_weight and is_retrograde) else 1.0
-        sign_index = int(float(data["longitude"]) // 30) % 12
-        west_element = SIGN_ELEMENT[sign_index]
-        shares = WEST_ELEMENT_TO_WUXING[west_element]
-        distribution = {phase: round(weight * shares[phase], 6) for phase in WUXING_ORDER if shares[phase] > 0}
-        for phase, amount in distribution.items():
+    for planet, longitude, is_retrograde in points:
+        entry = _western_ledger_entry(planet, longitude, is_retrograde, use_retrograde_weight)
+        for phase, amount in entry["distribution"].items():
             values[WUXING_INDEX[phase]] += amount
-
-        if planet in traditional_planets:
-            category = "traditional"
-        elif planet in modern_planets:
-            category = "modern_heuristic"
-        else:
-            category = "experimental"
-
-        entry: dict[str, Any] = {
-            "planet": planet,
-            # Main phase of this body's share (backward-compatible single field).
-            "element": max(distribution, key=lambda p: distribution[p]),
-            "weight": weight,
-            "is_retrograde": is_retrograde,
-            "sign_index": sign_index,
-            "west_element": west_element,
-            "distribution": distribution,
-            "rationale": f"Sign element {west_element} via {WESTERN_MAPPING_ID}",
-            "category": category,
-        }
         if planet == "Mercury":
             entry["chart_type_quality"] = chart_type_quality
         ledger.append(entry)
 
     return WuXingVector(*values), ledger
+
+
+_TRADITIONAL_POINTS = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Ascendant"}
+_MODERN_PLANETS = {"Uranus", "Neptune", "Pluto"}
+
+
+def _western_ledger_entry(
+    planet: str, longitude: float, is_retrograde: bool, use_retrograde_weight: bool,
+) -> dict[str, Any]:
+    """One body's contribution: sign element × matrix × tier weight."""
+    tier, weight = western_body_weight(planet)
+    if use_retrograde_weight and is_retrograde:
+        weight = round(weight * 1.3, 6)
+    sign_index = int(longitude // 30) % 12
+    west_element = SIGN_ELEMENT[sign_index]
+    shares = WEST_ELEMENT_TO_WUXING[west_element]
+    distribution = {phase: round(weight * shares[phase], 6) for phase in WUXING_ORDER if shares[phase] > 0}
+    if planet in _TRADITIONAL_POINTS:
+        category = "traditional"
+    elif planet in _MODERN_PLANETS:
+        category = "modern_heuristic"
+    else:
+        category = "experimental"
+    return {
+        "planet": planet,
+        # Main phase of this body's share (backward-compatible single field).
+        "element": max(distribution, key=lambda p: distribution[p]),
+        "weight": weight,
+        "weight_tier": tier,
+        "is_retrograde": is_retrograde,
+        "sign_index": sign_index,
+        "west_element": west_element,
+        "distribution": distribution,
+        "rationale": (
+            f"Sign element {west_element} via {WESTERN_MAPPING_ID}; "
+            f"tier {tier} weight via {WESTERN_WEIGHTING_ID}"
+        ),
+        "category": category,
+    }
 
 
 # Hidden stems in Earthly Branches (藏干) with traditional Qi weights.

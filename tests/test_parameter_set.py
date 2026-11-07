@@ -46,7 +46,27 @@ class TestParameterSet:
         data = r.json()
         ps = data["provenance"]["parameter_set"]
         assert "retrograde_weight" in ps
-        assert ps["retrograde_weight"] == 1.3
+        # body-tier-q0.3-v1 (2026-11-07): no extra weight for retrograde bodies.
+        assert ps["retrograde_weight"] == 1.0
+
+    def test_parameter_set_states_the_western_weights_the_engine_uses(self):
+        """provenance.py (Layer 1) carries a literal copy of the wuxing constants;
+        the copy must equal what the engine computes with, on the real response."""
+        from bazi_engine.wuxing.constants import (
+            WESTERN_BODY_TIER,
+            WESTERN_EXCLUDED_BODIES,
+            WESTERN_MAPPING_ID,
+            WESTERN_TIER_WEIGHT,
+            WESTERN_WEIGHTING_ID,
+        )
+        r = client.post("/calculate/fusion", json=PAYLOAD)
+        ps = r.json()["provenance"]["parameter_set"]
+        assert ps["western_mapping_id"] == WESTERN_MAPPING_ID
+        assert ps["western_weighting_id"] == WESTERN_WEIGHTING_ID
+        assert ps["western_tier_weight"] == {str(k): v for k, v in WESTERN_TIER_WEIGHT.items()}
+        assert ps["western_body_tier"] == WESTERN_BODY_TIER
+        assert ps["western_excluded_bodies"] == sorted(WESTERN_EXCLUDED_BODIES)
+        assert ps["mercury_dual_rule"] == "none"
 
     def test_parameter_set_has_hidden_stem_weights(self):
         r = client.post("/calculate/fusion", json=PAYLOAD)

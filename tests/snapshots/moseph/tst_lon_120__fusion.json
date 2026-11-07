@@ -1,14 +1,14 @@
 {
   "calibration": {
-    "h_baseline": 0.8358,
+    "h_baseline": 0.7974,
     "h_calibrated": 0.0,
-    "h_raw": 0.8162,
-    "h_sigma": 0.1023,
+    "h_raw": 0.7011,
+    "h_sigma": 0.1282,
     "interpretation_band": "Keine messbare Kongruenz über Baseline",
     "n_bazi_contributions": 15,
     "n_west": 13,
     "quality": "ok",
-    "sigma_above": -0.192
+    "sigma_above": -0.751
   },
   "contribution_ledger": {
     "bazi": [
@@ -145,9 +145,10 @@
         "element": "Wasser",
         "is_retrograde": false,
         "planet": "Sun",
-        "rationale": "Sign element Wasser via sign-element-consensus-v1",
+        "rationale": "Sign element Wasser via sign-element-consensus-v1; tier 1 weight via body-tier-q0.3-v1",
         "sign_index": 3,
         "weight": 1.0,
+        "weight_tier": 1,
         "west_element": "Wasser"
       },
       {
@@ -159,206 +160,219 @@
         "element": "Feuer",
         "is_retrograde": false,
         "planet": "Moon",
-        "rationale": "Sign element Feuer via sign-element-consensus-v1",
+        "rationale": "Sign element Feuer via sign-element-consensus-v1; tier 1 weight via body-tier-q0.3-v1",
         "sign_index": 8,
         "weight": 1.0,
+        "weight_tier": 1,
         "west_element": "Feuer"
       },
       {
         "category": "traditional",
         "chart_type_quality": "exact",
         "distribution": {
-          "Erde": 0.306,
-          "Metall": 0.101,
-          "Wasser": 0.593
+          "Erde": 0.0918,
+          "Metall": 0.0303,
+          "Wasser": 0.1779
         },
         "element": "Wasser",
         "is_retrograde": false,
         "planet": "Mercury",
-        "rationale": "Sign element Wasser via sign-element-consensus-v1",
+        "rationale": "Sign element Wasser via sign-element-consensus-v1; tier 2 weight via body-tier-q0.3-v1",
         "sign_index": 3,
-        "weight": 1.0,
+        "weight": 0.3,
+        "weight_tier": 2,
         "west_element": "Wasser"
       },
       {
         "category": "traditional",
         "distribution": {
-          "Erde": 0.306,
-          "Metall": 0.101,
-          "Wasser": 0.593
+          "Erde": 0.0918,
+          "Metall": 0.0303,
+          "Wasser": 0.1779
         },
         "element": "Wasser",
         "is_retrograde": false,
         "planet": "Venus",
-        "rationale": "Sign element Wasser via sign-element-consensus-v1",
+        "rationale": "Sign element Wasser via sign-element-consensus-v1; tier 2 weight via body-tier-q0.3-v1",
         "sign_index": 3,
-        "weight": 1.0,
+        "weight": 0.3,
+        "weight_tier": 2,
         "west_element": "Wasser"
       },
       {
         "category": "traditional",
         "distribution": {
-          "Erde": 0.095,
-          "Metall": 0.699,
-          "Wasser": 0.206
+          "Erde": 0.0285,
+          "Metall": 0.2097,
+          "Wasser": 0.0618
         },
         "element": "Metall",
         "is_retrograde": false,
         "planet": "Mars",
-        "rationale": "Sign element Erde via sign-element-consensus-v1",
+        "rationale": "Sign element Erde via sign-element-consensus-v1; tier 2 weight via body-tier-q0.3-v1",
         "sign_index": 1,
-        "weight": 1.0,
+        "weight": 0.3,
+        "weight_tier": 2,
         "west_element": "Erde"
       },
       {
         "category": "traditional",
         "distribution": {
-          "Erde": 0.4,
-          "Feuer": 0.252,
-          "Holz": 0.348
+          "Erde": 0.036,
+          "Feuer": 0.02268,
+          "Holz": 0.03132
         },
         "element": "Erde",
         "is_retrograde": false,
         "planet": "Jupiter",
-        "rationale": "Sign element Luft via sign-element-consensus-v1",
+        "rationale": "Sign element Luft via sign-element-consensus-v1; tier 3 weight via body-tier-q0.3-v1",
         "sign_index": 2,
-        "weight": 1.0,
+        "weight": 0.09,
+        "weight_tier": 3,
         "west_element": "Luft"
       },
       {
         "category": "traditional",
         "distribution": {
-          "Erde": 0.306,
-          "Metall": 0.101,
-          "Wasser": 0.593
+          "Erde": 0.02754,
+          "Metall": 0.00909,
+          "Wasser": 0.05337
         },
         "element": "Wasser",
         "is_retrograde": false,
         "planet": "Saturn",
-        "rationale": "Sign element Wasser via sign-element-consensus-v1",
+        "rationale": "Sign element Wasser via sign-element-consensus-v1; tier 3 weight via body-tier-q0.3-v1",
         "sign_index": 11,
-        "weight": 1.0,
+        "weight": 0.09,
+        "weight_tier": 3,
         "west_element": "Wasser"
       },
       {
         "category": "modern_heuristic",
         "distribution": {
-          "Erde": 0.095,
-          "Metall": 0.699,
-          "Wasser": 0.206
+          "Erde": 0.002565,
+          "Metall": 0.018873,
+          "Wasser": 0.005562
         },
         "element": "Metall",
         "is_retrograde": false,
         "planet": "Uranus",
-        "rationale": "Sign element Erde via sign-element-consensus-v1",
+        "rationale": "Sign element Erde via sign-element-consensus-v1; tier 4 weight via body-tier-q0.3-v1",
         "sign_index": 1,
-        "weight": 1.0,
+        "weight": 0.027,
+        "weight_tier": 4,
         "west_element": "Erde"
       },
       {
         "category": "modern_heuristic",
         "distribution": {
-          "Erde": 0.306,
-          "Metall": 0.101,
-          "Wasser": 0.593
+          "Erde": 0.008262,
+          "Metall": 0.002727,
+          "Wasser": 0.016011
         },
         "element": "Wasser",
         "is_retrograde": false,
         "planet": "Neptune",
-        "rationale": "Sign element Wasser via sign-element-consensus-v1",
+        "rationale": "Sign element Wasser via sign-element-consensus-v1; tier 4 weight via body-tier-q0.3-v1",
         "sign_index": 11,
-        "weight": 1.0,
+        "weight": 0.027,
+        "weight_tier": 4,
         "west_element": "Wasser"
       },
       {
         "category": "modern_heuristic",
         "distribution": {
-          "Erde": 0.52,
-          "Feuer": 0.3276,
-          "Holz": 0.4524
+          "Erde": 0.0108,
+          "Feuer": 0.006804,
+          "Holz": 0.009396
         },
         "element": "Erde",
         "is_retrograde": true,
         "planet": "Pluto",
-        "rationale": "Sign element Luft via sign-element-consensus-v1",
+        "rationale": "Sign element Luft via sign-element-consensus-v1; tier 4 weight via body-tier-q0.3-v1",
         "sign_index": 10,
-        "weight": 1.3,
+        "weight": 0.027,
+        "weight_tier": 4,
         "west_element": "Luft"
       },
       {
         "category": "experimental",
         "distribution": {
+          "Erde": 0.002565,
+          "Metall": 0.018873,
+          "Wasser": 0.005562
+        },
+        "element": "Metall",
+        "is_retrograde": false,
+        "planet": "Lilith",
+        "rationale": "Sign element Erde via sign-element-consensus-v1; tier 4 weight via body-tier-q0.3-v1",
+        "sign_index": 5,
+        "weight": 0.027,
+        "weight_tier": 4,
+        "west_element": "Erde"
+      },
+      {
+        "category": "experimental",
+        "distribution": {
+          "Feuer": 0.014796,
+          "Holz": 0.012204
+        },
+        "element": "Feuer",
+        "is_retrograde": true,
+        "planet": "NorthNode",
+        "rationale": "Sign element Feuer via sign-element-consensus-v1; tier 4 weight via body-tier-q0.3-v1",
+        "sign_index": 0,
+        "weight": 0.027,
+        "weight_tier": 4,
+        "west_element": "Feuer"
+      },
+      {
+        "category": "traditional",
+        "distribution": {
           "Erde": 0.095,
           "Metall": 0.699,
           "Wasser": 0.206
         },
         "element": "Metall",
         "is_retrograde": false,
-        "planet": "Lilith",
-        "rationale": "Sign element Erde via sign-element-consensus-v1",
-        "sign_index": 5,
+        "planet": "Ascendant",
+        "rationale": "Sign element Erde via sign-element-consensus-v1; tier 1 weight via body-tier-q0.3-v1",
+        "sign_index": 9,
         "weight": 1.0,
+        "weight_tier": 1,
         "west_element": "Erde"
-      },
-      {
-        "category": "experimental",
-        "distribution": {
-          "Feuer": 0.7124,
-          "Holz": 0.5876
-        },
-        "element": "Feuer",
-        "is_retrograde": true,
-        "planet": "NorthNode",
-        "rationale": "Sign element Feuer via sign-element-consensus-v1",
-        "sign_index": 0,
-        "weight": 1.3,
-        "west_element": "Feuer"
-      },
-      {
-        "category": "experimental",
-        "distribution": {
-          "Feuer": 0.7124,
-          "Holz": 0.5876
-        },
-        "element": "Feuer",
-        "is_retrograde": true,
-        "planet": "TrueNorthNode",
-        "rationale": "Sign element Feuer via sign-element-consensus-v1",
-        "sign_index": 0,
-        "weight": 1.3,
-        "west_element": "Feuer"
       }
     ]
   },
-  "cosmic_state": 0.8162,
+  "cosmic_state": 0.7011,
   "elemental_comparison": {
     "Erde": {
       "bazi": 0.794,
-      "difference": -0.358,
-      "western": 0.435
+      "difference": -0.445,
+      "western": 0.349
     },
     "Feuer": {
       "bazi": 0.406,
-      "difference": 0.0,
-      "western": 0.406
+      "difference": -0.111,
+      "western": 0.295
     },
     "Holz": {
       "bazi": 0.353,
-      "difference": 0.034,
-      "western": 0.386
+      "difference": -0.101,
+      "western": 0.251
     },
     "Metall": {
       "bazi": 0.265,
-      "difference": 0.149,
-      "western": 0.414
+      "difference": 0.293,
+      "western": 0.558
     },
     "Wasser": {
       "bazi": 0.106,
-      "difference": 0.464,
-      "western": 0.57
+      "difference": 0.54,
+      "western": 0.646
     }
   },
-  "fusion_interpretation": "Kalibrierte Kohärenz: 0.00% (Keine messbare Kongruenz über Baseline)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.82 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Wasser\nÖstliche Dominanz: Erde",
+  "fusion_interpretation": "Kalibrierte Kohärenz: 0.00% (Keine messbare Kongruenz über Baseline)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.70 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Wasser\nÖstliche Dominanz: Erde",
   "harmony_index": {
     "bazi_vector": {
       "Erde": 0.7936372163,
@@ -367,15 +381,15 @@
       "Metall": 0.2645457388,
       "Wasser": 0.1058182955
     },
-    "harmony_index": 0.8162,
-    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.82 — Expertendiagnostik, kein Nutzerurteil",
+    "harmony_index": 0.7011,
+    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.70 — Expertendiagnostik, kein Nutzerurteil",
     "method": "dot_product",
     "western_vector": {
-      "Erde": 0.435189085,
-      "Feuer": 0.4061340477,
-      "Holz": 0.3862760595,
-      "Metall": 0.4140263251,
-      "Wasser": 0.5701215691
+      "Erde": 0.3489586591,
+      "Feuer": 0.2949083869,
+      "Holz": 0.2514100471,
+      "Metall": 0.5576028076,
+      "Wasser": 0.6458552428
     }
   },
   "house_quality": {
@@ -427,8 +441,8 @@
       "hidden_stem_main_qi": 1.0,
       "hidden_stem_middle_qi": 0.5,
       "hidden_stem_residual_qi": 0.3,
-      "mercury_dual_rule": "earth_day_metal_night",
-      "retrograde_weight": 1.3,
+      "mercury_dual_rule": "none",
+      "retrograde_weight": 1.0,
       "soulprint_weights": {
         "ascendant": 0.6,
         "moon": 0.8,
@@ -449,7 +463,34 @@
         "uranus": 1.5,
         "venus": 0.7
       },
-      "version": "1.1.0",
+      "version": "1.2.0",
+      "western_body_tier": {
+        "Ascendant": 1,
+        "Chiron": 4,
+        "Jupiter": 3,
+        "Lilith": 4,
+        "Mars": 2,
+        "Mercury": 2,
+        "Moon": 1,
+        "Neptune": 4,
+        "NorthNode": 4,
+        "Pluto": 4,
+        "Saturn": 3,
+        "Sun": 1,
+        "Uranus": 4,
+        "Venus": 2
+      },
+      "western_excluded_bodies": [
+        "TrueNorthNode"
+      ],
+      "western_mapping_id": "sign-element-consensus-v1",
+      "western_tier_weight": {
+        "1": 1.0,
+        "2": 0.3,
+        "3": 0.09,
+        "4": 0.027
+      },
+      "western_weighting_id": "body-tier-q0.3-v1",
       "wuxing_sector_mapping": {
         "Erde": [
           1,
@@ -494,11 +535,11 @@
       "Wasser": 0.1058182955
     },
     "western_planets": {
-      "Erde": 0.435189085,
-      "Feuer": 0.4061340477,
-      "Holz": 0.3862760595,
-      "Metall": 0.4140263251,
-      "Wasser": 0.5701215691
+      "Erde": 0.3489586591,
+      "Feuer": 0.2949083869,
+      "Holz": 0.2514100471,
+      "Metall": 0.5576028076,
+      "Wasser": 0.6458552428
     }
   }
 }
