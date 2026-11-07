@@ -48,7 +48,7 @@ class ChartComputeRequest(BaseModel):
     dst_policy: Literal["error", "earlier", "later"] = Field("error")
     bodies: Optional[List[str]] = Field(None, description="Filter planetary bodies (default: all)")
     include_validation: bool = Field(False)
-    time_standard: Literal["CIVIL", "LMT", "TLST"] = Field("TLST")
+    time_standard: Literal["CIVIL", "LMT", "TLST"] = Field("CIVIL")
     day_boundary: Literal["midnight", "zi"] = Field("midnight")
 
 

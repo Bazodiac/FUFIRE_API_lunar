@@ -1,7 +1,7 @@
 {
   "chinese": {
     "day_master": "Geng",
-    "hour_master": "Xin",
+    "hour_master": "Ren",
     "month_master": "Ren",
     "year": {
       "animal": "Horse",
@@ -29,13 +29,13 @@
       "sexagenary_index": 6
     },
     "hour": {
-      "branch_index": 5,
+      "branch_index": 6,
       "hour_branch_time_policy": null,
       "lmt_used": false,
-      "local_hour": 10,
-      "time_standard_requested": "TLST",
-      "time_standard_used": "TLST",
-      "true_solar_time_used": true
+      "local_hour": 12,
+      "time_standard_requested": "CIVIL",
+      "time_standard_used": "CIVIL",
+      "true_solar_time_used": false
     },
     "month": {
       "jieqi_crossing_utc": "1990-06-05T22:46:18.050137+00:00",
@@ -46,12 +46,12 @@
       "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
       "ruleset_id": "standard_bazi_2026",
       "ruleset_version": "1.0.0",
-      "time_policy_id": "tlst_midnight",
+      "time_policy_id": "civil_midnight",
       "vector_model_id": "wuxing_v1.2.0"
     },
     "time_resolution": {
       "civil_local": "1990-07-04T12:00:00+02:00",
-      "effective_standard": "TLST",
+      "effective_standard": "CIVIL",
       "eot_minutes": -4.3157,
       "eot_source": "meeus_1998",
       "lmt": "1990-07-04T10:53:37.200000+00:53:37.200000",
@@ -74,7 +74,7 @@
     "lat": 52.52,
     "lon": 13.405,
     "nonexistentTime": "error",
-    "standard": "TLST",
+    "standard": "CIVIL",
     "tz": "Europe/Berlin"
   },
   "pillars": {
@@ -85,10 +85,10 @@
       "zweig": "Wu"
     },
     "hour": {
-      "element": "Metall",
-      "stamm": "Xin",
-      "tier": "Schlange",
-      "zweig": "Si"
+      "element": "Wasser",
+      "stamm": "Ren",
+      "tier": "Pferd",
+      "zweig": "Wu"
     },
     "month": {
       "element": "Wasser",
@@ -108,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc8-20261107",
+    "engine_version": "1.0.0-rc9-20261107",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {

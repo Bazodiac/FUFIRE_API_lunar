@@ -103,7 +103,7 @@ class NatalRequest(BaseModel):
             "tz": "Europe/Berlin",
             "lat": 52.52,
             "lon": 13.405,
-            "standard": "TLST",
+            "standard": "CIVIL",
             "boundary": "midnight",
             "ambiguousTime": "earlier",
             "nonexistentTime": "error",
@@ -116,7 +116,7 @@ class NatalRequest(BaseModel):
     lat: float = Field(..., ge=-90.0, le=90.0, description="Birth latitude in decimal degrees.")
     lon: float = Field(..., ge=-180.0, le=180.0, description="Birth longitude in decimal degrees.")
     standard: Literal["CIVIL", "LMT", "TLST"] = Field(
-        "TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time."
+        "CIVIL", description="Time standard for interpreting the local datetime."
     )
     boundary: Literal["midnight", "zi"] = Field(
         "midnight", description="Day-boundary convention for the day pillar."

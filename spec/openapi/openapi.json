@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc8-20261107"
+    "version": "1.0.0-rc9-20261107"
   },
   "paths": {
     "/": {
@@ -7805,8 +7805,7 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
-            "default": "TLST"
+            "default": "CIVIL"
           },
           "boundary": {
             "type": "string",
@@ -7861,7 +7860,7 @@
           "lat": 52.52,
           "lon": 13.405,
           "nonexistentTime": "error",
-          "standard": "TLST",
+          "standard": "CIVIL",
           "tz": "Europe/Berlin"
         }
       },
@@ -8612,7 +8611,7 @@
               "TLST"
             ],
             "title": "Time Standard",
-            "default": "TLST"
+            "default": "CIVIL"
           },
           "day_boundary": {
             "type": "string",
@@ -9438,8 +9437,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
-            "default": "TLST"
+            "description": "Time standard for interpreting the local datetime.",
+            "default": "CIVIL"
           },
           "direction_method": {
             "type": "string",
@@ -9802,8 +9801,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted.",
-            "default": "TLST"
+            "description": "Time standard for the auto-computed BaZi pillars. Default CIVIL (clock time, the v1 contract); TLST (true local solar time at the birthplace) and LMT on request. Used only when bazi_pillars is omitted.",
+            "default": "CIVIL"
           },
           "bazi_pillars": {
             "anyOf": [
@@ -10071,7 +10070,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc8-20261107"
+          "version": "1.0.0-rc9-20261107"
         }
       },
       "HourDerivationTrace": {
@@ -10853,8 +10852,7 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
-            "default": "TLST"
+            "default": "CIVIL"
           },
           "boundary": {
             "type": "string",
@@ -10927,7 +10925,7 @@
           "lat": 52.52,
           "lon": 13.405,
           "nonexistentTime": "error",
-          "standard": "TLST",
+          "standard": "CIVIL",
           "tz": "Europe/Berlin"
         }
       },
@@ -11526,8 +11524,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time.",
-            "default": "TLST"
+            "description": "Time standard for interpreting the local datetime.",
+            "default": "CIVIL"
           },
           "boundary": {
             "type": "string",
@@ -11583,7 +11581,7 @@
           "lat": 52.52,
           "lon": 13.405,
           "nonexistentTime": "error",
-          "standard": "TLST",
+          "standard": "CIVIL",
           "tz": "Europe/Berlin"
         }
       },
@@ -13823,8 +13821,8 @@
               "TLST"
             ],
             "title": "Standard",
-            "description": "Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted.",
-            "default": "TLST"
+            "description": "Time standard for the auto-computed BaZi pillars. Default CIVIL (clock time, the v1 contract); TLST (true local solar time at the birthplace) and LMT on request. Used only when bazi_pillars is omitted.",
+            "default": "CIVIL"
           },
           "bazi_pillars": {
             "anyOf": [

@@ -60,7 +60,7 @@ async def impact_active(
         timezone=birth.tz,
         longitude_deg=birth.lon,
         latitude_deg=birth.lat,
-        time_standard="TLST",  # same pillars as /calculate/bazi and /calculate/fusion (since 2026-11-07)
+        time_standard="CIVIL",  # v1/legacy contract (FU-TLST-POLICY/INC-1, decision A): same pillars as the /calculate/bazi default
     )
     try:
         bazi_result = compute_bazi(bazi_inp)
