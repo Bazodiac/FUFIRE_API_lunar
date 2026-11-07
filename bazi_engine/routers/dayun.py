@@ -84,7 +84,7 @@ class DayunRequest(BaseModel):
         "midnight", description="Day-boundary convention used by the underlying BaZi engine."
     )
     standard: Literal["CIVIL", "LMT", "TLST"] = Field(
-        "CIVIL", description="Time standard for interpreting the local datetime."
+        "TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time."
     )
     direction_method: Literal["explicit", "year_stem_yinyang_and_sex"] = Field(
         ..., description="How the flow direction of decades is determined."

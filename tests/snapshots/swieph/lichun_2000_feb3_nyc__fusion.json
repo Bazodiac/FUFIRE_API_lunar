@@ -1,14 +1,14 @@
 {
   "calibration": {
     "h_baseline": 0.7974,
-    "h_calibrated": 0.5686,
-    "h_raw": 0.9126,
+    "h_calibrated": 0.1713,
+    "h_raw": 0.8321,
     "h_sigma": 0.1282,
-    "interpretation_band": "Überdurchschnittliche Kongruenz",
+    "interpretation_band": "Unterdurchschnittliche Kongruenz",
     "n_bazi_contributions": 16,
     "n_west": 14,
     "quality": "ok",
-    "sigma_above": 0.899
+    "sigma_above": 0.271
   },
   "contribution_ledger": {
     "bazi": [
@@ -113,29 +113,29 @@
         "element": "Holz",
         "pillar": "hour",
         "source": "stem",
-        "stem_name": "Yi",
+        "stem_name": "Jia",
         "weight": 1.0
       },
       {
-        "branch_name": "Si",
+        "branch_name": "Chen",
         "category": "traditional",
-        "element": "Feuer",
+        "element": "Erde",
         "pillar": "hour",
         "source": "hidden_main",
         "weight": 1.0
       },
       {
-        "branch_name": "Si",
+        "branch_name": "Chen",
         "category": "traditional",
-        "element": "Metall",
+        "element": "Holz",
         "pillar": "hour",
         "source": "hidden_middle",
         "weight": 0.5
       },
       {
-        "branch_name": "Si",
+        "branch_name": "Chen",
         "category": "traditional",
-        "element": "Erde",
+        "element": "Wasser",
         "pillar": "hour",
         "source": "hidden_residual",
         "weight": 0.3
@@ -364,45 +364,45 @@
       }
     ]
   },
-  "cosmic_state": 0.9126,
+  "cosmic_state": 0.8321,
   "elemental_comparison": {
     "Erde": {
-      "bazi": 0.668,
-      "difference": -0.175,
+      "bazi": 0.721,
+      "difference": -0.228,
       "western": 0.493
     },
     "Feuer": {
-      "bazi": 0.278,
-      "difference": 0.297,
+      "bazi": 0.084,
+      "difference": 0.492,
       "western": 0.575
     },
     "Holz": {
-      "bazi": 0.557,
-      "difference": 0.07,
+      "bazi": 0.587,
+      "difference": 0.04,
       "western": 0.626
     },
     "Metall": {
-      "bazi": 0.278,
-      "difference": -0.139,
+      "bazi": 0.168,
+      "difference": -0.028,
       "western": 0.139
     },
     "Wasser": {
-      "bazi": 0.297,
-      "difference": -0.178,
+      "bazi": 0.318,
+      "difference": -0.2,
       "western": 0.119
     }
   },
-  "fusion_interpretation": "Kalibrierte Kohärenz: 56.86% (Überdurchschnittliche Kongruenz)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.91 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Holz\nÖstliche Dominanz: Erde",
+  "fusion_interpretation": "Kalibrierte Kohärenz: 17.13% (Unterdurchschnittliche Kongruenz)\nDatenqualität: ok\nExpertendiagnostik: H_raw=0.83 (unkalibrierter Rohwert — kein Nutzerurteil)\n\nWestliche Dominanz: Holz\nÖstliche Dominanz: Erde",
   "harmony_index": {
     "bazi_vector": {
-      "Erde": 0.6682728183,
-      "Feuer": 0.2784470076,
-      "Holz": 0.5568940152,
-      "Metall": 0.2784470076,
-      "Wasser": 0.2970101414
+      "Erde": 0.7206816374,
+      "Feuer": 0.0838001904,
+      "Holz": 0.5866013328,
+      "Metall": 0.1676003808,
+      "Wasser": 0.3184407235
     },
-    "harmony_index": 0.9126,
-    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.91 — Expertendiagnostik, kein Nutzerurteil",
+    "harmony_index": 0.8321,
+    "interpretation": "Rohwert-Diagnostik (unkalibriert): H_raw=0.83 — Expertendiagnostik, kein Nutzerurteil",
     "method": "dot_product",
     "western_vector": {
       "Erde": 0.4928420848,
@@ -429,7 +429,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc9-20261107",
+    "engine_version": "1.0.0-rc10-20261107",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {
@@ -527,11 +527,11 @@
   },
   "wu_xing_vectors": {
     "bazi_pillars": {
-      "Erde": 0.6682728183,
-      "Feuer": 0.2784470076,
-      "Holz": 0.5568940152,
-      "Metall": 0.2784470076,
-      "Wasser": 0.2970101414
+      "Erde": 0.7206816374,
+      "Feuer": 0.0838001904,
+      "Holz": 0.5866013328,
+      "Metall": 0.1676003808,
+      "Wasser": 0.3184407235
     },
     "western_planets": {
       "Erde": 0.4928420848,

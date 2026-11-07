@@ -275,7 +275,7 @@ def _compute_bazi_for(req: PersonalizeRequest) -> Dict[str, Any]:
         lon=float(location["lon"]),
         lat=float(location["lat"]),
         birth_time_known=req.birth_time_known,
-        standard="CIVIL",
+        standard="TLST",  # Bazodiac default since 2026-11-07 (true local solar time)
         boundary="midnight",
         ambiguousTime="earlier",
         nonexistentTime="error",

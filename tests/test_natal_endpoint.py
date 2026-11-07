@@ -32,6 +32,10 @@ REFERENCE_PAYLOAD = {
     "tz": "Europe/Berlin",
     "lat": 52.52,
     "lon": 13.405,
+    # The reference pillars below are clock-time (CIVIL) facts. Since
+    # 2026-11-06 the endpoint defaults to TLST, which moves this birth
+    # (16:00 CEST ≈ 14:49 true solar time) into the previous hour pillar.
+    "standard": "CIVIL",
 }
 
 
