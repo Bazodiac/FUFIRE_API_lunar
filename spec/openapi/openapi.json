@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc7-20261016"
+    "version": "1.0.0-rc8-20261107"
   },
   "paths": {
     "/": {
@@ -8612,7 +8612,7 @@
               "TLST"
             ],
             "title": "Time Standard",
-            "default": "CIVIL"
+            "default": "TLST"
           },
           "day_boundary": {
             "type": "string",
@@ -10071,7 +10071,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc7-20261016"
+          "version": "1.0.0-rc8-20261107"
         }
       },
       "HourDerivationTrace": {

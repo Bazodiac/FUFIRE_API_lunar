@@ -59,15 +59,11 @@ WUXING_PARAMETER_SET: Dict[str, Any] = {
         "moon": 0.8,
         "ascendant": 0.6,
         "personal_planet": 0.4,
-        "wuxing_sector": 0.5,
+        "wuxing_sector": 1.0,  # total per phase, spread over the signs (2026-11-07; before 0.5 × 2 sectors)
     },
-    "wuxing_sector_mapping": {
-        "Holz": [3, 4],
-        "Feuer": [4, 5],
-        "Erde": [1, 7],
-        "Metall": [6, 9],
-        "Wasser": [8, 11],
-    },
+    # 2026-11-07: transpose of sign-element-consensus-v1 (services/soulprint.py),
+    # replacing fixed sector pairs without derivation.
+    "wuxing_sector_mapping": "sign-element-consensus-v1 transposed (each phase spread over the 12 signs, sum 1)",
     "transit_planet_weights": {
         "sun": 1.0, "moon": 0.5,
         "mercury": 0.6, "venus": 0.7, "mars": 0.8,
