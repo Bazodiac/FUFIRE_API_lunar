@@ -82,5 +82,5 @@ Die Zelle `(dense, medium)` der Baseline-Tabelle — die Zelle aller vollständi
 
 - Die Rechnung ist reproduzierbar, die Kodierung bleibt Deutung. Die Gewichte erfüllen die vorab festgelegten Kriterien; ob sie richtig sind, zeigt das nicht.
 - `/chart` (Legacy) und der Forschungs-Datensatzgenerator übergeben keinen Aszendenten; dort fehlt der Aszendenten-Term.
-- `services/soulprint.py` nutzt weiterhin eine eigene Sektor-Zuordnung (`wuxing_sector_mapping`); nicht angeglichen.
-- `ASTROLOGEN_LEITFADEN.md` nennt noch rohe H-Schwellen; nicht angeglichen.
+- `services/soulprint.py` verteilt die Phasen seit PR #79 über dieselbe Matrix (transponiert, `wuxing_sector_mapping` = `sign-element-consensus-v1 transposed`).
+- `ASTROLOGEN_LEITFADEN.md` (1.1) liest die Lage seit PR #79 aus `calibration.sigma_above`, nicht mehr aus rohen H-Schwellen.
