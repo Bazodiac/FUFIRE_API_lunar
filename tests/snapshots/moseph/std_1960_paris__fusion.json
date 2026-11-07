@@ -385,7 +385,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc7-20261016",
+    "engine_version": "1.0.0-rc8-20261107",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
@@ -424,7 +424,7 @@
         "moon": 0.8,
         "personal_planet": 0.4,
         "sun": 1.0,
-        "wuxing_sector": 0.5
+        "wuxing_sector": 1.0
       },
       "stem_weight": 1.0,
       "transit_planet_weights": {
@@ -467,28 +467,7 @@
         "4": 0.027
       },
       "western_weighting_id": "body-tier-q0.3-v1",
-      "wuxing_sector_mapping": {
-        "Erde": [
-          1,
-          7
-        ],
-        "Feuer": [
-          4,
-          5
-        ],
-        "Holz": [
-          3,
-          4
-        ],
-        "Metall": [
-          6,
-          9
-        ],
-        "Wasser": [
-          8,
-          11
-        ]
-      }
+      "wuxing_sector_mapping": "sign-element-consensus-v1 transposed (each phase spread over the 12 signs, sum 1)"
     },
     "parameter_set_id": "default_v1",
     "ruleset_id": "traditional_bazi_2026",

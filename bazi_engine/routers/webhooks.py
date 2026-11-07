@@ -204,7 +204,7 @@ async def elevenlabs_chart_webhook(
             timezone=tz,
             longitude_deg=lon,
             latitude_deg=lat,
-            time_standard="CIVIL",
+            time_standard="TLST",  # Bazodiac default since 2026-11-07
             day_boundary="midnight",
             strict_local_time=True,
             fold=cast(Fold, time_res.fold),

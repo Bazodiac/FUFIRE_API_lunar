@@ -340,6 +340,7 @@ def _compute_astro_profile(birth: BirthInput) -> Dict[str, Any]:
         timezone=birth.tz,
         longitude_deg=birth.lon,
         latitude_deg=birth.lat,
+        time_standard="TLST",  # same pillars as /calculate/bazi and /calculate/fusion (since 2026-11-07)
     )
     try:
         bazi_result = compute_bazi(bazi_inp)

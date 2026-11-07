@@ -1,8 +1,16 @@
 # Astrologenberater-Leitfaden
 ## Fusion Astrology — Anwendung der zwei Deutungslogiken in der Praxis
 
-**Version:** 1.0 · **Zielgruppe:** Praktizierende Astrologen mit Grundkenntnissen  
+**Version:** 1.1 (2026-11-07) · **Zielgruppe:** Praktizierende Astrologen mit Grundkenntnissen  
 in westlicher Astrologie und/oder BaZi · **Sprache der API:** Deutsch
+
+> **Stand 2026-11-07:** Die Gesamtlage wird nicht mehr aus dem rohen Kohärenz-Index H
+> gelesen, sondern aus `calibration.sigma_above`: dem Abstand der Übereinstimmung zu
+> vertauschten echten Geburtspaaren, in Standardabweichungen. Rohes H liegt bei
+> vollständigen Horoskopen fast immer zwischen 0,6 und 1,0 (Erwartungswert ≈ 0,80) und
+> taugt nicht als Skala. Die westliche Seite entsteht über das Element des Tierkreiszeichens,
+> nach Stufen gewichtet (Sonne, Mond, Aszendent zuerst); Planeten haben keine feste
+> Wandlungsphase mehr ([12_west_element_mapping.md](12_west_element_mapping.md)).
 
 ---
 
@@ -45,16 +53,17 @@ Logik A ist geeignet für Klienten, die:
 
 **Baustein 1: Der Archetypus**
 
-Aus Kohärenz-Index (H) und dominanter Resonanzachse (welches Element trägt
-die Kongruenz am stärksten?) ergibt sich ein Archetypus:
+Aus der Gesamtlage (`sigma_above`) und der dominanten Resonanzachse (welches
+Element trägt die Kongruenz am stärksten?) ergibt sich ein Archetypus:
 
 ```
-Schritt 1: H-Bereich bestimmen
-  H ≥ 0.8  → Starke Kohärenz
-  H ≥ 0.6  → Gute Ausrichtung
-  H ≥ 0.4  → Produktive Spannung
-  H ≥ 0.2  → Kreative Dissonanz
-  H < 0.2  → Integrationsauftrag
+Schritt 1: Gesamtlage aus sigma_above bestimmen (calibration.sigma_above)
+  σ ≥ +1,0         → Starke Kohärenz
+  +0,5 ≤ σ < +1,0  → Gute Ausrichtung
+  −0,5 < σ < +0,5  → Produktive Spannung (Ausgleich, gewöhnliche Lage)
+  −1,0 < σ ≤ −0,5  → Kreative Dissonanz
+  σ ≤ −1,0         → Integrationsauftrag
+  quality ≠ "ok"   → Gesamtlage nicht deuten
 
 Schritt 2: Resonanzachse bestimmen
   → Für welches Element ist (west_norm[i] × bazi_norm[i]) am größten?
@@ -66,11 +75,11 @@ Schritt 3: Archetypus aus Matrix
 
 | | Holz | Feuer | Erde | Metall | Wasser |
 |---|---|---|---|---|---|
-| H ≥ 0.8 | Der Visionär | Der Leuchtturm | Der Anker | Der Meister | Der Tiefenschwimmer |
-| H 0.6–0.8 | Der Wachstumstreiber | Der Kommunikator | Der Strukturgeber | Der Differenzierer | Der Intuitive |
-| H 0.4–0.6 | Der Alchemist | Der Alchemist | Der Alchemist | Der Alchemist | Der Alchemist |
-| H 0.2–0.4 | Der Wanderer | Der Flackernde | Der Sucher | Der Zweifler | Der Rückgezogene |
-| H < 0.2 | Brückenbauer | Brückenbauer | Brückenbauer | Brückenbauer | Brückenbauer |
+| σ ≥ +1 | Der Visionär | Der Leuchtturm | Der Anker | Der Meister | Der Tiefenschwimmer |
+| +0,5 bis +1 | Der Wachstumstreiber | Der Kommunikator | Der Strukturgeber | Der Differenzierer | Der Intuitive |
+| −0,5 bis +0,5 | Der Alchemist | Der Alchemist | Der Alchemist | Der Alchemist | Der Alchemist |
+| −1 bis −0,5 | Der Wanderer | Der Flackernde | Der Sucher | Der Zweifler | Der Rückgezogene |
+| σ ≤ −1 | Brückenbauer | Brückenbauer | Brückenbauer | Brückenbauer | Brückenbauer |
 
 **Praxistipp:** Der Archetypus ist eine Einladung, keine Diagnose. Formuliere
 ihn als Frage: *"Erkennst du in dir den Zug zum Leuchtturm — das Bedürfnis,
@@ -85,20 +94,20 @@ Jede narrative Deutung folgt demselben Dreisatz:
 ```
 1. Wer du bist       → dominant_bazi_element: innere Grundstruktur
 2. Was der Moment bringt → dominant_western_element: kosmischer Kontext
-3. Wie sich beides verhält → H + Differenzfeld: Kongruenz oder Spannung
+3. Wie sich beides verhält → sigma_above + Differenzfeld: Kongruenz oder Spannung
 ```
 
-**Mustertext (H = 0.72, Resonanzachse Feuer, d_Holz = −0.38):**
+**Mustertext (sigma_above = +0,6, Resonanzachse Feuer, d_Holz = −0,38):**
 
 > *"Dein BaZi zeigt eine ausgeprägte Feuerstruktur — Vitalität, Präsenz
 > und das Bedürfnis nach Verbindung sind in deiner Zeitstruktur angelegt.
 > Das Holzelement darunter (Stämme und verborgene Zweig-Qi) gibt diesem
 > Feuer Nahrung: du wächst, um zu leuchten.*
 >
-> *Der Himmel deiner Geburt bestätigt das: Sonne und Mars in Feuerpositionen,
-> Jupiter (Holz) prominent. Kosmisch und strukturell sprichst du eine ähnliche
-> Sprache — der Kohärenz-Index von 72% zeigt: beide Systeme weisen in
-> vergleichbare Richtungen.*
+> *Der Himmel deiner Geburt bestätigt das: Sonne und Mond stehen in Feuerzeichen,
+> und Feuer trägt nach der Bazodiac-Übersetzung Feuer und Holz. Kosmisch und
+> strukturell sprichst du eine ähnliche Sprache — beide Systeme stimmen hier
+> deutlicher überein als bei zufälligen Geburtspaaren.*
 >
 > *Die Spannung liegt im Holz: deine innere Holzstruktur übersteigt das
 > Himmelsangebot deutlich (−38 Indexpunkte). Das bedeutet: Wachstumsantrieb
@@ -149,9 +158,10 @@ Gewichte — nicht die Bedeutungsinhalte.
 
 **Fehler 3: Den Kohärenz-Index als Qualitätsurteil lesen**
 
-❌ *"Dein H von 0.3 bedeutet, dass deine Energie nicht ausgerichtet ist."*  
-✅ *"Ein H von 0.3 bedeutet, dass beide Systeme deinen Moment in verschiedenen
-Sprachen beschreiben. Das ist kein Defekt — es ist eine Komplexität."*
+❌ *"Dein Wert ist niedrig, deine Energie ist nicht ausgerichtet."*  
+✅ *"Beide Systeme beschreiben deinen Moment hier in verschiedenen Sprachen.
+Das ist kein Defekt — es ist eine Komplexität."* (Ein negatives `sigma_above`
+heißt nur: weniger Übereinstimmung als bei zufälligen Paaren.)
 
 **Fehler 4: Sheng-Aussagen als Fakten formulieren**
 
@@ -299,10 +309,11 @@ deine innere Struktur ist dort weniger entwickelt."*
 
 **Logik A (narrativ):**  
 *"Metall ist das Element der Form, der Klinge, der klaren Grenze. Der Kosmos
-deiner Geburt bringt Metall stark — durch Venus und die Axt des Saturns.
+deiner Geburt bringt Metall stark — durch Sonne und Aszendent in Erdzeichen,
+die nach der Bazodiac-Übersetzung vor allem Metall tragen.
 Dein BaZi trägt das weniger. Das könnte heißen: Du bist jemand, dem
 andere Klarheit und Grenzen abfordern, bevor du sie dir selbst gegeben hast.
-Der Weg des Meisters — das ist das Metall-Archetypus bei einem H von 0.71 —
+Der Weg des Meisters — das ist der Metall-Archetypus bei einem sigma_above von +0,7 —
 ist, sich diese Distinktionsfähigkeit selbst anzueignen, statt sie
 vom Leben abgefordert zu bekommen."*
 
@@ -314,9 +325,10 @@ vom Leben abgefordert zu bekommen."*
 
 Erkläre den Kohärenz-Index als **Systemaspekt** — analog zu einem Aspekt
 zwischen zwei vollständigen Horoskopen, nicht zwischen zwei Planeten.  
-Ein H von 0.8 bedeutet: Die Elementarstruktur deines Geburtsmoments
-(westlich und östlich gelesen) steht in Konjunktion. Ein H von 0.2 bedeutet:
-Sie stehen in Quadrat — produktive Spannung, nicht Versagen.
+Ein `sigma_above` ab etwa +1 bedeutet: Die Elementarstruktur deines Geburtsmoments
+(westlich und östlich gelesen) stimmt deutlich mehr überein als bei zufälligen
+Geburtspaaren, wie in einer Konjunktion. Ab etwa −1 überwiegt die Spannung, wie in
+einem Quadrat — produktive Spannung, nicht Versagen.
 
 ### Wenn der Klient BaZi-Vorkenntnisse hat
 
@@ -374,13 +386,13 @@ Für alle diese Felder gelten die klassischen Methoden der jeweiligen Tradition.
 
 ### Kohärenz-Index — auf einen Blick
 
-| H | Archetypisches Label | Sitzungsimpuls |
+| sigma_above | Archetypisches Label | Sitzungsimpuls |
 |---|---|---|
-| 0.8–1.0 | Starke Kohärenz | "Was brauchst du, um diese Stimmigkeit zu erhalten?" |
-| 0.6–0.8 | Gute Ausrichtung | "Wo spürst du, dass Innen und Außen übereinstimmen?" |
-| 0.4–0.6 | Produktive Spannung | "Welche Spannung in dir ist eigentlich eine Ressource?" |
-| 0.2–0.4 | Kreative Dissonanz | "Wie lebst du mit zwei verschiedenen inneren Rhythmen?" |
-| 0.0–0.2 | Integrationsauftrag | "Was wäre ein erster Schritt zur inneren Verbindung?" |
+| ≥ +1 | Starke Kohärenz | "Was brauchst du, um diese Stimmigkeit zu erhalten?" |
+| +0,5 bis +1 | Gute Ausrichtung | "Wo spürst du, dass Innen und Außen übereinstimmen?" |
+| −0,5 bis +0,5 | Produktive Spannung | "Welche Spannung in dir ist eigentlich eine Ressource?" |
+| −1 bis −0,5 | Kreative Dissonanz | "Wie lebst du mit zwei verschiedenen inneren Rhythmen?" |
+| ≤ −1 | Integrationsauftrag | "Was wäre ein erster Schritt zur inneren Verbindung?" |
 
 ### Tension-Richtung — auf einen Blick
 
