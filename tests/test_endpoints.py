@@ -114,7 +114,7 @@ class TestSourceRevisionIdentity:
             _NF_SHA[:39],
             _NF_SHA + "a",
             _NF_SHA.upper(),
-            "1.0.0-rc9-20261107",
+            "1.0.0-rc7-20261016",
             "sha256:" + "a" * 64,
         ],
     )

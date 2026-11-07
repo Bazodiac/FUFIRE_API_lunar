@@ -12,6 +12,6 @@ Deterministic and test-first: golden vectors + invariants.
 from .bazi import compute_bazi
 from .types import BaziInput, BaziResult, FourPillars, Pillar, SolarTerm
 
-__version__ = "1.0.0-rc9-20261107"
+__version__ = "1.0.0-rc10-20261107"
 
 __all__ = ["Pillar","FourPillars","BaziInput","BaziResult","SolarTerm","compute_bazi","__version__"]

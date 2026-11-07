@@ -1,9 +1,5 @@
 """2026-11-06: western Wu-Xing by sign element (sign-element-consensus-v1) and
-TLST as an explicit, opt-in time standard for BaZi and Fusion.
-
-PR #77 had made TLST the implicit default; FU-TLST-POLICY / INC-1 decision A
-restores the v1 CIVIL default (tests/test_v1_civil_default_contract.py) while
-``standard="TLST"`` stays available on request.
+TLST as the default time standard for BaZi and Fusion.
 
 Boundary claims are asserted on real HTTP responses (WS-A convention).
 """
@@ -56,24 +52,24 @@ def test_same_planet_different_sign_gives_different_vector():
 
 
 @pytest.mark.parametrize("path", ["/v1/calculate/bazi", "/v1/calculate/bazi/natal"])
-def test_bazi_endpoints_default_to_civil_and_tlst_is_opt_in(path):
+def test_bazi_endpoints_default_to_tlst(path):
     default = client.post(path, json=BIRTH)
     tlst = client.post(path, json={**BIRTH, "standard": "TLST"})
     civil = client.post(path, json={**BIRTH, "standard": "CIVIL"})
     assert default.status_code == tlst.status_code == civil.status_code == 200, default.text
     d, t, c = default.json(), tlst.json(), civil.json()
-    assert d["pillars"] == c["pillars"]
-    assert t["pillars"] != c["pillars"], "this birth must change its hour pillar under TLST"
+    assert d["pillars"] == t["pillars"]
+    assert d["pillars"] != c["pillars"], "this birth must change its hour pillar under TLST"
 
 
-def test_fusion_defaults_to_civil_and_tlst_is_opt_in_for_auto_computed_pillars():
+def test_fusion_defaults_to_tlst_for_auto_computed_pillars():
     default = client.post("/v1/calculate/fusion", json=BIRTH)
     civil = client.post("/v1/calculate/fusion", json={**BIRTH, "standard": "CIVIL"})
     tlst = client.post("/v1/calculate/fusion", json={**BIRTH, "standard": "TLST"})
     assert default.status_code == civil.status_code == tlst.status_code == 200, default.text
     bazi = lambda r: r.json()["wu_xing_vectors"]["bazi_pillars"]  # noqa: E731
-    assert bazi(default) == bazi(civil)
-    assert bazi(tlst) != bazi(civil)
+    assert bazi(default) == bazi(tlst)
+    assert bazi(default) != bazi(civil)
     # The western side does not depend on the time standard (real UTC moment).
     west = lambda r: r.json()["wu_xing_vectors"]["western_planets"]  # noqa: E731
     assert west(default) == west(civil)

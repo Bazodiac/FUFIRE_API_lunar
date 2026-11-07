@@ -33,9 +33,9 @@
       "hour_branch_time_policy": null,
       "lmt_used": false,
       "local_hour": 10,
-      "time_standard_requested": "CIVIL",
-      "time_standard_used": "CIVIL",
-      "true_solar_time_used": false
+      "time_standard_requested": "TLST",
+      "time_standard_used": "TLST",
+      "true_solar_time_used": true
     },
     "month": {
       "jieqi_crossing_utc": "2023-01-05T15:04:50.040109+00:00",
@@ -46,12 +46,12 @@
       "day_anchor_id": "standard_bazi_2026:jdn_2419451_unverified",
       "ruleset_id": "standard_bazi_2026",
       "ruleset_version": "1.0.0",
-      "time_policy_id": "civil_midnight",
+      "time_policy_id": "tlst_midnight",
       "vector_model_id": "wuxing_v1.2.0"
     },
     "time_resolution": {
       "civil_local": "2023-02-04T10:40:00+08:00",
-      "effective_standard": "CIVIL",
+      "effective_standard": "TLST",
       "eot_minutes": -13.8322,
       "eot_source": "meeus_1998",
       "lmt": "2023-02-04T10:25:37.776000+07:45:37.776000",
@@ -74,7 +74,7 @@
     "lat": 39.9042,
     "lon": 116.4074,
     "nonexistentTime": "error",
-    "standard": "CIVIL",
+    "standard": "TLST",
     "tz": "Asia/Shanghai"
   },
   "pillars": {
@@ -108,7 +108,7 @@
     "provisional_fields": []
   },
   "provenance": {
-    "engine_version": "1.0.0-rc9-20261107",
+    "engine_version": "1.0.0-rc10-20261107",
     "ephemeris_id": "moshier_analytic",
     "house_system": "placidus",
     "parameter_set": {
