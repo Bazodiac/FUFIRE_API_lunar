@@ -57,3 +57,41 @@ WEST_ELEMENT_TO_WUXING: Dict[str, Dict[str, float]] = {
     "Luft":   {"Holz": 0.348, "Feuer": 0.252, "Erde": 0.400, "Metall": 0.0,   "Wasser": 0.0},
     "Wasser": {"Holz": 0.0,   "Feuer": 0.0,   "Erde": 0.306, "Metall": 0.101, "Wasser": 0.593},
 }
+
+# ── Body weights of the western vector (2026-11-07) ──────────────────────────
+# Every body used to count 1.0 (retrograde 1.3), and the lunar node entered
+# twice (mean and true node). Slow bodies then made up more than half of the
+# weight, and the birth year explained 50–52 % of the western vector's spread.
+# The weights now follow four tiers in the traditional order (Ptolemy,
+# Tetrabiblos III.10–11; Lilly, Christian Astrology 1647, pp. 532–533: lights
+# and ascendant first). Each tier counts 0.3 × the tier above. The ratio is
+# measured, not traditional: on 17 150 random births it is the value inside the
+# band where the birth year explains at most 2 % of the western vector and its
+# spread reaches the BaZi side (docs/fusion/12_west_element_mapping.md).
+# Retrograde motion carries no extra weight (no source, no measurable effect).
+WESTERN_WEIGHTING_ID = "body-tier-q0.3-v1"
+WESTERN_TIER_RATIO = 0.3
+
+# Weight per tier: 1, 0.3, 0.3², 0.3³ (written out to avoid float noise).
+WESTERN_TIER_WEIGHT: Dict[int, float] = {1: 1.0, 2: 0.3, 3: 0.09, 4: 0.027}
+
+# Tier per body. "Ascendant" is the ascending degree, counted only when the
+# birth time (and therefore the ascendant) is known. Bodies not listed here
+# fall into tier 4.
+WESTERN_BODY_TIER: Dict[str, int] = {
+    "Sun": 1, "Moon": 1, "Ascendant": 1,
+    "Mercury": 2, "Venus": 2, "Mars": 2,
+    "Jupiter": 3, "Saturn": 3,
+    "Uranus": 4, "Neptune": 4, "Pluto": 4,
+    "Chiron": 4, "Lilith": 4, "NorthNode": 4,
+}
+
+# Points that duplicate another body: the lunar node counts once (mean node,
+# "NorthNode"); the true node is not added a second time.
+WESTERN_EXCLUDED_BODIES = frozenset({"TrueNorthNode"})
+
+
+def western_body_weight(name: str) -> tuple[int, float]:
+    """Tier and weight of a western body in the Fusion vector."""
+    tier = WESTERN_BODY_TIER.get(name, 4)
+    return tier, WESTERN_TIER_WEIGHT[tier]

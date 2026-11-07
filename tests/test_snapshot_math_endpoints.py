@@ -264,29 +264,35 @@ def test_vector_map_cosine_in_unit_interval() -> None:
 
 
 @pytest.mark.swieph  # Chiron needs the SE1 asteroid file; MOSEPH drops it and shifts the sums
-def test_vector_map_western_dominant_element_is_wasser() -> None:
+def test_vector_map_western_dominant_element_is_erde() -> None:
     """Independent chart fact for 1990-06-15 14:30 Berlin under
-    sign-element-consensus-v1 (since 2026-11-06): each body counts through the
-    element of its sign. Body weights per sign element (retrograde = 1.3):
-    Luft 4.3 (Sun, Mercury, NorthNode 1.3, TrueNorthNode), Wasser 5.3 (Moon,
-    Jupiter, Pluto 1.3, Chiron, Lilith), Erde 4.9 (Venus, Saturn 1.3,
-    Uranus 1.3, Neptune 1.3), Feuer 1.0 (Mars). Spread by the published
-    matrix: Wasser = 0.593·5.3 + 0.206·4.9 = 4.1523, Metall = 0.699·4.9 +
-    0.101·5.3 = 3.9604, Erde = 0.095·4.9 + 0.400·4.3 + 0.306·5.3 = 3.8073,
-    Holz = 0.452·1.0 + 0.348·4.3 = 1.9484, Feuer = 0.548·1.0 + 0.252·4.3 = 1.6316.
-    Hand-computed from the chart facts and the public matrix, not from the
-    live vector arithmetic: a constant or fabricated vector fails here.
-    The body list is the SWIEPH chart (MOSEPH has no Chiron), hence swieph-only.
+    sign-element-consensus-v1 and body-tier-q0.3-v1 (since 2026-11-07): each
+    body counts through the element of its sign, weighted by its tier (lights
+    and ascendant 1, Mercury/Venus/Mars 0.3, Jupiter/Saturn 0.09, the rest
+    0.027; true node not counted, no retrograde factor). Chart facts: Sun and
+    Mercury in Gemini, ascendant Libra, mean node Aquarius → Luft 2.327;
+    Moon Pisces, Jupiter and Chiron Cancer, Pluto and Lilith Scorpio →
+    Wasser 1.171; Venus Taurus, Saturn/Uranus/Neptune Capricorn → Erde 0.444;
+    Mars Aries → Feuer 0.3. Spread by the published matrix:
+    Erde = 0.095·0.444 + 0.400·2.327 + 0.306·1.171 = 1.3313,
+    Holz = 0.452·0.3 + 0.348·2.327 = 0.9454,
+    Wasser = 0.593·1.171 + 0.206·0.444 = 0.7859,
+    Feuer = 0.548·0.3 + 0.252·2.327 = 0.7508,
+    Metall = 0.699·0.444 + 0.101·1.171 = 0.4286.
+    Hand-computed from the chart facts, the tier table and the public matrix,
+    not from the live vector arithmetic: a constant or fabricated vector fails
+    here. The body list is the SWIEPH chart (MOSEPH has no Chiron).
     """
     from bazi_engine.wuxing.constants import WEST_ELEMENT_TO_WUXING as M
-    by_element = {"Luft": 4.3, "Wasser": 5.3, "Erde": 4.9, "Feuer": 1.0}
+    by_element = {"Luft": 2.327, "Wasser": 1.171, "Erde": 0.444, "Feuer": 0.3}
     expected = {p: sum(w * M[e][p] for e, w in by_element.items())
                 for p in ("Holz", "Feuer", "Erde", "Metall", "Wasser")}
+    assert abs(expected["Erde"] - 1.3313) < 1e-4 and abs(expected["Metall"] - 0.4286) < 1e-4
     body = _resolve_canonical_vector_map()
     west_raw = body["vector_map"]["western_planets"]["raw"]
     for phase, value in expected.items():
         assert abs(west_raw[phase] - value) < 1e-3, (phase, west_raw, expected)
-    assert max(west_raw, key=lambda k: west_raw[k]) == "Wasser", west_raw
+    assert max(west_raw, key=lambda k: west_raw[k]) == "Erde", west_raw
 
 
 def test_vector_map_bazi_dominant_element_is_feuer() -> None:

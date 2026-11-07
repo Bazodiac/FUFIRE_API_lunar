@@ -1,7 +1,7 @@
 {
   "harmony": {
-    "cosine_similarity": 0.9235,
-    "elemental_overlap_h": 0.1968
+    "cosine_similarity": 0.9315,
+    "elemental_overlap_h": 0.1984
   },
   "input": {
     "date": "1990-06-15T14:30:00",
@@ -11,7 +11,7 @@
   },
   "metadata": {
     "algorithm_version": "1.0.0-rc7-20261016",
-    "mapping_version": "fufire-wuxing-map-v2"
+    "mapping_version": "fufire-wuxing-map-v3"
   },
   "vector_map": {
     "bazi_pillars": {
@@ -39,25 +39,25 @@
     },
     "western_planets": {
       "l2_cosine": {
-        "Erde": 0.5186832047,
-        "Feuer": 0.2222791786,
-        "Holz": 0.2654380679,
-        "Metall": 0.5395406098,
-        "Wasser": 0.5656838891
+        "Erde": 0.6630750065,
+        "Feuer": 0.3739481135,
+        "Holz": 0.4708672979,
+        "Metall": 0.2134834898,
+        "Wasser": 0.3914117161
       },
       "raw": {
-        "Erde": 3.8073,
-        "Feuer": 1.6316,
-        "Holz": 1.9484,
-        "Metall": 3.9604,
-        "Wasser": 4.1523
+        "Erde": 1.331306,
+        "Feuer": 0.750804,
+        "Holz": 0.945396,
+        "Metall": 0.428627,
+        "Wasser": 0.785867
       },
       "sum_l1": {
-        "Erde": 0.2456322581,
-        "Feuer": 0.1052645161,
-        "Holz": 0.1257032258,
-        "Metall": 0.2555096774,
-        "Wasser": 0.2678903226
+        "Erde": 0.3138392268,
+        "Feuer": 0.1769929279,
+        "Holz": 0.2228656294,
+        "Metall": 0.1010436115,
+        "Wasser": 0.1852586044
       }
     }
   }

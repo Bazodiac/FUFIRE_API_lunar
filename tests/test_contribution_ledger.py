@@ -78,12 +78,12 @@ class TestWesternContributionLedger:
         assert mercury[0]["chart_type_quality"] in {"exact", "assumed_day"}
         assert abs(sum(mercury[0]["distribution"].values()) - mercury[0]["weight"]) < 1e-6
 
-    def test_retrograde_weight_is_1_3(self, fusion_response):
+    def test_weight_follows_the_tier_and_ignores_retrograde_motion(self, fusion_response):
+        from bazi_engine.wuxing.constants import western_body_weight
         for entry in fusion_response["contribution_ledger"]["western"]:
-            if entry["is_retrograde"]:
-                assert entry["weight"] == 1.3
-            else:
-                assert entry["weight"] == 1.0
+            tier, weight = western_body_weight(entry["planet"])
+            assert entry["weight_tier"] == tier, entry
+            assert entry["weight"] == weight, entry
 
     def test_wuxing_endpoint_has_contribution_ledger(self, wuxing_response):
         assert "contribution_ledger" in wuxing_response

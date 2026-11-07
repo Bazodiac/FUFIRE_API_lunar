@@ -44,11 +44,13 @@ _log = logging.getLogger(__name__)
 
 # Version of the western→element / pillar→element mapping policy exposed by
 # /calculate/fusion/vector-map. Bump when the mapping (WEST_ELEMENT_TO_WUXING,
-# SIGN_ELEMENT, hidden stems, Qi weights, or the view definitions) changes.
-# Anchors REQ-F-007 / GT5; the engine math version is bazi_engine.__version__
-# (algorithm_version). v2 (2026-11-06): western side by sign element through the
-# consensus matrix instead of by planet name.
-FUSION_MAPPING_VERSION = "fufire-wuxing-map-v2"
+# SIGN_ELEMENT, body weights, hidden stems, Qi weights, or the view definitions)
+# changes. Anchors REQ-F-007 / GT5; the engine math version is
+# bazi_engine.__version__ (algorithm_version). v2 (2026-11-06): western side by
+# sign element through the consensus matrix instead of by planet name.
+# v3 (2026-11-07): tier weights per body (WESTERN_WEIGHTING_ID), ascendant as a
+# tier-1 point, lunar node counted once, no retrograde factor.
+FUSION_MAPPING_VERSION = "fufire-wuxing-map-v3"
 
 router = APIRouter(prefix="/calculate", tags=["Fusion / Wu-Xing"])
 

@@ -44,12 +44,15 @@ def _assert_claim_safe(text: str, context: str) -> None:
 
 # ── Golden fixture: high H_raw, neutral calibrated state ─────────────────────
 # Synthetic dense chart (10 non-error planets, 12 BaZi Qi contributions).
-# Empirically verified: h_raw = 0.7852 (would have triggered the old
-# ">= 0.6 → 'starker Resonanz'" prose), h_calibrated = 0.0997 → band
-# "Keine messbare Kongruenz über Baseline". Ephemeris-free by construction:
-# compute_fusion_analysis() only reads pillars/bodies/ascendant.
+# Empirically verified under body-tier-q0.3-v1 (2026-11-07): h_raw = 0.8049
+# (would have triggered the old ">= 0.6 → 'starker Resonanz'" prose),
+# h_calibrated = 0.037 → band "Keine messbare Kongruenz über Baseline".
+# The bodies start at 20° (before: 0°) because the tier weights and the
+# ascendant term moved the old chart's h_raw to 0.50; the scenario under test
+# (high raw value, neutral calibrated value) is unchanged. Ephemeris-free by
+# construction: compute_fusion_analysis() only reads pillars/bodies/ascendant.
 GOLDEN_BODIES = {
-    name: {"longitude": 10.0 * i, "is_retrograde": False}
+    name: {"longitude": 20.0 + 10.0 * i, "is_retrograde": False}
     for i, name in enumerate([
         "Sun", "Moon", "Mercury", "Venus", "Mars",
         "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto",

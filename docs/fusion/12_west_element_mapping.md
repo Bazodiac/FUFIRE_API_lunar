@@ -1,6 +1,6 @@
 # 12 — Westen → Wu Xing: Zuordnung über das Zeichen-Element (sign-element-consensus-v1)
 
-**Stand:** 2026-11-06 · **Module:** `bazi_engine/wuxing/constants.py` (`SIGN_ELEMENT`, `WEST_ELEMENT_TO_WUXING`, `WESTERN_MAPPING_ID`), `bazi_engine/wuxing/analysis.py` · **Mapping-Version:** `fufire-wuxing-map-v2`
+**Stand:** 2026-11-07 · **Module:** `bazi_engine/wuxing/constants.py` (`SIGN_ELEMENT`, `WEST_ELEMENT_TO_WUXING`, `WESTERN_MAPPING_ID`, `WESTERN_BODY_TIER`, `WESTERN_TIER_WEIGHT`, `WESTERN_WEIGHTING_ID`), `bazi_engine/wuxing/analysis.py` · **Mapping-Version:** `fufire-wuxing-map-v3`
 
 Dieses Dokument ersetzt für den Fusion-Layer die Planet-Element-Tabelle aus [01](01_wuxing_constants.md). `PLANET_TO_WUXING` bleibt bestehen und wird weiter von Impact/Transit genutzt.
 
@@ -18,7 +18,7 @@ Die Fusion verglich BaZi damit faktisch mit einem festen Profil.
 
 ## Wie
 
-Jeder Körper trägt über das klassische Element seines **Zeichens** (Triplizitäten: Widder/Löwe/Schütze Feuer, Stier/Jungfrau/Steinbock Erde, Zwillinge/Waage/Wassermann Luft, Krebs/Skorpion/Fische Wasser) und wird mit dieser Matrix auf die fünf Phasen verteilt. Rückläufige Körper zählen weiter 1,3-fach.
+Jeder Körper trägt über das klassische Element seines **Zeichens** (Triplizitäten: Widder/Löwe/Schütze Feuer, Stier/Jungfrau/Steinbock Erde, Zwillinge/Waage/Wassermann Luft, Krebs/Skorpion/Fische Wasser) und wird mit dieser Matrix auf die fünf Phasen verteilt. Jeder Körper zählt mit dem Gewicht seiner Stufe (siehe unten).
 
 | West | Holz | Feuer | Erde | Metall | Wasser |
 |---|---|---|---|---|---|
@@ -46,12 +46,41 @@ Zeilen summieren auf 1; jede Phase erhält über alle vier Elemente 0,8.
 - Luft verteilt sich auf Holz, Feuer, Erde (größte Streuung zwischen den Läufen).
 - Die Konvention „Luft → Metall“ hat keine Quelle und erhält die Beziehungsstruktur am schlechtesten (3 von 6).
 
+## Gewichte der Körper (body-tier-q0.3-v1, seit 2026-11-07)
+
+| Stufe | Körper | Gewicht |
+|---|---|---|
+| 1 | Sonne, Mond, Aszendent (nur bei bekannter Geburtszeit) | 1 |
+| 2 | Merkur, Venus, Mars | 0,3 |
+| 3 | Jupiter, Saturn | 0,09 |
+| 4 | Uranus, Neptun, Pluto, Chiron, Lilith, Mondknoten | 0,027 |
+
+- Der Mondknoten zählt einmal (`NorthNode`, mittlerer Knoten); `TrueNorthNode` wird nicht addiert (`WESTERN_EXCLUDED_BODIES`).
+- Rückläufigkeit zählt nicht extra (vorher 1,3: ohne Quelle, im Prüfstand ohne messbare Wirkung). Die Option `use_retrograde_weight` existiert weiter, steht aber auf `False`.
+- Der Ledger nennt je Körper `weight_tier` und `weight`; `provenance.parameter_set` (Version 1.2.0) nennt Tabelle und IDs.
+
+**Warum:** Vorher zählte jeder Körper gleich, der Mondknoten doppelt. Langsame Körper stellten so mehr als die Hälfte des Gewichts, und der Geburtsjahrgang erklärte 50–52 % der Streuung des westlichen Vektors.
+
+**Rangfolge (Überlieferung):** Ptolemaios, Tetrabiblos III.10 (Sonne, Mond, Aszendent, Glückslos als Orte größter Autorität) und III.11 (Temperament aus Osthorizont, dessen Herrschern und dem Mond); Lilly, *Christian Astrology* (1647), Buch III, Kap. CVI, S. 532–533.
+
+**Faktor 0,3 (Messung, Setzung im Band):** Jede Stufe zählt das 0,3-Fache der Stufe darüber. Abnahmekriterien vorab: Jahrgangsanteil möglichst klein, Streuung in der Größenordnung der BaZi-Seite, keine eingebaute Kopplung, Rangfolge erhalten. Mit den Schwellen Jahrgangsanteil ≤ 2 %, Streuung ≥ 0,185, jede Phase führt in ≥ 7 %, |z| ≤ 0,05 ergibt sich an 7100 Zufallsgeburten das Band q = 0,27–0,39 (ohne Aszendent) bzw. 0,15–0,32 (mit); 0,3 liegt in beiden.
+
+| Kennzahl (3 Stichproben, 17 150 Geburten) | vorher | 0,3 ohne Asc | 0,3 mit Asc |
+|---|---|---|---|
+| Jahrgangsanteil am westlichen Vektor | 50–52 % | 0,7–1,2 % | 0,5–1,0 % |
+| Streuung je Phase (BaZi 0,205) | 0,138–0,139 | 0,202–0,203 | 0,188–0,189 |
+| seltenste führende Phase | Erde 13 % | Holz 7–8 % | Holz 10–11 % |
+| Kopplung mit der Jahressäule (z) | −0,09 bis −0,12 | −0,01 bis −0,02 | −0,01 bis −0,02 |
+
+**Kosten:** Der Westen wird von den Lichtern bestimmt (62 % des Gewichts, mit Aszendent 71 %). Holz führt seltener, weil es in keiner Matrixzeile den größten Anteil hat.
+
 ## Kalibrierung
 
-Die Zelle `(dense, medium)` der Baseline-Tabelle — die Zelle aller vollständigen Horoskope — stammt jetzt aus vertauschten echten Zufallsgeburten (`scripts/calibrate_baselines.py --null births`), siehe [11](11_ground_truth_integrity.md). Ergebnis an 300 Berliner Geburten: `sigma_above` Mittel 0,00, Standardabweichung 0,92.
+Die Zelle `(dense, medium)` der Baseline-Tabelle — die Zelle aller vollständigen Horoskope — stammt aus vertauschten echten Zufallsgeburten (`scripts/calibrate_baselines.py --null births`), siehe [11](11_ground_truth_integrity.md). Mit den Gewichten seit 2026-11-07: 0,7974 / sd 0,1282 (Seeds 7/42/99: 0,7958 / 0,7974 / 0,7988). Horoskope ohne Aszendenten liegen im Mittel etwa 0,015 tiefer; `sigma_above` ist dort um rund −0,1 verschoben.
 
 ## Grenzen
 
-- Die Rechnung ist reproduzierbar, die Kodierung bleibt Deutung.
+- Die Rechnung ist reproduzierbar, die Kodierung bleibt Deutung. Die Gewichte erfüllen die vorab festgelegten Kriterien; ob sie richtig sind, zeigt das nicht.
+- `/chart` (Legacy) und der Forschungs-Datensatzgenerator übergeben keinen Aszendenten; dort fehlt der Aszendenten-Term.
 - `services/soulprint.py` nutzt weiterhin eine eigene Sektor-Zuordnung (`wuxing_sector_mapping`); nicht angeglichen.
 - `ASTROLOGEN_LEITFADEN.md` nennt noch rohe H-Schwellen; nicht angeglichen.
