@@ -53,8 +53,17 @@ def test_birth_time_gate_for_b() -> None:
     assert out["provenance"]["house_system_used"] == {"person_a": "placidus", "person_b": None}
     assert {"code": "birth_time_unknown", "person": "person_b",
             "detail": "Birth time unknown: computed at the assumed local time 12:00:00; Ascendant, MC and houses "
-                      "are not used; the Moon range over the local day is in sign_layer."} \
+                      "are not used."} \
         in out["provenance"]["warnings"]
+
+
+def test_moon_range_clause_only_with_bounds() -> None:
+    out = compute_synastry(_a(birth_time_known=True), _b(birth_time_known=False, moon_bounds=(183.0, 196.0)))
+    (warning,) = out["provenance"]["warnings"]
+    assert warning["detail"] == (
+        "Birth time unknown: computed at the assumed local time 12:00:00; Ascendant, MC and houses are not used; "
+        "the Moon range over the local day is in sign_layer."
+    )
 
 
 def test_discarded_clock_time_is_named_in_the_warning() -> None:

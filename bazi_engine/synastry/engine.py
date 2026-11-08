@@ -27,8 +27,10 @@ from .wuxing_layer import wuxing_pair_factors
 # D14: names the 12:00:00 assumption; never the supplied date or time (privacy, D9).
 _TIME_UNKNOWN_DETAIL = (
     f"Birth time unknown: computed at the assumed local time {UNKNOWN_TIME_ASSUMED_LOCAL}; "
-    "Ascendant, MC and houses are not used; the Moon range over the local day is in sign_layer."
+    "Ascendant, MC and houses are not used"
 )
+# Only claimed when the Moon bounds were actually supplied (D15).
+_MOON_RANGE_DETAIL = "; the Moon range over the local day is in sign_layer"
 _TIME_DISCARDED_DETAIL = " The supplied clock time was discarded."
 
 
@@ -87,7 +89,8 @@ def _warnings(person_a: SynastryPersonInput, person_b: SynastryPersonInput) -> L
     warnings: List[Dict[str, str]] = []
     for label, person in ((PERSON_A, person_a), (PERSON_B, person_b)):
         if not person.birth_time_known:
-            detail = _TIME_UNKNOWN_DETAIL + (_TIME_DISCARDED_DETAIL if person.time_discarded else "")
+            detail = _TIME_UNKNOWN_DETAIL + (_MOON_RANGE_DETAIL if person.moon_bounds is not None else "") + "."
+            detail += _TIME_DISCARDED_DETAIL if person.time_discarded else ""
             warnings.append({"code": "birth_time_unknown", "person": label, "detail": detail})
         elif person.chart["quality_flags"]["house_system_fallback"]:
             used = person.chart["quality_flags"]["house_system_used"]
