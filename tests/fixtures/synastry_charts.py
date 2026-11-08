@@ -45,7 +45,7 @@ def make_chart(
 
 
 def _aspect_key(a: Dict[str, Any]) -> Tuple[Any, ...]:
-    return (a["from_factor"], a["to_factor"], a["type"], a["orb"], a["exact"], a["time_sensitive"], a["weight"])
+    return (a["from_factor"], a["to_factor"], a["type"], a["orb"], a["tight"], a["time_sensitive"], a["weight"])
 
 
 def _range_keys(entries: List[Dict[str, Any]]) -> List[Tuple[Any, ...]]:
@@ -70,7 +70,7 @@ def _warning_keys(result: Dict[str, Any], swap: bool) -> List[Tuple[Any, ...]]:
 def _aspect_full(a: Dict[str, Any], swap: bool) -> Tuple[Any, ...]:
     frm, to = ("to", "from") if swap else ("from", "to")
     return (
-        a[f"{frm}_factor"], a[f"{to}_factor"], a["type"], a["exact_angle"], a["orb"], a["exact"],
+        a[f"{frm}_factor"], a[f"{to}_factor"], a["type"], a["exact_angle"], a["orb"], a["tight"],
         a["time_sensitive"], a[f"{frm}_weight"], a[f"{to}_weight"], a["weight"],
     )
 
@@ -79,7 +79,7 @@ def assert_mirrored(r1: Dict[str, Any], r2: Dict[str, Any]) -> None:
     """r2 = result for the swapped request (B, A); r1 = result for (A, B)."""
     assert all(a["from_person"] == "person_a" and a["to_person"] == "person_b" for a in r1["aspects"] + r2["aspects"])
     mirrored = sorted(
-        (a["to_factor"], a["from_factor"], a["type"], a["orb"], a["exact"], a["time_sensitive"], a["weight"])
+        (a["to_factor"], a["from_factor"], a["type"], a["orb"], a["tight"], a["time_sensitive"], a["weight"])
         for a in r1["aspects"]
     )
     assert sorted(_aspect_key(a) for a in r2["aspects"]) == mirrored

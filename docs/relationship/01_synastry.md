@@ -68,7 +68,7 @@ Each aspect carries `from_weight`, `to_weight` and `weight = from_weight × to_w
 
 Full cross matrix person_a → person_b (every A factor against every B factor), at most one
 aspect per pair (the windows do not overlap). The limit is inclusive. `orb` = deviation from
-the exact angle, rounded to 4 dp first; inclusion and `exact` (orb ≤ half the limit) are decided on that rounded orb, so the response is self-consistent. Order: A factor, then B factor, in
+the exact angle, rounded to 4 dp first; inclusion and `tight` (orb ≤ half the limit; `exact_angle` is the aspect's exact angle) are decided on that rounded orb, so the response is self-consistent. Order: A factor, then B factor, in
 the factor order above.
 
 `time_sensitive` (D15): for a row with the Moon of an unknown-time person the aspect is

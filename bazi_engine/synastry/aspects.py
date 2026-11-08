@@ -2,7 +2,7 @@
 
 Full cross matrix A×B (not i<j), five major aspects, orb table
 ``synastry-orbs-v1``, at most one aspect per pair. ``orb`` is rounded to 4 dp
-first; inclusion and ``exact`` are decided on that rounded orb, so the response
+first; inclusion and ``tight`` (orb ≤ half the orb limit) are decided on that rounded orb, so the response
 is self-consistent. ``time_sensitive`` (D15) flags rows whose aspect depends on
 the unknown birth time of a Moon.
 """
@@ -84,7 +84,7 @@ def _aspect_row(
         "type": hit.type,
         "exact_angle": hit.exact_angle,
         "orb": hit.orb,
-        "exact": hit.orb <= hit.orb_limit / 2.0,
+        "tight": hit.orb <= hit.orb_limit / 2.0,
         "time_sensitive": time_sensitive,
         "from_weight": from_weight,
         "to_weight": to_weight,

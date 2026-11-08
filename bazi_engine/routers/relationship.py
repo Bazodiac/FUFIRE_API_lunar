@@ -108,7 +108,7 @@ class SynastryAspect(BaseModel):
     type: AspectType
     exact_angle: float
     orb: float = Field(..., description="Deviation from the exact angle in degrees (4 dp)")
-    exact: bool = Field(..., description="True when the orb is at most half the orb limit")
+    tight: bool = Field(..., description="True when the orb is at most half the orb limit (a tight aspect)")
     time_sensitive: bool = Field(
         ..., description="True when the aspect type is not the same at local 00:00 and 23:59 of an unknown-time Moon "
         "(all four corners for Moon–Moon with both times unknown); always false otherwise",

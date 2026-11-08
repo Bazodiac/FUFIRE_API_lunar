@@ -115,3 +115,12 @@ def test_swapping_persons_mirrors_the_response_with_unknown_birth_time() -> None
     ba = _post(swapped(body))
     assert ab["provenance"]["warnings"]
     assert_mirrored(ab, ba)
+
+
+def test_aspect_rows_name_the_half_orb_flag_tight() -> None:
+    out = _post(VALID_SYNASTRY_REQUEST)
+    assert out["aspects"]
+    assert all("tight" in r and "exact" not in r for r in out["aspects"])
+    props = app.openapi()["components"]["schemas"]["SynastryAspect"]["properties"]
+    assert "tight" in props and "exact" not in props
+    assert "exact_angle" in props

@@ -1,4 +1,4 @@
-"""Synastry cross aspects (spec §3, D1, D7)."""
+"""Synastry cross aspects (spec §3, D1, D7, D13)."""
 from __future__ import annotations
 
 import pytest
@@ -40,11 +40,11 @@ def test_direction_does_not_change_the_hit() -> None:
     assert classify_aspect(10.0, 130.5) == classify_aspect(130.5, 10.0)
 
 
-@pytest.mark.parametrize("lon_to, exact", [(4.0, True), (4.01, False), (62.0, True), (62.01, False)])
-def test_exact_means_orb_within_half_the_limit(lon_to: float, exact: bool) -> None:
+@pytest.mark.parametrize("lon_to, tight", [(4.0, True), (4.01, False), (62.0, True), (62.01, False)])
+def test_tight_means_orb_within_half_the_limit(lon_to: float, tight: bool) -> None:
     rows = cross_aspects({"Sun": 0.0}, {"Moon": lon_to}, from_person="person_a", to_person="person_b")
     assert len(rows) == 1
-    assert rows[0]["exact"] is exact
+    assert rows[0]["tight"] is tight
 
 
 def test_row_shape_and_weights() -> None:
@@ -57,17 +57,17 @@ def test_row_shape_and_weights() -> None:
     assert rows == [
         {
             "from_person": "person_a", "from_factor": "Sun", "to_person": "person_b", "to_factor": "Moon",
-            "type": "conjunction", "exact_angle": 0.0, "orb": 8.0, "exact": False, "time_sensitive": False,
+            "type": "conjunction", "exact_angle": 0.0, "orb": 8.0, "tight": False, "time_sensitive": False,
             "from_weight": 1.0, "to_weight": 1.0, "weight": 1.0,
         },
         {
             "from_person": "person_a", "from_factor": "Sun", "to_person": "person_b", "to_factor": "Mars",
-            "type": "opposition", "exact_angle": 180.0, "orb": 0.0, "exact": True, "time_sensitive": False,
+            "type": "opposition", "exact_angle": 180.0, "orb": 0.0, "tight": True, "time_sensitive": False,
             "from_weight": 1.0, "to_weight": 0.3, "weight": 0.3,
         },
         {
             "from_person": "person_a", "from_factor": "Sun", "to_person": "person_b", "to_factor": "Pluto",
-            "type": "trine", "exact_angle": 120.0, "orb": 0.0, "exact": True, "time_sensitive": False,
+            "type": "trine", "exact_angle": 120.0, "orb": 0.0, "tight": True, "time_sensitive": False,
             "from_weight": 1.0, "to_weight": 0.027, "weight": 0.027,
         },
     ]
@@ -100,9 +100,9 @@ def test_orb_is_decided_on_the_rounded_value_inclusive_limit() -> None:
     assert hit.type == "conjunction" and hit.orb == 8.0
 
 
-def test_displayed_orb_agrees_with_exact() -> None:
+def test_displayed_orb_agrees_with_tight() -> None:
     hit = classify_aspect(0.0, 4.00004)
     assert hit is not None
     assert hit.orb == 4.0
     rows = cross_aspects({"Sun": 0.0}, {"Sun": 4.00004}, from_person="person_a", to_person="person_b")
-    assert rows[0]["orb"] == 4.0 and rows[0]["exact"] is True
+    assert rows[0]["orb"] == 4.0 and rows[0]["tight"] is True

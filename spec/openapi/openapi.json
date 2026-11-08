@@ -13095,10 +13095,10 @@
             "title": "Orb",
             "description": "Deviation from the exact angle in degrees (4 dp)"
           },
-          "exact": {
+          "tight": {
             "type": "boolean",
-            "title": "Exact",
-            "description": "True when the orb is at most half the orb limit"
+            "title": "Tight",
+            "description": "True when the orb is at most half the orb limit (a tight aspect)"
           },
           "time_sensitive": {
             "type": "boolean",
@@ -13128,7 +13128,7 @@
           "type",
           "exact_angle",
           "orb",
-          "exact",
+          "tight",
           "time_sensitive",
           "from_weight",
           "to_weight",
