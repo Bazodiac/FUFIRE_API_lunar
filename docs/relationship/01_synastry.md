@@ -28,17 +28,26 @@ Unknown keys anywhere (e.g. `zodiac_mode`) are rejected with 422. A `date` witho
 **Unknown birth time** (`birth_time_known: false`, D14; Confluence BG 62259202, FUF-163..165).
 The calendar day `YYYY-MM-DD` (the first ten characters of `date`) is authoritative: the
 chart is computed at local **12:00:00** of that day in the person's `tz`, with the person's
-`ambiguousTime`/`nonexistentTime` policies. A time part sent anyway is discarded and never
-used. A `date` that does not start with `YYYY-MM-DD` is a 422 `validation_error` (the value
-is not echoed). The assumption is visible in the response: `subjects.person_x.assumed_local_time`
+`ambiguousTime` policy. When local 12:00:00 of that day does not exist (e.g. the skipped
+calendar day Pacific/Apia 2011-12-30) the request is a 422 `dst_time_error` whatever
+`nonexistentTime` says, because a shifted chart would make the stated assumption false. A
+time part sent anyway is discarded and never used, but it must still be a valid ISO 8601
+time (an offset or `Z` is accepted). A `date` whose first ten characters are not a real
+calendar date `YYYY-MM-DD`, or whose time part is not valid ISO 8601, is a 422
+`validation_error` (the value is not echoed). The assumption is visible in the response: `subjects.person_x.assumed_local_time`
 = `"12:00:00"`, `assumption_reason` = `"birth_time_unknown"`, and the `birth_time_unknown`
 warning names it (plus "The supplied clock time was discarded." when a time part was sent).
 There is no silent midnight or noon default.
 
 **Moon range** (D15). For an unknown-time person the Moon is also computed at local
-`00:00:00` and `23:59:00` of that day (with `ambiguousTime: earlier` and
-`nonexistentTime: shift_forward` for these two instants, because midnight can fall in a DST
-gap). See `sign_certain`, `moon_range_deg` and `time_sensitive` below.
+`00:00:00` and `23:59:00` of that day, with fixed DST policies from `MOON_RANGE_DST_POLICIES`:
+the start takes `ambiguousTime: earlier`, the end `ambiguousTime: later` (on a fall-back day
+23:59 occurs twice and the day ends at the later one), both `nonexistentTime: shift_forward`
+(midnight can fall in a DST gap). See `sign_certain`, `moon_range_deg` and `time_sensitive`
+below. Only the Moon is assessed over the day (`time_sensitive`, `sign_certain`): other
+planets are not marked even though they also move during the day, aspects or contacts reached
+only at another time of that day are not listed, and the house overlays and the Moon's
+Wu-Xing element use the 12:00 chart.
 
 ## Calculation
 

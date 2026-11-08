@@ -243,4 +243,4 @@ standards and must never be aliased.
 
 | ID | Task | Priority | Status | Req | Dependencies | Updated | Notes |
 |----|------|----------|--------|-----|--------------|---------|-------|
-| REL-G1-001 | Western synastry endpoint `POST /v1/relationship/synastry` (G1 + G1b): cross aspects `synastry-orbs-v1`, house overlays with missing-time gate, sign layer, Wu-Xing via `sign-element-consensus-v1`; no score | P1 | In Review | REQ-REL-G1 | FBP-WX-002 | 2026-11-08 | Branch `feat/synastry-g1` (local, not pushed). Spec + decisions D1–D11: `docs/superpowers/specs/2026-11-08-synastry-g1-design.md`; doc `docs/relationship/01_synastry.md`. |
+| REL-G1-001 | Western synastry endpoint `POST /v1/relationship/synastry` (G1 + G1b): cross aspects `synastry-orbs-v1`, house overlays with missing-time gate, sign layer, Wu-Xing via `sign-element-consensus-v1`; no score | P1 | In Review | REQ-REL-G1 | FBP-WX-002 | 2026-11-08 | Branch `feat/synastry-g1` (local, not pushed). Spec + decisions D1–D15: `docs/superpowers/specs/2026-11-08-synastry-g1-design.md`; doc `docs/relationship/01_synastry.md`. |
