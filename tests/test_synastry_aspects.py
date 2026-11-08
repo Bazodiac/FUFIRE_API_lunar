@@ -92,3 +92,17 @@ def test_angles_take_the_same_orbs_and_mc_weighs_one() -> None:
 def test_tier_products_are_rounded_free_of_float_noise() -> None:
     rows = cross_aspects({"Venus": 0.0}, {"Saturn": 0.0}, from_person="person_a", to_person="person_b")
     assert rows[0]["weight"] == 0.027  # 0.3 * 0.09 = 0.026999999999999996 unrounded
+
+
+def test_orb_is_decided_on_the_rounded_value_inclusive_limit() -> None:
+    hit = classify_aspect(10.1, 18.1)
+    assert hit is not None
+    assert hit.type == "conjunction" and hit.orb == 8.0
+
+
+def test_displayed_orb_agrees_with_exact() -> None:
+    hit = classify_aspect(0.0, 4.00004)
+    assert hit is not None
+    assert hit.orb == 4.0
+    rows = cross_aspects({"Sun": 0.0}, {"Sun": 4.00004}, from_person="person_a", to_person="person_b")
+    assert rows[0]["orb"] == 4.0 and rows[0]["exact"] is True

@@ -7,6 +7,12 @@ from ..exc import CalculationError
 from .policy import ANGLE_FACTORS, PLANET_FACTORS
 
 
+def _norm(longitude: float) -> float:
+    """Longitude in [0, 360): a tiny negative value must not be stored as 360.0."""
+    lon = longitude % 360.0
+    return 0.0 if lon >= 360.0 else lon
+
+
 def extract_factors(chart: Mapping[str, Any], *, birth_time_known: bool) -> Dict[str, float]:
     """Return ``{factor: longitude}`` in ``FACTOR_ORDER``.
 
@@ -23,8 +29,8 @@ def extract_factors(chart: Mapping[str, Any], *, birth_time_known: bool) -> Dict
                 f"Synastry factor {name} is missing from the western chart",
                 detail={"factor": name},
             )
-        factors[name] = float(body["longitude"]) % 360.0
+        factors[name] = _norm(float(body["longitude"]))
     if birth_time_known:
         for name in ANGLE_FACTORS:
-            factors[name] = float(chart["angles"][name]) % 360.0
+            factors[name] = _norm(float(chart["angles"][name]))
     return factors

@@ -55,6 +55,22 @@ def _pair_keys(result: Dict[str, Any]) -> List[Tuple[str, str, str, str]]:
     )
 
 
+def _warning_keys(result: Dict[str, Any], swap: bool) -> List[Tuple[Any, ...]]:
+    flip = {"person_a": "person_b", "person_b": "person_a"}
+    return sorted(
+        (w["code"], flip.get(w["person"], w["person"]) if swap else w["person"], w.get("detail"))
+        for w in result["provenance"]["warnings"]
+    )
+
+
+def _aspect_full(a: Dict[str, Any], swap: bool) -> Tuple[Any, ...]:
+    frm, to = ("to", "from") if swap else ("from", "to")
+    return (
+        a[f"{frm}_factor"], a[f"{to}_factor"], a["type"], a["exact_angle"], a["orb"], a["exact"],
+        a[f"{frm}_weight"], a[f"{to}_weight"], a["weight"],
+    )
+
+
 def assert_mirrored(r1: Dict[str, Any], r2: Dict[str, Any]) -> None:
     """r2 = result for the swapped request (B, A); r1 = result for (A, B)."""
     assert all(a["from_person"] == "person_a" and a["to_person"] == "person_b" for a in r1["aspects"] + r2["aspects"])
@@ -71,3 +87,7 @@ def assert_mirrored(r1: Dict[str, Any], r2: Dict[str, Any]) -> None:
     assert w2["person_a"] == w1["person_b"] and w2["person_b"] == w1["person_a"]
     hs1, hs2 = r1["provenance"]["house_system_used"], r2["provenance"]["house_system_used"]
     assert hs2 == {"person_a": hs1["person_b"], "person_b": hs1["person_a"]}
+    assert sorted(_aspect_full(a, swap=False) for a in r2["aspects"]) == sorted(
+        _aspect_full(a, swap=True) for a in r1["aspects"]
+    )
+    assert _warning_keys(r2, swap=False) == _warning_keys(r1, swap=True)

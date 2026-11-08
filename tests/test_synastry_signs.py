@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import pytest
 
+from bazi_engine.synastry.policy import ZODIAC_SIGNS
 from bazi_engine.synastry.signs import element_relation, sign_entry, sign_layer, sign_relation
 
 
@@ -70,3 +71,24 @@ def test_sign_layer_shape_without_an_ascendant_for_b() -> None:
         "factor_a": "Sun", "factor_b": "Sun", "sign_relation": "opposition", "element_relation": "complementary",
     }
     assert all(p["factor_b"] != "Ascendant" for p in layer["pairs"])
+
+
+@pytest.mark.parametrize(
+    "lon, sign, degree",
+    [
+        (29.99999999, "Widder", 29.9999),
+        (30.0, "Stier", 0.0),
+        (359.99999999, "Fische", 29.9999),
+        (360.0, "Widder", 0.0),
+    ],
+)
+def test_sign_degree_stays_below_30(lon: float, sign: str, degree: float) -> None:
+    entry = sign_entry("Sun", lon)
+    assert (entry["sign"], entry["degree"]) == (sign, degree)
+
+
+def test_sign_degree_for_a_tiny_negative_longitude_is_consistent() -> None:
+    entry = sign_entry("Sun", -1e-15)
+    assert 0.0 <= entry["degree"] < 30.0
+    assert entry["sign"] in {"Widder", "Fische"}
+    assert entry["sign"] == ZODIAC_SIGNS[entry["sign_index"]]

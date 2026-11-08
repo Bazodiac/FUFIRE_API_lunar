@@ -23,7 +23,7 @@ Code: `bazi_engine/synastry/` (Level 4, pure) and `bazi_engine/routers/relations
 | `person_a`, `person_b` | object, required | `date` (local ISO 8601), `tz` (IANA), `lon`, `lat` — all **required**, no Berlin default; `ambiguousTime` (`earlier`/`later`), `nonexistentTime` (`error`/`shift_forward`), `birth_time_known` (default `true`), optional `display_label` (first name or initial, max 40 characters, letters with single inner `space . ' -`; no digits, no `@`; echoed in `subjects`, never logged) |
 | `options.second_person_consent_confirmed` | bool, required | absent → 422 `validation_error`; `false` → 422 `consent_required`. The decision is logged as a hash with the request id only |
 
-Unknown keys anywhere (e.g. `zodiac_mode`) are rejected with 422.
+Unknown keys anywhere (e.g. `zodiac_mode`) are rejected with 422. A `date` without a time part (`YYYY-MM-DD`) is rejected with 422 `validation_error` while `birth_time_known` is true (no silent midnight chart); with `birth_time_known: false` it is accepted.
 
 ## Calculation
 
@@ -53,7 +53,7 @@ Each aspect carries `from_weight`, `to_weight` and `weight = from_weight × to_w
 
 Full cross matrix person_a → person_b (every A factor against every B factor), at most one
 aspect per pair (the windows do not overlap). The limit is inclusive. `orb` = deviation from
-the exact angle (4 dp); `exact` = orb ≤ half the limit. Order: A factor, then B factor, in
+the exact angle, rounded to 4 dp first; inclusion and `exact` (orb ≤ half the limit) are decided on that rounded orb, so the response is self-consistent. Order: A factor, then B factor, in
 the factor order above.
 
 **House overlays.** The ten planets of A in B's houses (`a_in_b`) and of B in A's houses

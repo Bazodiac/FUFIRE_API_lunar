@@ -1,8 +1,9 @@
 """synastry/aspects.py — aspects between two charts (spec §3).
 
 Full cross matrix A×B (not i<j), five major aspects, orb table
-``synastry-orbs-v1``, at most one aspect per pair. Inclusion and ``exact`` are
-decided on unrounded values; ``orb`` is rounded for output only.
+``synastry-orbs-v1``, at most one aspect per pair. ``orb`` is rounded to 4 dp
+first; inclusion and ``exact`` are decided on that rounded orb, so the response
+is self-consistent.
 """
 from __future__ import annotations
 
@@ -28,9 +29,9 @@ def classify_aspect(lon_from: float, lon_to: float) -> Optional[AspectHit]:
     """The one aspect whose orb window contains the separation, else None."""
     separation = angular_separation(lon_from, lon_to)
     for name, angle, orb_limit in SYNASTRY_ASPECTS:
-        deviation = abs(separation - angle)
-        if deviation <= orb_limit:
-            return AspectHit(name, angle, deviation, orb_limit)
+        orb = round(abs(separation - angle), 4)
+        if orb <= orb_limit:
+            return AspectHit(name, angle, orb, orb_limit)
     return None
 
 
@@ -46,7 +47,7 @@ def _aspect_row(
         "to_factor": to_factor,
         "type": hit.type,
         "exact_angle": hit.exact_angle,
-        "orb": round(hit.orb, 4),
+        "orb": hit.orb,
         "exact": hit.orb <= hit.orb_limit / 2.0,
         "from_weight": from_weight,
         "to_weight": to_weight,

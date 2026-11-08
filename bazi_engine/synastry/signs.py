@@ -12,13 +12,15 @@ _COMPLEMENTARY = (frozenset({"Feuer", "Luft"}), frozenset({"Erde", "Wasser"}))
 
 def sign_entry(factor: str, longitude: float) -> Dict[str, Any]:
     lon = longitude % 360.0
+    if lon >= 360.0:  # a tiny negative input rounds up to exactly 360.0
+        lon = 0.0
     index = int(lon // 30.0) % 12
     return {
         "factor": factor,
         "sign": ZODIAC_SIGNS[index],
         "sign_index": index,
         "west_element": SIGN_ELEMENT[index],
-        "degree": round(lon - 30.0 * index, 4),
+        "degree": min(round(lon - 30.0 * index, 4), 29.9999),
     }
 
 
