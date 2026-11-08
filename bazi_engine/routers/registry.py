@@ -34,6 +34,7 @@ from . import (
     match,
     natal,
     personalize,
+    relationship,
     superglue,
     transit,
     validate,
@@ -102,6 +103,10 @@ MOUNTS: tuple[Mount, ...] = (
     # (like the admin router): the endpoint is a new B2B surface, so the legacy
     # unauthenticated path must never exist (AC-001c kills audit chain D).
     Mount(match.router, legacy_prefix=None),
+    # Western synastry (G1 + G1b, docs/relationship/01_synastry.md). /v1 ONLY,
+    # like the match router: a new B2B pair surface never gets a legacy
+    # unauthenticated twin. Protected by the default API key.
+    Mount(relationship.router, legacy_prefix=None),
     # ZWDS (Zi Wei Dou Shu) core-seed engine. Mounted at /v1 ONLY (no legacy
     # unversioned twin) — a deliberate deviation from the dual-mount idiom, like
     # the match and admin routers: this is a new B2B surface, so no legacy

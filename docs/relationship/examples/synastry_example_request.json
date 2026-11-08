@@ -1,0 +1,19 @@
+{
+  "person_a": {
+    "date": "1990-06-15T14:30:00",
+    "tz": "Europe/Berlin",
+    "lon": 13.405,
+    "lat": 52.52,
+    "display_label": "A."
+  },
+  "person_b": {
+    "date": "1992-11-03T08:15:00",
+    "tz": "Europe/Vienna",
+    "lon": 16.3738,
+    "lat": 48.2082,
+    "display_label": "B."
+  },
+  "options": {
+    "second_person_consent_confirmed": true
+  }
+}
