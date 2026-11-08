@@ -68,6 +68,16 @@ LAYERS: Dict[str, int] = {
     "match.textblocks":      4,
     "match.privacy":         4,
     "match.observability":   4,
+    # synastry sub-modules are Level 4 (western pair facts, spec 2026-11-08):
+    # Levels 0-4 only; FORBIDDEN_EDGES below keeps them free of BaZi/ZWDS/match.
+    "synastry":              4,
+    "synastry.policy":       4,
+    "synastry.factors":      4,
+    "synastry.aspects":      4,
+    "synastry.houses":       4,
+    "synastry.signs":        4,
+    "synastry.wuxing_layer": 4,
+    "synastry.engine":       4,
     # phases — Level 2 (pure computation, no domain imports upward)
     "phases":                2,
     "phases.jieqi_phase":    2,
@@ -104,6 +114,7 @@ LAYERS: Dict[str, int] = {
     "routers.webhooks":     5,
     "routers.registry":     5,  # declarative mount table extracted from app.py (Task 3.23)
     "routers.astronomy":    5,
+    "routers.relationship": 5,
     "services.geocoding":   5,
     "services.auth":        5,
 }
@@ -131,6 +142,9 @@ FORBIDDEN_EDGES: List[Tuple[str, Tuple[str, ...]]] = [
     # synergy/* is the ONLY package allowed to import BOTH engines, but it is a
     # Level-4 engine package and must not import Level-5 (routers/app).
     ("synergy", ("routers", "app")),
+    # synastry is western-only (G1): BaZi pair layers are G2, cross resonance
+    # is G3 and belongs in synergy/. It must not reach into either engine.
+    ("synastry", ("bazi", "zwds", "match", "impact", "fusion")),
 ]
 
 
