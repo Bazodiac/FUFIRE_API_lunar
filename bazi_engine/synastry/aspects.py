@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Tuple
 
+from .factors import DayRanges
 from .policy import SYNASTRY_ASPECTS, factor_weight
 
 
@@ -34,10 +35,6 @@ def classify_aspect(lon_from: float, lon_to: float) -> Optional[AspectHit]:
         if orb <= orb_limit:
             return AspectHit(name, angle, orb, orb_limit)
     return None
-
-
-# ``{planet: (longitude at local 00:00, at local 23:59)}`` of an unknown-time person, else None.
-DayRanges = Optional[Mapping[str, Tuple[float, float]]]
 
 
 def _samples(factor: str, longitude: float, day_ranges: DayRanges) -> Tuple[float, ...]:

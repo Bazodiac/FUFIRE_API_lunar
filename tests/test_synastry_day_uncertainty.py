@@ -148,6 +148,53 @@ def test_swap_mirrors_with_day_bounds(unknown_a: bool, unknown_b: bool) -> None:
     assert_mirrored(ab, ba)
 
 
+# ── F9a: house overlays ──────────────────────────────────────────────────────
+def _overlay(out: Dict[str, Any], side: str, factor: str) -> Dict[str, Any]:
+    return next(r for r in out["house_overlays"][side] if r["factor"] == factor)
+
+
+def test_guest_mars_straddling_a_host_cusp_is_time_sensitive() -> None:
+    # A's houses start at 15° (equal 30° houses): B's Mars runs 14 → 16 over the day, house 12 → 1.
+    out = compute_synastry(_known(), _unknown(BASE_B, day_bounds(BASE_B, Mars=(14.0, 16.0))))
+    row = _overlay(out, "b_in_a", "Mars")
+    assert (row["house"], row["status"]) == (1, "ok")
+    assert row["time_sensitive"] is True
+
+
+def test_guest_mars_well_inside_a_house_is_not_time_sensitive() -> None:
+    out = compute_synastry(_known(), _unknown({**BASE_B, "Mars": 25.0}, day_bounds(BASE_B, Mars=(24.0, 26.0))))
+    assert _overlay(out, "b_in_a", "Mars")["time_sensitive"] is False
+
+
+def test_a_bound_house_other_than_the_noon_house_is_time_sensitive() -> None:
+    # Both bounds in house 1 (16°, 17°), the 12:00 value in house 12 (14°).
+    out = compute_synastry(_known(), _unknown({**BASE_B, "Mars": 14.0}, day_bounds(BASE_B, Mars=(16.0, 17.0))))
+    row = _overlay(out, "b_in_a", "Mars")
+    assert row["house"] == 12 and row["time_sensitive"] is True
+
+
+def test_known_time_guest_rows_are_not_time_sensitive() -> None:
+    b = SynastryPersonInput(chart=make_chart(BASE_B, cusp_start=200.0), birth_time_known=True)
+    out = compute_synastry(_known(), b)
+    rows = out["house_overlays"]["a_in_b"] + out["house_overlays"]["b_in_a"]
+    assert len(rows) == 20 and all(r["time_sensitive"] is False for r in rows)
+
+
+def test_unknown_time_host_stays_gated_and_not_time_sensitive() -> None:
+    out = compute_synastry(_known(), _unknown(BASE_B, day_bounds(BASE_B, Mars=(14.0, 16.0))))
+    assert out["house_overlays"]["a_in_b"] == [
+        {"factor": f, "house": None, "status": "unavailable_missing_time", "time_sensitive": False}
+        for f in ("Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto")
+    ]
+
+
+def test_swap_mirrors_the_overlay_flag() -> None:
+    a, b = _known(), _unknown(BASE_B, day_bounds(BASE_B, Mars=(14.0, 16.0)))
+    ab, ba = compute_synastry(a, b), compute_synastry(b, a)
+    assert _overlay(ab, "b_in_a", "Mars")["time_sensitive"] is True  # non-vacuous
+    assert_mirrored(ab, ba)
+
+
 # ── HTTP boundary (swieph) ───────────────────────────────────────────────────
 def _post(body: Dict[str, Any]) -> Dict[str, Any]:
     resp = client.post(SYNASTRY_PATH, json=body)
@@ -180,8 +227,18 @@ def test_http_swap_with_unknown_time_mirrors_on_the_pinned_day() -> None:
     assert_mirrored(ab, ba)
 
 
+@pytest.mark.swieph
+def test_http_non_moon_overlay_is_time_sensitive_on_the_pinned_day() -> None:
+    out = _post(request_with(person_b={"date": NON_MOON_OVERLAY_DATE, "birth_time_known": False}))
+    row = _overlay(out, "b_in_a", "Mercury")
+    assert row["status"] == "ok" and row["time_sensitive"] is True
+    assert all(r["time_sensitive"] is False for r in out["house_overlays"]["a_in_b"])  # gated host
+
+
 def test_http_known_time_response_has_no_day_uncertainty() -> None:
     out = _post(VALID_SYNASTRY_REQUEST)
     assert out["aspects"] and all(r["time_sensitive"] is False for r in out["aspects"])
+    overlays = out["house_overlays"]["a_in_b"] + out["house_overlays"]["b_in_a"]
+    assert len(overlays) == 20 and all(r["time_sensitive"] is False for r in overlays)
     entries = [e for p in ("person_a", "person_b") for e in out["sign_layer"]["factors"][p]]
     assert entries and all(e["sign_certain"] is None and e["moon_range_deg"] is None for e in entries)

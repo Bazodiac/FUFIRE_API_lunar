@@ -692,104 +692,124 @@
       {
         "factor": "Sun",
         "house": 7,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Moon",
         "house": 3,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Mercury",
         "house": 7,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Venus",
         "house": 6,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Mars",
         "house": 4,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Jupiter",
         "house": 8,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Saturn",
         "house": 2,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Uranus",
         "house": 2,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Neptune",
         "house": 2,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Pluto",
         "house": 12,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       }
     ],
     "b_in_a": [
       {
         "factor": "Sun",
         "house": 2,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Moon",
         "house": 5,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Mercury",
         "house": 2,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Venus",
         "house": 3,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Mars",
         "house": 10,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Jupiter",
         "house": 12,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Saturn",
         "house": 4,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Uranus",
         "house": 4,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Neptune",
         "house": 4,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       },
       {
         "factor": "Pluto",
         "house": 2,
-        "status": "ok"
+        "status": "ok",
+        "time_sensitive": false
       }
     ]
   },

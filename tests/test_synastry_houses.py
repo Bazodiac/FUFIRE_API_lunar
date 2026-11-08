@@ -40,11 +40,12 @@ def test_overlays_when_the_host_time_is_known() -> None:
     guest = {**BASE_A, "Ascendant": 5.0, "MC": 275.0}
     rows = house_overlays(guest, make_chart(BASE_A, cusp_start=0.0), host_time_known=True)
     assert [r["factor"] for r in rows] == list(PLANET_FACTORS)  # D6: no ASC/MC rows
-    assert rows[0] == {"factor": "Sun", "house": 1, "status": "ok"}       # 10°
-    assert rows[1] == {"factor": "Moon", "house": 4, "status": "ok"}      # 100°
-    assert rows[4] == {"factor": "Mars", "house": 7, "status": "ok"}      # 200°
+    assert rows[0] == {"factor": "Sun", "house": 1, "status": "ok", "time_sensitive": False}       # 10°
+    assert rows[1] == {"factor": "Moon", "house": 4, "status": "ok", "time_sensitive": False}      # 100°
+    assert rows[4] == {"factor": "Mars", "house": 7, "status": "ok", "time_sensitive": False}      # 200°
 
 
 def test_overlays_are_gated_when_the_host_time_is_unknown() -> None:
     rows = house_overlays(BASE_A, make_chart(BASE_A), host_time_known=False)
-    assert rows == [{"factor": f, "house": None, "status": "unavailable_missing_time"} for f in PLANET_FACTORS]
+    assert rows == [{"factor": f, "house": None, "status": "unavailable_missing_time", "time_sensitive": False}
+                    for f in PLANET_FACTORS]

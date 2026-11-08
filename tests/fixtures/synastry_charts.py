@@ -61,6 +61,10 @@ def _range_keys(entries: List[Dict[str, Any]]) -> List[Tuple[Any, ...]]:
     return [(e["factor"], e["sign_certain"], e["moon_range_deg"]) for e in entries]
 
 
+def _overlay_keys(result: Dict[str, Any], side: str) -> List[Tuple[Any, ...]]:
+    return [(r["factor"], r["house"], r["status"], r["time_sensitive"]) for r in result["house_overlays"][side]]
+
+
 def _pair_keys(result: Dict[str, Any]) -> List[Tuple[str, str, str, str]]:
     return sorted(
         (p["factor_a"], p["factor_b"], p["sign_relation"], p["element_relation"])
@@ -94,6 +98,8 @@ def assert_mirrored(r1: Dict[str, Any], r2: Dict[str, Any]) -> None:
     assert sorted(_aspect_key(a) for a in r2["aspects"]) == mirrored
     assert r2["house_overlays"]["a_in_b"] == r1["house_overlays"]["b_in_a"]
     assert r2["house_overlays"]["b_in_a"] == r1["house_overlays"]["a_in_b"]
+    assert _overlay_keys(r2, "a_in_b") == _overlay_keys(r1, "b_in_a")
+    assert _overlay_keys(r2, "b_in_a") == _overlay_keys(r1, "a_in_b")
     f1, f2 = r1["sign_layer"]["factors"], r2["sign_layer"]["factors"]
     assert f2["person_a"] == f1["person_b"] and f2["person_b"] == f1["person_a"]
     assert _range_keys(f2["person_a"]) == _range_keys(f1["person_b"])

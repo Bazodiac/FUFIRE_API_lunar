@@ -1,17 +1,14 @@
 """synastry/signs.py — the sign layer of the synastry (G1b, spec §5)."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Tuple
 
 from ..wuxing.constants import SIGN_ELEMENT
+from .factors import DayRanges
 from .policy import PERSON_A, PERSON_B, SIGN_LAYER_FACTORS, SIGN_RELATIONS, ZODIAC_SIGNS
 
 # Elements that share a polarity: Feuer–Luft (active), Erde–Wasser (receptive).
 _COMPLEMENTARY = (frozenset({"Feuer", "Luft"}), frozenset({"Erde", "Wasser"}))
-
-
-# ``{planet: (longitude at local 00:00, at local 23:59)}`` of an unknown-time person, else None.
-DayRanges = Optional[Mapping[str, Tuple[float, float]]]
 
 
 def _norm(longitude: float) -> float:

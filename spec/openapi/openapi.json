@@ -13162,12 +13162,18 @@
               "unavailable_missing_time"
             ],
             "title": "Status"
+          },
+          "time_sensitive": {
+            "type": "boolean",
+            "title": "Time Sensitive",
+            "description": "True when the guest's birth time is unknown and the factor is not in the same host house at local 00:00, 12:00 and 23:59 of that day (host cusps fixed); false for a known-time guest and for a gated row (unavailable_missing_time). Treat true as not reliable (D16)"
           }
         },
         "type": "object",
         "required": [
           "factor",
-          "status"
+          "status",
+          "time_sensitive"
         ],
         "title": "SynastryHouseOverlay"
       },

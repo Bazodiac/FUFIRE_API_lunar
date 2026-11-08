@@ -1,10 +1,13 @@
 """synastry/factors.py — the synastry factors of one western chart."""
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping
+from typing import Any, Dict, Mapping, Optional, Tuple
 
 from ..exc import CalculationError
 from .policy import ANGLE_FACTORS, PLANET_FACTORS
+
+# D16: ``{planet: (longitude at local 00:00, at local 23:59)}`` of an unknown-time person, else None.
+DayRanges = Optional[Mapping[str, Tuple[float, float]]]
 
 
 def normalize_longitude(longitude: float) -> float:

@@ -130,6 +130,11 @@ class SynastryHouseOverlay(BaseModel):
     factor: str
     house: Optional[int] = Field(None, ge=1, le=12)
     status: OverlayStatus
+    time_sensitive: bool = Field(
+        ..., description="True when the guest's birth time is unknown and the factor is not in the same host house "
+        "at local 00:00, 12:00 and 23:59 of that day (host cusps fixed); false for a known-time guest and for a "
+        "gated row (unavailable_missing_time). Treat true as not reliable (D16)",
+    )
 
 class SynastryHouseOverlays(BaseModel):
     a_in_b: List[SynastryHouseOverlay]

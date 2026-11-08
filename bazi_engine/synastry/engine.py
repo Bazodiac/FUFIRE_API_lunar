@@ -11,8 +11,8 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple
 from .. import __version__
 from ..exc import CalculationError
 from ..wuxing.constants import WESTERN_MAPPING_ID, WESTERN_WEIGHTING_ID
-from .aspects import DayRanges, cross_aspects
-from .factors import extract_factors, normalize_longitude
+from .aspects import cross_aspects
+from .factors import DayRanges, extract_factors, normalize_longitude
 from .houses import house_overlays
 from .policy import (
     PERSON_A,
@@ -84,8 +84,10 @@ def compute_synastry(person_a: SynastryPersonInput, person_b: SynastryPersonInpu
             from_day_ranges=ranges_a, to_day_ranges=ranges_b,
         ),
         "house_overlays": {
-            "a_in_b": house_overlays(factors_a, person_b.chart, host_time_known=person_b.birth_time_known),
-            "b_in_a": house_overlays(factors_b, person_a.chart, host_time_known=person_a.birth_time_known),
+            "a_in_b": house_overlays(factors_a, person_b.chart, host_time_known=person_b.birth_time_known,
+                                     guest_day_ranges=ranges_a),
+            "b_in_a": house_overlays(factors_b, person_a.chart, host_time_known=person_a.birth_time_known,
+                                     guest_day_ranges=ranges_b),
         },
         "sign_layer": signs,
         "wuxing_pair_factors": wuxing_pair_factors(signs["factors"][PERSON_A], signs["factors"][PERSON_B]),
