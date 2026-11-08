@@ -13584,6 +13584,30 @@
           "birth_time_known": {
             "type": "boolean",
             "title": "Birth Time Known"
+          },
+          "assumed_local_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assumed Local Time",
+            "description": "Local time the chart was computed at when the birth time is unknown (12:00:00), else null"
+          },
+          "assumption_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assumption Reason",
+            "description": "birth_time_unknown when the birth time is unknown, else null"
           }
         },
         "type": "object",

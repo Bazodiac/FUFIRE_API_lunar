@@ -10,6 +10,7 @@ tier 1 like the ascendant (D2). The Fusion table itself is not changed.
 """
 from __future__ import annotations
 
+import re
 from typing import Dict, Final, Tuple
 
 from ..wuxing.constants import WESTERN_TIER_WEIGHT, western_body_weight
@@ -63,3 +64,25 @@ PERSON_B: Final[str] = "person_b"
 
 STATUS_OK: Final[str] = "ok"
 STATUS_MISSING_TIME: Final[str] = "unavailable_missing_time"
+
+# Unknown birth time (D14, D15; Confluence BG 62259202, FUF-163..165): the chart is
+# computed at local 12:00:00 of the calendar day, visibly; a supplied time part is
+# discarded. The Moon is also computed at the two ends of the local day.
+UNKNOWN_TIME_ASSUMED_LOCAL: Final[str] = "12:00:00"
+UNKNOWN_TIME_ASSUMPTION_REASON: Final[str] = "birth_time_unknown"
+# Moon range over the local calendar day (F7)
+MOON_RANGE_LOCAL_TIMES: Final[Tuple[str, str]] = ("00:00:00", "23:59:00")
+
+_DAY_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def unknown_time_day(date: str) -> Tuple[str, bool]:
+    """Calendar day ``YYYY-MM-DD`` of ``date`` and whether a time part followed it.
+
+    The error message never contains the value (it is birth data).
+    """
+    text = date.strip()
+    day = text[:10]
+    if not _DAY_PREFIX.match(day):
+        raise ValueError("date must start with YYYY-MM-DD")
+    return day, len(text) > 10

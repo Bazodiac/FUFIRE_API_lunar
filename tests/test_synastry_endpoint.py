@@ -21,8 +21,10 @@ def test_response_shape() -> None:
     out = _post(VALID_SYNASTRY_REQUEST)
     assert set(out) == {"aspects", "house_overlays", "sign_layer", "wuxing_pair_factors", "provenance", "subjects"}
     assert out["subjects"] == {
-        "person_a": {"display_label": "A.", "birth_time_known": True},
-        "person_b": {"display_label": "B.", "birth_time_known": True},
+        "person_a": {"display_label": "A.", "birth_time_known": True, "assumed_local_time": None,
+                     "assumption_reason": None},
+        "person_b": {"display_label": "B.", "birth_time_known": True, "assumed_local_time": None,
+                     "assumption_reason": None},
     }
     assert out["provenance"]["orb_policy_id"] == "synastry-orbs-v1"
     assert out["provenance"]["ephemeris_mode"] in {"SWIEPH", "MOSEPH"}

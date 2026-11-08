@@ -6,7 +6,7 @@ timestamp is added (D10), so equal inputs give byte-identical responses.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 from .. import __version__
 from ..exc import CalculationError
@@ -14,21 +14,41 @@ from ..wuxing.constants import WESTERN_MAPPING_ID, WESTERN_WEIGHTING_ID
 from .aspects import cross_aspects
 from .factors import extract_factors
 from .houses import house_overlays
-from .policy import PERSON_A, PERSON_B, SYNASTRY_ORB_POLICY_ID, SYNASTRY_WEIGHTING_ID
+from .policy import (
+    PERSON_A,
+    PERSON_B,
+    SYNASTRY_ORB_POLICY_ID,
+    SYNASTRY_WEIGHTING_ID,
+    UNKNOWN_TIME_ASSUMED_LOCAL,
+)
 from .signs import sign_layer
 from .wuxing_layer import wuxing_pair_factors
 
+# D14: names the 12:00:00 assumption; never the supplied date or time (privacy, D9).
 _TIME_UNKNOWN_DETAIL = (
-    "Ascendant, MC and houses are not used; the Moon position rests on the supplied clock time."
+    f"Birth time unknown: computed at the assumed local time {UNKNOWN_TIME_ASSUMED_LOCAL}; "
+    "Ascendant, MC and houses are not used; the Moon range over the local day is in sign_layer."
 )
+_TIME_DISCARDED_DETAIL = " The supplied clock time was discarded."
 
 
 @dataclass(frozen=True)
 class SynastryPersonInput:
-    """One person: a ``compute_western_chart`` result and the birth-time gate."""
+    """One person: a ``compute_western_chart`` result and the birth-time gate.
+
+    For an unknown birth time the chart is the one at local 12:00:00 (D14);
+    ``time_discarded`` says a supplied clock time was replaced, and
+    ``moon_bounds`` holds the Moon longitudes at local 00:00 and 23:59 (D15).
+    """
 
     chart: Mapping[str, Any]
     birth_time_known: bool
+    time_discarded: bool = False
+    moon_bounds: Optional[Tuple[float, float]] = None
+
+    def __post_init__(self) -> None:
+        if self.birth_time_known and (self.time_discarded or self.moon_bounds is not None):
+            raise ValueError("time_discarded and moon_bounds apply only to an unknown birth time")
 
 
 def compute_synastry(person_a: SynastryPersonInput, person_b: SynastryPersonInput) -> Dict[str, Any]:
@@ -64,7 +84,8 @@ def _warnings(person_a: SynastryPersonInput, person_b: SynastryPersonInput) -> L
     warnings: List[Dict[str, str]] = []
     for label, person in ((PERSON_A, person_a), (PERSON_B, person_b)):
         if not person.birth_time_known:
-            warnings.append({"code": "birth_time_unknown", "person": label, "detail": _TIME_UNKNOWN_DETAIL})
+            detail = _TIME_UNKNOWN_DETAIL + (_TIME_DISCARDED_DETAIL if person.time_discarded else "")
+            warnings.append({"code": "birth_time_unknown", "person": label, "detail": detail})
         elif person.chart["quality_flags"]["house_system_fallback"]:
             used = person.chart["quality_flags"]["house_system_used"]
             # The chart's own fallback reason names the latitude — never copied (D9).

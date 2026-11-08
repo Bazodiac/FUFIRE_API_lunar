@@ -23,6 +23,7 @@ from ..exc import BaziEngineError
 from ..limiter import limiter, tier_limit
 from ..match.privacy import log_consent_decision
 from ..synastry import SynastryPersonInput, compute_synastry
+from ..synastry.policy import UNKNOWN_TIME_ASSUMED_LOCAL, UNKNOWN_TIME_ASSUMPTION_REASON, unknown_time_day
 from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy, resolve_local_iso
 from ..western import compute_western_chart
 
@@ -68,9 +69,11 @@ class SynastryPerson(BaseModel):
         description="Optional first name or initial, echoed in `subjects`. Never logged.",
     )
     @model_validator(mode="after")
-    def _time_part_required_when_birth_time_known(self) -> "SynastryPerson":
+    def _date_matches_the_birth_time_gate(self) -> "SynastryPerson":
         if self.birth_time_known and _DATE_ONLY.match(self.date.strip()):
             raise ValueError("date needs a time part when birth_time_known is true")
+        if not self.birth_time_known:
+            unknown_time_day(self.date)  # ValueError without the value → 422 validation_error (D14)
         return self
 
 class SynastryOptions(BaseModel):
@@ -174,6 +177,12 @@ class SynastryProvenance(BaseModel):
 class SynastrySubject(BaseModel):
     display_label: Optional[str] = None
     birth_time_known: bool
+    assumed_local_time: Optional[str] = Field(
+        None, description="Local time the chart was computed at when the birth time is unknown (12:00:00), else null",
+    )
+    assumption_reason: Optional[str] = Field(
+        None, description="birth_time_unknown when the birth time is unknown, else null",
+    )
 
 class SynastrySubjects(BaseModel):
     person_a: SynastrySubject
@@ -188,15 +197,28 @@ class SynastryResponse(BaseModel):
     subjects: SynastrySubjects
 
 # ── Handler ──────────────────────────────────────────────────────────────────
-def _person_input(person: SynastryPerson) -> SynastryPersonInput:
+def _chart_at(local_iso: str, person: SynastryPerson) -> Dict[str, Any]:
     dt_local, _ = resolve_local_iso(
-        person.date, person.tz, ambiguous=person.ambiguousTime, nonexistent=person.nonexistentTime,
+        local_iso, person.tz, ambiguous=person.ambiguousTime, nonexistent=person.nonexistentTime,
     )
-    chart = compute_western_chart(dt_local.astimezone(timezone.utc), person.lat, person.lon)
-    return SynastryPersonInput(chart=chart, birth_time_known=person.birth_time_known)
+    return compute_western_chart(dt_local.astimezone(timezone.utc), person.lat, person.lon)
+
+def _person_input(person: SynastryPerson) -> SynastryPersonInput:
+    if person.birth_time_known:
+        return SynastryPersonInput(chart=_chart_at(person.date, person), birth_time_known=True)
+    # D14: the calendar day is authoritative; the supplied clock time is never used.
+    day, time_discarded = unknown_time_day(person.date)
+    chart = _chart_at(f"{day}T{UNKNOWN_TIME_ASSUMED_LOCAL}", person)
+    return SynastryPersonInput(chart=chart, birth_time_known=False, time_discarded=time_discarded)
 
 def _subject(person: SynastryPerson) -> Dict[str, Any]:
-    return {"display_label": person.display_label, "birth_time_known": person.birth_time_known}
+    unknown = not person.birth_time_known
+    return {
+        "display_label": person.display_label,
+        "birth_time_known": person.birth_time_known,
+        "assumed_local_time": UNKNOWN_TIME_ASSUMED_LOCAL if unknown else None,
+        "assumption_reason": UNKNOWN_TIME_ASSUMPTION_REASON if unknown else None,
+    }
 
 @router.post("/synastry", response_model=SynastryResponse)
 @limiter.limit(tier_limit)

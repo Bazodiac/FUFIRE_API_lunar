@@ -52,8 +52,22 @@ def test_birth_time_gate_for_b() -> None:
     assert "Ascendant" in [e["factor"] for e in out["sign_layer"]["factors"]["person_a"]]
     assert out["provenance"]["house_system_used"] == {"person_a": "placidus", "person_b": None}
     assert {"code": "birth_time_unknown", "person": "person_b",
-            "detail": "Ascendant, MC and houses are not used; the Moon position rests on the supplied clock time."} \
+            "detail": "Birth time unknown: computed at the assumed local time 12:00:00; Ascendant, MC and houses "
+                      "are not used; the Moon range over the local day is in sign_layer."} \
         in out["provenance"]["warnings"]
+
+
+def test_discarded_clock_time_is_named_in_the_warning() -> None:
+    out = compute_synastry(_a(birth_time_known=True), _b(birth_time_known=False, time_discarded=True))
+    (warning,) = out["provenance"]["warnings"]
+    assert warning["detail"].endswith(" The supplied clock time was discarded.")
+
+
+def test_known_time_rejects_unknown_time_extras() -> None:
+    with pytest.raises(ValueError):
+        _a(birth_time_known=True, time_discarded=True)
+    with pytest.raises(ValueError):
+        _a(birth_time_known=True, moon_bounds=(1.0, 2.0))
 
 
 def test_provenance() -> None:

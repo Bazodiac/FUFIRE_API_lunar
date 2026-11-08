@@ -6,7 +6,7 @@ Wu-Xing phases. **No interpretation and no compatibility rating of any kind** �
 called or containing `score`, `compatibility`, `percent`, `rating` or `points` exists
 (contract test `tests/test_synastry_contract.py`).
 
-Spec and decisions: `docs/superpowers/specs/2026-11-08-synastry-g1-design.md` (D1–D11).
+Spec and decisions: `docs/superpowers/specs/2026-11-08-synastry-g1-design.md` (D1–D14).
 Code: `bazi_engine/synastry/` (Level 4, pure) and `bazi_engine/routers/relationship.py`.
 
 ## Surface
@@ -23,7 +23,17 @@ Code: `bazi_engine/synastry/` (Level 4, pure) and `bazi_engine/routers/relations
 | `person_a`, `person_b` | object, required | `date` (local ISO 8601), `tz` (IANA), `lon`, `lat` — all **required**, no Berlin default; `ambiguousTime` (`earlier`/`later`), `nonexistentTime` (`error`/`shift_forward`), `birth_time_known` (default `true`), optional `display_label` (first name or initial, max 40 characters, letters with single inner `space . ' -`; no digits, no `@`; echoed in `subjects`, never logged) |
 | `options.second_person_consent_confirmed` | bool, required | absent → 422 `validation_error`; `false` → 422 `consent_required`. The decision is logged as a hash with the request id only |
 
-Unknown keys anywhere (e.g. `zodiac_mode`) are rejected with 422. A `date` without a time part (`YYYY-MM-DD`) is rejected with 422 `validation_error` while `birth_time_known` is true (no silent midnight chart); with `birth_time_known: false` it is accepted.
+Unknown keys anywhere (e.g. `zodiac_mode`) are rejected with 422. A `date` without a time part (`YYYY-MM-DD`) is rejected with 422 `validation_error` while `birth_time_known` is true (no silent midnight chart).
+
+**Unknown birth time** (`birth_time_known: false`, D14; Confluence BG 62259202, FUF-163..165).
+The calendar day `YYYY-MM-DD` (the first ten characters of `date`) is authoritative: the
+chart is computed at local **12:00:00** of that day in the person's `tz`, with the person's
+`ambiguousTime`/`nonexistentTime` policies. A time part sent anyway is discarded and never
+used. A `date` that does not start with `YYYY-MM-DD` is a 422 `validation_error` (the value
+is not echoed). The assumption is visible in the response: `subjects.person_x.assumed_local_time`
+= `"12:00:00"`, `assumption_reason` = `"birth_time_unknown"`, and the `birth_time_unknown`
+warning names it (plus "The supplied clock time was discarded." when a time part was sent).
+There is no silent midnight or noon default.
 
 ## Calculation
 
@@ -82,8 +92,12 @@ number between the persons.
 `provenance`: `engine_version`, `ephemeris_mode`, `zodiac_mode` (`tropical`),
 `house_system_used` per person (`null` without birth time), `orb_policy_id`,
 `weighting_id`, `base_weighting_id`, `mapping_version`, `warnings[]`
-(`birth_time_unknown` — the Moon then rests on the supplied clock time;
-`house_system_fallback`). No timestamp: identical requests return byte-identical bodies.
+(`birth_time_unknown` — names the 12:00:00 assumption and, when sent, the discarded clock
+time; `house_system_fallback`).
+
+`subjects.person_x`: `display_label`, `birth_time_known`, `assumed_local_time` (`"12:00:00"`
+when the birth time is unknown, else `null`), `assumption_reason` (`"birth_time_unknown"`
+when unknown, else `null`). No timestamp: identical requests return byte-identical bodies.
 
 ## Example
 

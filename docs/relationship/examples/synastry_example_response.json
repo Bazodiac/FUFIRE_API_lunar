@@ -1247,11 +1247,15 @@
   "subjects": {
     "person_a": {
       "display_label": "A.",
-      "birth_time_known": true
+      "birth_time_known": true,
+      "assumed_local_time": null,
+      "assumption_reason": null
     },
     "person_b": {
       "display_label": "B.",
-      "birth_time_known": true
+      "birth_time_known": true,
+      "assumed_local_time": null,
+      "assumption_reason": null
     }
   }
 }
