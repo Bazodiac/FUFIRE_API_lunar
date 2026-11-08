@@ -13100,6 +13100,11 @@
             "title": "Exact",
             "description": "True when the orb is at most half the orb limit"
           },
+          "time_sensitive": {
+            "type": "boolean",
+            "title": "Time Sensitive",
+            "description": "True when the aspect type is not the same at local 00:00 and 23:59 of an unknown-time Moon (all four corners for Moon–Moon with both times unknown); always false otherwise"
+          },
           "from_weight": {
             "type": "number",
             "title": "From Weight"
@@ -13124,6 +13129,7 @@
           "exact_angle",
           "orb",
           "exact",
+          "time_sensitive",
           "from_weight",
           "to_weight",
           "weight"
@@ -13470,6 +13476,35 @@
           "degree": {
             "type": "number",
             "title": "Degree"
+          },
+          "sign_certain": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sign Certain",
+            "description": "Moon of an unknown-time person only: true when the Moon stays in one sign over the local day (00:00–23:59); null for every other entry"
+          },
+          "moon_range_deg": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moon Range Deg",
+            "description": "Moon of an unknown-time person only: [start, end] longitude at local 00:00 and 23:59 (4 dp, [0, 360), forward; end < start when the range crosses 0°); null for every other entry"
           }
         },
         "type": "object",

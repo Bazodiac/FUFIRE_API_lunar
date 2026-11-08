@@ -9,6 +9,7 @@
       "exact_angle": 120.0,
       "orb": 3.0212,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 1.0,
       "weight": 1.0
@@ -22,6 +23,7 @@
       "exact_angle": 180.0,
       "orb": 6.4878,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.3,
       "weight": 0.3
@@ -35,6 +37,7 @@
       "exact_angle": 120.0,
       "orb": 4.5089,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 1.0,
       "weight": 1.0
@@ -48,6 +51,7 @@
       "exact_angle": 90.0,
       "orb": 2.0252,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.3,
       "weight": 0.3
@@ -61,6 +65,7 @@
       "exact_angle": 60.0,
       "orb": 0.8769,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.027,
       "weight": 0.027
@@ -74,6 +79,7 @@
       "exact_angle": 60.0,
       "orb": 0.9119,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.027,
       "weight": 0.027
@@ -87,6 +93,7 @@
       "exact_angle": 180.0,
       "orb": 1.2391,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 1.0,
       "weight": 1.0
@@ -100,6 +107,7 @@
       "exact_angle": 180.0,
       "orb": 1.2432,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.3,
       "weight": 0.09
@@ -113,6 +121,7 @@
       "exact_angle": 120.0,
       "orb": 0.8913,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.09,
       "weight": 0.027
@@ -126,6 +135,7 @@
       "exact_angle": 180.0,
       "orb": 7.6745,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 1.0,
       "weight": 0.3
@@ -139,6 +149,7 @@
       "exact_angle": 90.0,
       "orb": 2.3262,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 1.0,
       "weight": 0.3
@@ -152,6 +163,7 @@
       "exact_angle": 120.0,
       "orb": 4.0425,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.027,
       "weight": 0.0081
@@ -165,6 +177,7 @@
       "exact_angle": 120.0,
       "orb": 2.2537,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.027,
       "weight": 0.0081
@@ -178,6 +191,7 @@
       "exact_angle": 180.0,
       "orb": 3.5975,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.027,
       "weight": 0.0081
@@ -191,6 +205,7 @@
       "exact_angle": 120.0,
       "orb": 1.9265,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 1.0,
       "weight": 0.3
@@ -204,6 +219,7 @@
       "exact_angle": 180.0,
       "orb": 6.2212,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.09,
       "weight": 0.027
@@ -217,6 +233,7 @@
       "exact_angle": 60.0,
       "orb": 1.0448,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.09,
       "weight": 0.027
@@ -230,6 +247,7 @@
       "exact_angle": 90.0,
       "orb": 3.7033,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.027,
       "weight": 0.0081
@@ -243,6 +261,7 @@
       "exact_angle": 90.0,
       "orb": 5.4921,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.3,
       "to_weight": 0.027,
       "weight": 0.0081
@@ -256,6 +275,7 @@
       "exact_angle": 120.0,
       "orb": 4.7664,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 1.0,
       "weight": 0.09
@@ -269,6 +289,7 @@
       "exact_angle": 0.0,
       "orb": 7.7296,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 0.3,
       "weight": 0.027
@@ -282,6 +303,7 @@
       "exact_angle": 180.0,
       "orb": 1.1344,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 0.027,
       "weight": 0.00243
@@ -295,6 +317,7 @@
       "exact_angle": 180.0,
       "orb": 0.6544,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 0.027,
       "weight": 0.00243
@@ -308,6 +331,7 @@
       "exact_angle": 60.0,
       "orb": 0.9816,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 1.0,
       "weight": 0.09
@@ -321,6 +345,7 @@
       "exact_angle": 180.0,
       "orb": 0.4072,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 0.3,
       "weight": 0.027
@@ -334,6 +359,7 @@
       "exact_angle": 0.0,
       "orb": 7.4823,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 0.027,
       "weight": 0.00243
@@ -347,6 +373,7 @@
       "exact_angle": 60.0,
       "orb": 1.6311,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 0.027,
       "weight": 0.00243
@@ -360,6 +387,7 @@
       "exact_angle": 60.0,
       "orb": 2.8907,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.09,
       "to_weight": 1.0,
       "weight": 0.09
@@ -373,6 +401,7 @@
       "exact_angle": 60.0,
       "orb": 2.9632,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 1.0,
       "weight": 0.027
@@ -386,6 +415,7 @@
       "exact_angle": 90.0,
       "orb": 3.3293,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.09,
       "weight": 0.00243
@@ -399,6 +429,7 @@
       "exact_angle": 0.0,
       "orb": 6.5952,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.027,
       "weight": 0.000729
@@ -412,6 +443,7 @@
       "exact_angle": 60.0,
       "orb": 2.5889,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 1.0,
       "weight": 0.027
@@ -425,6 +457,7 @@
       "exact_angle": 0.0,
       "orb": 1.0431,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.027,
       "weight": 0.000729
@@ -438,6 +471,7 @@
       "exact_angle": 0.0,
       "orb": 2.8318,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.027,
       "weight": 0.000729
@@ -451,6 +485,7 @@
       "exact_angle": 120.0,
       "orb": 3.1591,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 1.0,
       "weight": 0.027
@@ -464,6 +499,7 @@
       "exact_angle": 0.0,
       "orb": 4.2735,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 1.0,
       "weight": 0.027
@@ -477,6 +513,7 @@
       "exact_angle": 90.0,
       "orb": 5.7272,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 1.0,
       "weight": 0.027
@@ -490,6 +527,7 @@
       "exact_angle": 90.0,
       "orb": 3.3,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.09,
       "weight": 0.00243
@@ -503,6 +541,7 @@
       "exact_angle": 60.0,
       "orb": 0.6415,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.027,
       "weight": 0.000729
@@ -516,6 +555,7 @@
       "exact_angle": 60.0,
       "orb": 1.1473,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.027,
       "weight": 0.000729
@@ -529,6 +569,7 @@
       "exact_angle": 0.0,
       "orb": 6.9986,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 0.027,
       "weight": 0.000729
@@ -542,6 +583,7 @@
       "exact_angle": 60.0,
       "orb": 1.4745,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 0.027,
       "to_weight": 1.0,
       "weight": 0.027
@@ -555,6 +597,7 @@
       "exact_angle": 0.0,
       "orb": 5.211,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.09,
       "weight": 0.09
@@ -568,6 +611,7 @@
       "exact_angle": 120.0,
       "orb": 2.055,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.09,
       "weight": 0.09
@@ -581,6 +625,7 @@
       "exact_angle": 90.0,
       "orb": 4.7135,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.027,
       "weight": 0.027
@@ -594,6 +639,7 @@
       "exact_angle": 120.0,
       "orb": 2.1619,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 1.0,
       "weight": 1.0
@@ -607,6 +653,7 @@
       "exact_angle": 180.0,
       "orb": 1.4701,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.027,
       "weight": 0.027
@@ -620,6 +667,7 @@
       "exact_angle": 180.0,
       "orb": 3.2588,
       "exact": true,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 0.027,
       "weight": 0.027
@@ -633,6 +681,7 @@
       "exact_angle": 60.0,
       "orb": 3.5861,
       "exact": false,
+      "time_sensitive": false,
       "from_weight": 1.0,
       "to_weight": 1.0,
       "weight": 1.0
@@ -752,42 +801,54 @@
           "sign": "Zwillinge",
           "sign_index": 2,
           "west_element": "Luft",
-          "degree": 24.1495
+          "degree": 24.1495,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Moon",
           "sign": "Fische",
           "sign_index": 11,
           "west_element": "Wasser",
-          "degree": 15.6365
+          "degree": 15.6365,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Mercury",
           "sign": "Zwillinge",
           "sign_index": 2,
           "west_element": "Luft",
-          "degree": 5.7265
+          "degree": 5.7265,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Venus",
           "sign": "Stier",
           "sign_index": 1,
           "west_element": "Erde",
-          "degree": 18.8021
+          "degree": 18.8021,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Mars",
           "sign": "Widder",
           "sign_index": 0,
           "west_element": "Feuer",
-          "degree": 11.0563
+          "degree": 11.0563,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Ascendant",
           "sign": "Waage",
           "sign_index": 6,
           "west_element": "Luft",
-          "degree": 10.0461
+          "degree": 10.0461,
+          "sign_certain": null,
+          "moon_range_deg": null
         }
       ],
       "person_b": [
@@ -796,42 +857,54 @@
           "sign": "Skorpion",
           "sign_index": 7,
           "west_element": "Wasser",
-          "degree": 11.1276
+          "degree": 11.1276,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Moon",
           "sign": "Wassermann",
           "sign_index": 10,
           "west_element": "Luft",
-          "degree": 21.1283
+          "degree": 21.1283,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Mercury",
           "sign": "Schütze",
           "sign_index": 8,
           "west_element": "Feuer",
-          "degree": 4.4832
+          "degree": 4.4832,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Venus",
           "sign": "Schütze",
           "sign_index": 8,
           "west_element": "Feuer",
-          "degree": 17.6617
+          "degree": 17.6617,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Mars",
           "sign": "Krebs",
           "sign_index": 3,
           "west_element": "Wasser",
-          "degree": 23.6236
+          "degree": 23.6236,
+          "sign_certain": null,
+          "moon_range_deg": null
         },
         {
           "factor": "Ascendant",
           "sign": "Skorpion",
           "sign_index": 7,
           "west_element": "Wasser",
-          "degree": 26.9214
+          "degree": 26.9214,
+          "sign_certain": null,
+          "moon_range_deg": null
         }
       ]
     },

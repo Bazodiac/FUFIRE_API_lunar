@@ -3,11 +3,12 @@
 Full cross matrix A×B (not i<j), five major aspects, orb table
 ``synastry-orbs-v1``, at most one aspect per pair. ``orb`` is rounded to 4 dp
 first; inclusion and ``exact`` are decided on that rounded orb, so the response
-is self-consistent.
+is self-consistent. ``time_sensitive`` (D15) flags rows whose aspect depends on
+the unknown birth time of a Moon.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Mapping, NamedTuple, Optional
+from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Tuple
 
 from .policy import SYNASTRY_ASPECTS, factor_weight
 
@@ -35,8 +36,43 @@ def classify_aspect(lon_from: float, lon_to: float) -> Optional[AspectHit]:
     return None
 
 
+MoonBounds = Optional[Tuple[float, float]]
+
+
+def _endpoints(factor: str, longitude: float, moon_bounds: MoonBounds) -> Tuple[float, ...]:
+    if factor == "Moon" and moon_bounds is not None:
+        return moon_bounds
+    return (longitude,)
+
+
+def is_time_sensitive(
+    hit_type: str, from_ends: Tuple[float, ...], to_ends: Tuple[float, ...],
+) -> bool:
+    """True when any combination of endpoints gives another aspect type (None counts as other).
+
+    An endpoint set is the two Moon longitudes at local 00:00 and 23:59 for a
+    person with an unknown birth time, else the single longitude. The Moon
+    moves forward over one continuous arc of about 12–15° during the day, and
+    every aspect window (exact angle ± orb) is a convex arc of longitude, far
+    wider apart from the next window of the same type than the Moon travels in
+    a day. So when the aspect type agrees at both bounds (at all four corners
+    for Moon–Moon with both times unknown, where the separation is monotone in
+    each Moon), the separation stays inside that one window over the whole day:
+    checking the bounds is enough.
+    """
+    if len(from_ends) == 1 and len(to_ends) == 1:
+        return False
+    for lon_from in from_ends:
+        for lon_to in to_ends:
+            hit = classify_aspect(lon_from, lon_to)
+            if hit is None or hit.type != hit_type:
+                return True
+    return False
+
+
 def _aspect_row(
     from_person: str, from_factor: str, to_person: str, to_factor: str, hit: AspectHit,
+    *, time_sensitive: bool,
 ) -> Dict[str, Any]:
     _, from_weight = factor_weight(from_factor)
     _, to_weight = factor_weight(to_factor)
@@ -49,6 +85,7 @@ def _aspect_row(
         "exact_angle": hit.exact_angle,
         "orb": hit.orb,
         "exact": hit.orb <= hit.orb_limit / 2.0,
+        "time_sensitive": time_sensitive,
         "from_weight": from_weight,
         "to_weight": to_weight,
         "weight": round(from_weight * to_weight, 6),
@@ -61,12 +98,21 @@ def cross_aspects(
     *,
     from_person: str,
     to_person: str,
+    from_moon_bounds: MoonBounds = None,
+    to_moon_bounds: MoonBounds = None,
 ) -> List[Dict[str, Any]]:
-    """Every aspect between a factor of ``factors_from`` and one of ``factors_to``."""
+    """Every aspect between a factor of ``factors_from`` and one of ``factors_to``.
+
+    ``*_moon_bounds`` are the Moon longitudes at local 00:00 and 23:59 of a
+    person with an unknown birth time (D15), else None.
+    """
     rows: List[Dict[str, Any]] = []
     for from_factor, lon_from in factors_from.items():
+        from_ends = _endpoints(from_factor, lon_from, from_moon_bounds)
         for to_factor, lon_to in factors_to.items():
             hit = classify_aspect(lon_from, lon_to)
             if hit is not None:
-                rows.append(_aspect_row(from_person, from_factor, to_person, to_factor, hit))
+                sensitive = is_time_sensitive(hit.type, from_ends, _endpoints(to_factor, lon_to, to_moon_bounds))
+                rows.append(_aspect_row(from_person, from_factor, to_person, to_factor, hit,
+                                        time_sensitive=sensitive))
     return rows

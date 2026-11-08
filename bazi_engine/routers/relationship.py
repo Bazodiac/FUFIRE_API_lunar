@@ -22,8 +22,13 @@ from starlette.requests import Request
 from ..exc import BaziEngineError
 from ..limiter import limiter, tier_limit
 from ..match.privacy import log_consent_decision
-from ..synastry import SynastryPersonInput, compute_synastry
-from ..synastry.policy import UNKNOWN_TIME_ASSUMED_LOCAL, UNKNOWN_TIME_ASSUMPTION_REASON, unknown_time_day
+from ..synastry import SynastryPersonInput, compute_synastry, extract_factors
+from ..synastry.policy import (
+    MOON_RANGE_LOCAL_TIMES,
+    UNKNOWN_TIME_ASSUMED_LOCAL,
+    UNKNOWN_TIME_ASSUMPTION_REASON,
+    unknown_time_day,
+)
 from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy, resolve_local_iso
 from ..western import compute_western_chart
 
@@ -104,6 +109,10 @@ class SynastryAspect(BaseModel):
     exact_angle: float
     orb: float = Field(..., description="Deviation from the exact angle in degrees (4 dp)")
     exact: bool = Field(..., description="True when the orb is at most half the orb limit")
+    time_sensitive: bool = Field(
+        ..., description="True when the aspect type is not the same at local 00:00 and 23:59 of an unknown-time Moon "
+        "(all four corners for Moon–Moon with both times unknown); always false otherwise",
+    )
     from_weight: float
     to_weight: float
     weight: float = Field(..., description="from_weight × to_weight (tier weights, synastry-weights-v1)")
@@ -123,6 +132,15 @@ class SynastrySignFactor(BaseModel):
     sign_index: int = Field(..., ge=0, le=11)
     west_element: WestElement
     degree: float
+    sign_certain: Optional[bool] = Field(
+        None, description="Moon of an unknown-time person only: true when the Moon stays in one sign over the "
+        "local day (00:00–23:59); null for every other entry",
+    )
+    moon_range_deg: Optional[List[float]] = Field(
+        None, min_length=2, max_length=2,
+        description="Moon of an unknown-time person only: [start, end] longitude at local 00:00 and 23:59 "
+        "(4 dp, [0, 360), forward; end < start when the range crosses 0°); null for every other entry",
+    )
 
 class SynastrySignFactors(BaseModel):
     person_a: List[SynastrySignFactor]
@@ -209,7 +227,16 @@ def _person_input(person: SynastryPerson) -> SynastryPersonInput:
     # D14: the calendar day is authoritative; the supplied clock time is never used.
     day, time_discarded = unknown_time_day(person.date)
     chart = _chart_at(f"{day}T{UNKNOWN_TIME_ASSUMED_LOCAL}", person)
-    return SynastryPersonInput(chart=chart, birth_time_known=False, time_discarded=time_discarded)
+    start, end = (_moon_at(f"{day}T{hms}", person) for hms in MOON_RANGE_LOCAL_TIMES)
+    return SynastryPersonInput(
+        chart=chart, birth_time_known=False, time_discarded=time_discarded, moon_bounds=(start, end),
+    )
+
+def _moon_at(local_iso: str, person: SynastryPerson) -> float:
+    """D15 bound: Moon longitude at a fixed local time; midnight can fall in a DST gap."""
+    dt_local, _ = resolve_local_iso(local_iso, person.tz, ambiguous="earlier", nonexistent="shift_forward")
+    chart = compute_western_chart(dt_local.astimezone(timezone.utc), person.lat, person.lon)
+    return extract_factors(chart, birth_time_known=False)["Moon"]
 
 def _subject(person: SynastryPerson) -> Dict[str, Any]:
     unknown = not person.birth_time_known

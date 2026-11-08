@@ -57,17 +57,17 @@ def test_row_shape_and_weights() -> None:
     assert rows == [
         {
             "from_person": "person_a", "from_factor": "Sun", "to_person": "person_b", "to_factor": "Moon",
-            "type": "conjunction", "exact_angle": 0.0, "orb": 8.0, "exact": False,
+            "type": "conjunction", "exact_angle": 0.0, "orb": 8.0, "exact": False, "time_sensitive": False,
             "from_weight": 1.0, "to_weight": 1.0, "weight": 1.0,
         },
         {
             "from_person": "person_a", "from_factor": "Sun", "to_person": "person_b", "to_factor": "Mars",
-            "type": "opposition", "exact_angle": 180.0, "orb": 0.0, "exact": True,
+            "type": "opposition", "exact_angle": 180.0, "orb": 0.0, "exact": True, "time_sensitive": False,
             "from_weight": 1.0, "to_weight": 0.3, "weight": 0.3,
         },
         {
             "from_person": "person_a", "from_factor": "Sun", "to_person": "person_b", "to_factor": "Pluto",
-            "type": "trine", "exact_angle": 120.0, "orb": 0.0, "exact": True,
+            "type": "trine", "exact_angle": 120.0, "orb": 0.0, "exact": True, "time_sensitive": False,
             "from_weight": 1.0, "to_weight": 0.027, "weight": 0.027,
         },
     ]

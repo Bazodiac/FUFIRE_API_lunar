@@ -35,6 +35,7 @@ def test_sign_distance_is_the_shorter_way_round() -> None:
 def test_sign_entry() -> None:
     assert sign_entry("Venus", 245.5) == {
         "factor": "Venus", "sign": "Schütze", "sign_index": 8, "west_element": "Feuer", "degree": 5.5,
+        "sign_certain": None, "moon_range_deg": None,
     }
     assert sign_entry("Sun", 0.0)["sign"] == "Widder"
     assert sign_entry("Sun", 359.5)["sign"] == "Fische"

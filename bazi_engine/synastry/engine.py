@@ -54,9 +54,12 @@ class SynastryPersonInput:
 def compute_synastry(person_a: SynastryPersonInput, person_b: SynastryPersonInput) -> Dict[str, Any]:
     factors_a = extract_factors(person_a.chart, birth_time_known=person_a.birth_time_known)
     factors_b = extract_factors(person_b.chart, birth_time_known=person_b.birth_time_known)
-    signs = sign_layer(factors_a, factors_b)
+    signs = sign_layer(factors_a, factors_b, moon_bounds_a=person_a.moon_bounds, moon_bounds_b=person_b.moon_bounds)
     return {
-        "aspects": cross_aspects(factors_a, factors_b, from_person=PERSON_A, to_person=PERSON_B),
+        "aspects": cross_aspects(
+            factors_a, factors_b, from_person=PERSON_A, to_person=PERSON_B,
+            from_moon_bounds=person_a.moon_bounds, to_moon_bounds=person_b.moon_bounds,
+        ),
         "house_overlays": {
             "a_in_b": house_overlays(factors_a, person_b.chart, host_time_known=person_b.birth_time_known),
             "b_in_a": house_overlays(factors_b, person_a.chart, host_time_known=person_a.birth_time_known),

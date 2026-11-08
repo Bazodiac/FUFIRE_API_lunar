@@ -6,7 +6,7 @@ Wu-Xing phases. **No interpretation and no compatibility rating of any kind** �
 called or containing `score`, `compatibility`, `percent`, `rating` or `points` exists
 (contract test `tests/test_synastry_contract.py`).
 
-Spec and decisions: `docs/superpowers/specs/2026-11-08-synastry-g1-design.md` (D1–D14).
+Spec and decisions: `docs/superpowers/specs/2026-11-08-synastry-g1-design.md` (D1–D15).
 Code: `bazi_engine/synastry/` (Level 4, pure) and `bazi_engine/routers/relationship.py`.
 
 ## Surface
@@ -34,6 +34,11 @@ is not echoed). The assumption is visible in the response: `subjects.person_x.as
 = `"12:00:00"`, `assumption_reason` = `"birth_time_unknown"`, and the `birth_time_unknown`
 warning names it (plus "The supplied clock time was discarded." when a time part was sent).
 There is no silent midnight or noon default.
+
+**Moon range** (D15). For an unknown-time person the Moon is also computed at local
+`00:00:00` and `23:59:00` of that day (with `ambiguousTime: earlier` and
+`nonexistentTime: shift_forward` for these two instants, because midnight can fall in a DST
+gap). See `sign_certain`, `moon_range_deg` and `time_sensitive` below.
 
 ## Calculation
 
@@ -66,6 +71,12 @@ aspect per pair (the windows do not overlap). The limit is inclusive. `orb` = de
 the exact angle, rounded to 4 dp first; inclusion and `exact` (orb ≤ half the limit) are decided on that rounded orb, so the response is self-consistent. Order: A factor, then B factor, in
 the factor order above.
 
+`time_sensitive` (D15): for a row with the Moon of an unknown-time person the aspect is
+evaluated at the Moon's two day bounds (at all four corners for Moon–Moon when both times
+are unknown); it is true when any combination gives another aspect type or none. Each aspect
+window is one convex arc of longitude and the Moon moves forward over one short arc, so
+agreement at the bounds means the aspect holds over the whole day. Every other row: `false`.
+
 **House overlays.** The ten planets of A in B's houses (`a_in_b`) and of B in A's houses
 (`b_in_a`); a cusp belongs to the house it opens. Gate: when the **house owner's** birth time
 is unknown, every row is `{"house": null, "status": "unavailable_missing_time"}`.
@@ -76,6 +87,13 @@ degree in sign. `pairs` = every A factor × every B factor with
 `sign_relation` by sign distance — `same_sign` (0), `semi_sextile` (1), `sextile` (2),
 `square` (3), `trine` (4), `quincunx` (5), `opposition` (6) — and `element_relation`:
 `same`, `complementary` (Feuer–Luft, Erde–Wasser) or `other`.
+
+Every sign entry also has `sign_certain` and `moon_range_deg`. They are set only on the
+Moon entry of an unknown-time person: `moon_range_deg = [start, end]`, the Moon longitude at
+local 00:00 and 23:59 (4 dp, in [0, 360), forward direction — the Moon is never retrograde,
+so `end` < `start` means the range crosses 0°), and `sign_certain` = true exactly when both
+ends fall in the same sign. Every other entry, including the Moon of a known-time person,
+carries `null` for both.
 
 **Wu-Xing translation.** Each sign-layer factor's element is spread over
 `["Holz", "Feuer", "Erde", "Metall", "Wasser"]` by the consensus matrix

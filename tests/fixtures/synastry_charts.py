@@ -45,7 +45,11 @@ def make_chart(
 
 
 def _aspect_key(a: Dict[str, Any]) -> Tuple[Any, ...]:
-    return (a["from_factor"], a["to_factor"], a["type"], a["orb"], a["exact"], a["weight"])
+    return (a["from_factor"], a["to_factor"], a["type"], a["orb"], a["exact"], a["time_sensitive"], a["weight"])
+
+
+def _range_keys(entries: List[Dict[str, Any]]) -> List[Tuple[Any, ...]]:
+    return [(e["factor"], e["sign_certain"], e["moon_range_deg"]) for e in entries]
 
 
 def _pair_keys(result: Dict[str, Any]) -> List[Tuple[str, str, str, str]]:
@@ -67,7 +71,7 @@ def _aspect_full(a: Dict[str, Any], swap: bool) -> Tuple[Any, ...]:
     frm, to = ("to", "from") if swap else ("from", "to")
     return (
         a[f"{frm}_factor"], a[f"{to}_factor"], a["type"], a["exact_angle"], a["orb"], a["exact"],
-        a[f"{frm}_weight"], a[f"{to}_weight"], a["weight"],
+        a["time_sensitive"], a[f"{frm}_weight"], a[f"{to}_weight"], a["weight"],
     )
 
 
@@ -75,13 +79,16 @@ def assert_mirrored(r1: Dict[str, Any], r2: Dict[str, Any]) -> None:
     """r2 = result for the swapped request (B, A); r1 = result for (A, B)."""
     assert all(a["from_person"] == "person_a" and a["to_person"] == "person_b" for a in r1["aspects"] + r2["aspects"])
     mirrored = sorted(
-        (a["to_factor"], a["from_factor"], a["type"], a["orb"], a["exact"], a["weight"]) for a in r1["aspects"]
+        (a["to_factor"], a["from_factor"], a["type"], a["orb"], a["exact"], a["time_sensitive"], a["weight"])
+        for a in r1["aspects"]
     )
     assert sorted(_aspect_key(a) for a in r2["aspects"]) == mirrored
     assert r2["house_overlays"]["a_in_b"] == r1["house_overlays"]["b_in_a"]
     assert r2["house_overlays"]["b_in_a"] == r1["house_overlays"]["a_in_b"]
     f1, f2 = r1["sign_layer"]["factors"], r2["sign_layer"]["factors"]
     assert f2["person_a"] == f1["person_b"] and f2["person_b"] == f1["person_a"]
+    assert _range_keys(f2["person_a"]) == _range_keys(f1["person_b"])
+    assert _range_keys(f2["person_b"]) == _range_keys(f1["person_a"])
     assert _pair_keys(r2) == sorted((b, a, s, e) for a, b, s, e in _pair_keys(r1))
     w1, w2 = r1["wuxing_pair_factors"], r2["wuxing_pair_factors"]
     assert w2["person_a"] == w1["person_b"] and w2["person_b"] == w1["person_a"]
