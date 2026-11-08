@@ -24,6 +24,7 @@ from ..limiter import limiter, tier_limit
 from ..match.privacy import log_consent_decision
 from ..synastry import SynastryPersonInput, compute_synastry, extract_factors
 from ..synastry.policy import (
+    MOON_RANGE_DST_POLICIES,
     MOON_RANGE_LOCAL_TIMES,
     UNKNOWN_TIME_ASSUMED_LOCAL,
     UNKNOWN_TIME_ASSUMPTION_REASON,
@@ -227,14 +228,19 @@ def _person_input(person: SynastryPerson) -> SynastryPersonInput:
     # D14: the calendar day is authoritative; the supplied clock time is never used.
     day, time_discarded = unknown_time_day(person.date)
     chart = _chart_at(f"{day}T{UNKNOWN_TIME_ASSUMED_LOCAL}", person)
-    start, end = (_moon_at(f"{day}T{hms}", person) for hms in MOON_RANGE_LOCAL_TIMES)
+    start, end = (
+        _moon_at(f"{day}T{hms}", person, ambiguous=amb, nonexistent=gap)
+        for hms, (amb, gap) in zip(MOON_RANGE_LOCAL_TIMES, MOON_RANGE_DST_POLICIES)
+    )
     return SynastryPersonInput(
         chart=chart, birth_time_known=False, time_discarded=time_discarded, moon_bounds=(start, end),
     )
 
-def _moon_at(local_iso: str, person: SynastryPerson) -> float:
-    """D15 bound: Moon longitude at a fixed local time; midnight can fall in a DST gap."""
-    dt_local, _ = resolve_local_iso(local_iso, person.tz, ambiguous="earlier", nonexistent="shift_forward")
+def _moon_at(
+    local_iso: str, person: SynastryPerson, *, ambiguous: AmbiguousTimeChoice, nonexistent: NonexistentTimePolicy,
+) -> float:
+    """D15 bound: Moon longitude at a fixed local time, with the bound's DST policy from policy.py."""
+    dt_local, _ = resolve_local_iso(local_iso, person.tz, ambiguous=ambiguous, nonexistent=nonexistent)
     chart = compute_western_chart(dt_local.astimezone(timezone.utc), person.lat, person.lon)
     return extract_factors(chart, birth_time_known=False)["Moon"]
 

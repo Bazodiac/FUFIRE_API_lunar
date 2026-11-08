@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 from typing import Dict, Final, Tuple
 
+from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy
 from ..wuxing.constants import WESTERN_TIER_WEIGHT, western_body_weight
 
 SYNASTRY_ORB_POLICY_ID: Final[str] = "synastry-orbs-v1"
@@ -72,6 +73,12 @@ UNKNOWN_TIME_ASSUMED_LOCAL: Final[str] = "12:00:00"
 UNKNOWN_TIME_ASSUMPTION_REASON: Final[str] = "birth_time_unknown"
 # Moon range over the local calendar day (F7)
 MOON_RANGE_LOCAL_TIMES: Final[Tuple[str, str]] = ("00:00:00", "23:59:00")
+# DST policy (ambiguous, nonexistent) per bound: midnight can fall in a gap, and on a
+# fall-back day 23:59 occurs twice — the end of the day is the later occurrence.
+MOON_RANGE_DST_POLICIES: Final[Tuple[Tuple[AmbiguousTimeChoice, NonexistentTimePolicy], ...]] = (
+    ("earlier", "shift_forward"),
+    ("later", "shift_forward"),
+)
 
 _DAY_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 

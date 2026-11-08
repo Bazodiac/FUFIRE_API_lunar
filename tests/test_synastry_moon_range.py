@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from bazi_engine.app import app
 from bazi_engine.synastry import SynastryPersonInput, compute_synastry
 from bazi_engine.synastry.aspects import cross_aspects
+from bazi_engine.synastry.policy import MOON_RANGE_DST_POLICIES, MOON_RANGE_LOCAL_TIMES
 from bazi_engine.synastry.signs import sign_layer
 from bazi_engine.time_utils import resolve_local_iso
 from bazi_engine.western import compute_western_chart
@@ -24,6 +25,9 @@ from tests.fixtures.synastry_payloads import SYNASTRY_PATH, VALID_SYNASTRY_REQUE
 client = TestClient(app)
 
 BERLIN: Dict[str, Any] = {"tz": "Europe/Berlin", "lon": 13.405, "lat": 52.52}
+# Chile leaves DST at 2024-04-07 00:00 → 2024-04-06 23:00: local 23:00–23:59 occurs twice.
+SANTIAGO: Dict[str, Any] = {"tz": "America/Santiago", "lon": -70.6693, "lat": -33.4489}
+FALL_BACK_DATE = "2024-04-06"
 DAY_CHANGE_DATE = "1990-01-05"  # Moon Widder → Stier during the local day (see test_synastry_unknown_time)
 NO_INGRESS_DATE = "1990-01-02"  # first date from 1990-01-01 with one Moon sign at local 00:00 and 23:59
 
@@ -153,9 +157,9 @@ def _post(body: Dict[str, Any]) -> Dict[str, Any]:
     return resp.json()
 
 
-def _ref_moon(local_iso: str) -> float:
-    dt_local, _ = resolve_local_iso(local_iso, BERLIN["tz"], ambiguous="earlier", nonexistent="shift_forward")
-    chart = compute_western_chart(dt_local.astimezone(timezone.utc), BERLIN["lat"], BERLIN["lon"])
+def _ref_moon(local_iso: str, place: Dict[str, Any] = BERLIN, ambiguous: str = "earlier") -> float:
+    dt_local, _ = resolve_local_iso(local_iso, place["tz"], ambiguous=ambiguous, nonexistent="shift_forward")  # type: ignore[arg-type]
+    chart = compute_western_chart(dt_local.astimezone(timezone.utc), place["lat"], place["lon"])
     return float(chart["bodies"]["Moon"]["longitude"]) % 360.0
 
 
@@ -166,7 +170,7 @@ def test_day_with_a_moon_ingress_is_uncertain() -> None:
     assert moon["sign_certain"] is False
     start, end = moon["moon_range_deg"]
     assert start == pytest.approx(_ref_moon(f"{DAY_CHANGE_DATE}T00:00:00"), abs=1e-4)
-    assert end == pytest.approx(_ref_moon(f"{DAY_CHANGE_DATE}T23:59:00"), abs=1e-4)
+    assert end == pytest.approx(_ref_moon(f"{DAY_CHANGE_DATE}T23:59:00", ambiguous="later"), abs=1e-4)
 
 
 @pytest.mark.swieph
@@ -174,7 +178,25 @@ def test_day_without_a_moon_ingress_is_certain() -> None:
     out = _post(request_with(person_b={**BERLIN, "date": NO_INGRESS_DATE, "birth_time_known": False}))
     moon = _moon(out["sign_layer"], "person_b")
     assert moon["sign_certain"] is True
-    assert len(moon["moon_range_deg"]) == 2
+    start, end = moon["moon_range_deg"]
+    assert start == pytest.approx(_ref_moon(f"{NO_INGRESS_DATE}T00:00:00"), abs=1e-4)
+    assert end == pytest.approx(_ref_moon(f"{NO_INGRESS_DATE}T23:59:00", ambiguous="later"), abs=1e-4)
+
+
+def test_moon_range_dst_policies() -> None:
+    assert MOON_RANGE_DST_POLICIES == (("earlier", "shift_forward"), ("later", "shift_forward"))
+    assert len(MOON_RANGE_DST_POLICIES) == len(MOON_RANGE_LOCAL_TIMES)
+
+
+@pytest.mark.swieph
+def test_fall_back_day_end_bound_uses_the_later_fold() -> None:
+    out = _post(request_with(person_b={**SANTIAGO, "date": FALL_BACK_DATE, "birth_time_known": False}))
+    start, end = _moon(out["sign_layer"], "person_b")["moon_range_deg"]
+    later = _ref_moon(f"{FALL_BACK_DATE}T23:59:00", SANTIAGO, ambiguous="later")
+    earlier = _ref_moon(f"{FALL_BACK_DATE}T23:59:00", SANTIAGO, ambiguous="earlier")
+    assert abs(later - earlier) > 0.1  # non-vacuous: 23:59 really occurs twice
+    assert end == pytest.approx(later, abs=1e-4)
+    assert start == pytest.approx(_ref_moon(f"{FALL_BACK_DATE}T00:00:00", SANTIAGO), abs=1e-4)
 
 
 def test_known_time_response_has_no_time_uncertainty() -> None:
