@@ -37,8 +37,8 @@ def test_person_vector_is_the_tier_weighted_mean() -> None:
     expected = [round((1.0 * f + 0.3 * e) / 1.3, 6) for f, e in zip(fire, earth)]
     assert out["vector"] == expected
     assert out["factors"] == [
-        {"factor": "Sun", "west_element": "Feuer", "weight": 1.0, "vector": fire},
-        {"factor": "Mars", "west_element": "Erde", "weight": 0.3, "vector": earth},
+        {"factor": "Sun", "west_element": "Feuer", "weight": 1.0, "vector": fire, "sign_certain": None},
+        {"factor": "Mars", "west_element": "Erde", "weight": 0.3, "vector": earth, "sign_certain": None},
     ]
 
 

@@ -65,6 +65,10 @@ def _overlay_keys(result: Dict[str, Any], side: str) -> List[Tuple[Any, ...]]:
     return [(r["factor"], r["house"], r["status"], r["time_sensitive"]) for r in result["house_overlays"][side]]
 
 
+def _wuxing_certainty(person: Dict[str, Any]) -> List[Tuple[Any, ...]]:
+    return [(f["factor"], f["sign_certain"]) for f in person["factors"]]
+
+
 def _pair_keys(result: Dict[str, Any]) -> List[Tuple[str, str, str, str]]:
     return sorted(
         (p["factor_a"], p["factor_b"], p["sign_relation"], p["element_relation"])
@@ -107,6 +111,8 @@ def assert_mirrored(r1: Dict[str, Any], r2: Dict[str, Any]) -> None:
     assert _pair_keys(r2) == sorted((b, a, s, e) for a, b, s, e in _pair_keys(r1))
     w1, w2 = r1["wuxing_pair_factors"], r2["wuxing_pair_factors"]
     assert w2["person_a"] == w1["person_b"] and w2["person_b"] == w1["person_a"]
+    assert _wuxing_certainty(w2["person_a"]) == _wuxing_certainty(w1["person_b"])
+    assert _wuxing_certainty(w2["person_b"]) == _wuxing_certainty(w1["person_a"])
     hs1, hs2 = r1["provenance"]["house_system_used"], r2["provenance"]["house_system_used"]
     assert hs2 == {"person_a": hs1["person_b"], "person_b": hs1["person_a"]}
     assert sorted(_aspect_full(a, swap=False) for a in r2["aspects"]) == sorted(

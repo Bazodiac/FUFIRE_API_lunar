@@ -195,6 +195,58 @@ def test_swap_mirrors_the_overlay_flag() -> None:
     assert_mirrored(ab, ba)
 
 
+# ── F9c: Wu-Xing factors ─────────────────────────────────────────────────────
+# wuxing_pair_factors at HEAD 0198952 (before F9) for A = _known(), B = BASE_B at 12:00
+# (unknown time). Printed from that commit with
+# compute_synastry(...)["wuxing_pair_factors"]; F9c must not change any of it.
+WUXING_AT_0198952: Dict[str, Any] = {
+    "order": ["Holz", "Feuer", "Erde", "Metall", "Wasser"],
+    "person_a": {"factors": [
+        {"factor": "Sun", "west_element": "Feuer", "weight": 1.0, "vector": [0.452, 0.548, 0.0, 0.0, 0.0]},
+        {"factor": "Moon", "west_element": "Wasser", "weight": 1.0, "vector": [0.0, 0.0, 0.306, 0.101, 0.593]},
+        {"factor": "Mercury", "west_element": "Feuer", "weight": 0.3, "vector": [0.452, 0.548, 0.0, 0.0, 0.0]},
+        {"factor": "Venus", "west_element": "Erde", "weight": 0.3, "vector": [0.0, 0.0, 0.095, 0.699, 0.206]},
+        {"factor": "Mars", "west_element": "Luft", "weight": 0.3, "vector": [0.348, 0.252, 0.4, 0.0, 0.0]},
+        {"factor": "Ascendant", "west_element": "Feuer", "weight": 1.0, "vector": [0.452, 0.548, 0.0, 0.0, 0.0]},
+    ], "vector": [0.293333, 0.342564, 0.116538, 0.079667, 0.167897]},
+    "person_b": {"factors": [
+        {"factor": "Sun", "west_element": "Feuer", "weight": 1.0, "vector": [0.452, 0.548, 0.0, 0.0, 0.0]},
+        {"factor": "Moon", "west_element": "Luft", "weight": 1.0, "vector": [0.348, 0.252, 0.4, 0.0, 0.0]},
+        {"factor": "Mercury", "west_element": "Feuer", "weight": 0.3, "vector": [0.452, 0.548, 0.0, 0.0, 0.0]},
+        {"factor": "Venus", "west_element": "Luft", "weight": 0.3, "vector": [0.348, 0.252, 0.4, 0.0, 0.0]},
+        {"factor": "Mars", "west_element": "Feuer", "weight": 0.3, "vector": [0.452, 0.548, 0.0, 0.0, 0.0]},
+    ], "vector": [0.405379, 0.41531, 0.17931, 0.0, 0.0]},
+    "mapping_version": "sign-element-consensus-v1",
+}
+
+
+def _sign_certain_by_factor(out: Dict[str, Any], section: str, person: str) -> Dict[str, Any]:
+    entries = (out["sign_layer"]["factors"][person] if section == "sign_layer"
+               else out["wuxing_pair_factors"][person]["factors"])
+    return {e["factor"]: e["sign_certain"] for e in entries}
+
+
+def test_wuxing_sign_certain_equals_the_sign_layer_value() -> None:
+    # B's Mercury crosses Krebs → Löwe (118 → 126) during the day; every other planet is stationary.
+    out = compute_synastry(_known(), _unknown(BASE_B, day_bounds(BASE_B, Mercury=(118.0, 126.0))))
+    for person in ("person_a", "person_b"):
+        assert _sign_certain_by_factor(out, "wuxing", person) == _sign_certain_by_factor(out, "sign_layer", person)
+    assert _sign_certain_by_factor(out, "wuxing", "person_b") == {
+        "Sun": True, "Moon": True, "Mercury": False, "Venus": True, "Mars": True,
+    }
+    assert set(_sign_certain_by_factor(out, "wuxing", "person_a").values()) == {None}  # incl. Ascendant
+
+
+def test_wuxing_element_weight_and_vectors_are_unchanged_versus_0198952() -> None:
+    out = compute_synastry(_known(), _unknown(BASE_B, day_bounds(BASE_B, Mercury=(118.0, 126.0))))
+    wuxing = out["wuxing_pair_factors"]
+    stripped = {**wuxing, **{p: {**wuxing[p], "factors": [{k: v for k, v in f.items() if k != "sign_certain"}
+                                                          for f in wuxing[p]["factors"]]}
+                             for p in ("person_a", "person_b")}}
+    assert all("sign_certain" in f for p in ("person_a", "person_b") for f in wuxing[p]["factors"])
+    assert stripped == WUXING_AT_0198952
+
+
 # ── HTTP boundary (swieph) ───────────────────────────────────────────────────
 def _post(body: Dict[str, Any]) -> Dict[str, Any]:
     resp = client.post(SYNASTRY_PATH, json=body)
@@ -209,6 +261,7 @@ def test_http_unknown_time_marks_every_sign_layer_planet() -> None:
     assert [e["factor"] for e in entries] == SIGN_LAYER_PLANETS
     assert all(isinstance(e["sign_certain"], bool) for e in entries)
     assert _entry(out, "person_b", "Moon")["sign_certain"] is False  # the D15 Moon ingress day
+    assert _sign_certain_by_factor(out, "wuxing", "person_b") == _sign_certain_by_factor(out, "sign_layer", "person_b")
 
 
 @pytest.mark.swieph
@@ -242,3 +295,5 @@ def test_http_known_time_response_has_no_day_uncertainty() -> None:
     assert len(overlays) == 20 and all(r["time_sensitive"] is False for r in overlays)
     entries = [e for p in ("person_a", "person_b") for e in out["sign_layer"]["factors"][p]]
     assert entries and all(e["sign_certain"] is None and e["moon_range_deg"] is None for e in entries)
+    wuxing = [f for p in ("person_a", "person_b") for f in out["wuxing_pair_factors"][p]["factors"]]
+    assert len(wuxing) == 12 and all(f["sign_certain"] is None for f in wuxing)

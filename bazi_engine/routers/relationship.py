@@ -175,6 +175,11 @@ class SynastryWuXingFactor(BaseModel):
     west_element: WestElement
     weight: float
     vector: List[float] = Field(..., min_length=5, max_length=5)
+    sign_certain: Optional[bool] = Field(
+        None, description="Same value as this factor's sign_layer entry: false when an unknown-time person's factor "
+        "changes sign during the local day; null for a known-time person. Element, weight and vector stay at the "
+        "12:00 value (D16)",
+    )
 
 class SynastryWuXingPerson(BaseModel):
     factors: List[SynastryWuXingFactor]

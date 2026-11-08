@@ -3,7 +3,9 @@
 Each sign-layer factor is spread over the five phases by the consensus matrix
 ``sign-element-consensus-v1`` (the Fusion vector's matrix). The person vector
 is the tier-weighted mean of the factor vectors (sum 1). No comparison number
-between the two persons is computed (G1).
+between the two persons is computed (G1). Each factor carries its sign-layer
+``sign_certain`` (D16); element, weight and vectors stay at the 12:00 value —
+nothing is redistributed or reweighted for an uncertain sign.
 """
 from __future__ import annotations
 
@@ -26,7 +28,7 @@ def person_wuxing(entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
         _, weight = factor_weight(entry["factor"])
         vector = factor_vector(entry["west_element"])
         factors.append({"factor": entry["factor"], "west_element": entry["west_element"],
-                        "weight": weight, "vector": vector})
+                        "weight": weight, "vector": vector, "sign_certain": entry["sign_certain"]})
         totals = [t + weight * v for t, v in zip(totals, vector)]
         weight_sum += weight
     return {"factors": factors, "vector": [round(t / weight_sum, 6) for t in totals]}

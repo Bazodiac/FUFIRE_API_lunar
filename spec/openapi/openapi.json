@@ -13732,6 +13732,18 @@
             "maxItems": 5,
             "minItems": 5,
             "title": "Vector"
+          },
+          "sign_certain": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sign Certain",
+            "description": "Same value as this factor's sign_layer entry: false when an unknown-time person's factor changes sign during the local day; null for a known-time person. Element, weight and vector stay at the 12:00 value (D16)"
           }
         },
         "type": "object",
