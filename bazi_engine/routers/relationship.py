@@ -118,8 +118,9 @@ class SynastryAspect(BaseModel):
     orb: float = Field(..., description="Deviation from the exact angle in degrees (4 dp)")
     tight: bool = Field(..., description="True when the orb is at most half the orb limit (a tight aspect)")
     time_sensitive: bool = Field(
-        ..., description="True when the aspect type is not the same at local 00:00 and 23:59 of an unknown-time Moon "
-        "(all four corners for Moon–Moon with both times unknown); always false otherwise",
+        ..., description="True when an endpoint belongs to a person with an unknown birth time and the aspect type "
+        "is not the same at local 00:00 and 23:59 of that day (all four corners when both times are unknown); "
+        "always false when both times are known. Treat true as not reliable (D16)",
     )
     from_weight: float
     to_weight: float
@@ -141,8 +142,8 @@ class SynastrySignFactor(BaseModel):
     west_element: WestElement
     degree: float
     sign_certain: Optional[bool] = Field(
-        None, description="Moon of an unknown-time person only: true when the Moon stays in one sign over the "
-        "local day (00:00–23:59); null for every other entry",
+        None, description="Every entry of an unknown-time person (Sun … Mars): true when the factor is in the same "
+        "sign at local 00:00 and 23:59; null for a known-time person. Treat false as not reliable (D16)",
     )
     moon_range_deg: Optional[List[float]] = Field(
         None, min_length=2, max_length=2,
@@ -237,20 +238,23 @@ def _person_input(person: SynastryPerson) -> SynastryPersonInput:
     # would make assumed_local_time false: always a DST error, whatever nonexistentTime says.
     chart = _chart_at(f"{day}T{UNKNOWN_TIME_ASSUMED_LOCAL}", person, nonexistent="error")
     start, end = (
-        _moon_at(f"{day}T{hms}", person, ambiguous=amb, nonexistent=gap)
+        _bound_factors_at(f"{day}T{hms}", person, ambiguous=amb, nonexistent=gap)
         for hms, (amb, gap) in zip(MOON_RANGE_LOCAL_TIMES, MOON_RANGE_DST_POLICIES)
     )
     return SynastryPersonInput(
-        chart=chart, birth_time_known=False, time_discarded=time_discarded, moon_bounds=(start, end),
+        chart=chart, birth_time_known=False, time_discarded=time_discarded, day_bounds=(start, end),
     )
 
-def _moon_at(
+def _bound_factors_at(
     local_iso: str, person: SynastryPerson, *, ambiguous: AmbiguousTimeChoice, nonexistent: NonexistentTimePolicy,
-) -> float:
-    """D15 bound: Moon longitude at a fixed local time, with the bound's DST policy from policy.py."""
+) -> Dict[str, float]:
+    """D15/D16 bound: the ten planet longitudes at a fixed local time, with the bound's DST policy.
+
+    The same two bound charts as the D15 Moon range; no angles (unknown time).
+    """
     dt_local, _ = resolve_local_iso(local_iso, person.tz, ambiguous=ambiguous, nonexistent=nonexistent)
     chart = compute_western_chart(dt_local.astimezone(timezone.utc), person.lat, person.lon)
-    return extract_factors(chart, birth_time_known=False)["Moon"]
+    return extract_factors(chart, birth_time_known=False)
 
 def _subject(person: SynastryPerson) -> Dict[str, Any]:
     unknown = not person.birth_time_known

@@ -13103,7 +13103,7 @@
           "time_sensitive": {
             "type": "boolean",
             "title": "Time Sensitive",
-            "description": "True when the aspect type is not the same at local 00:00 and 23:59 of an unknown-time Moon (all four corners for Moon–Moon with both times unknown); always false otherwise"
+            "description": "True when an endpoint belongs to a person with an unknown birth time and the aspect type is not the same at local 00:00 and 23:59 of that day (all four corners when both times are unknown); always false when both times are known. Treat true as not reliable (D16)"
           },
           "from_weight": {
             "type": "number",
@@ -13487,7 +13487,7 @@
               }
             ],
             "title": "Sign Certain",
-            "description": "Moon of an unknown-time person only: true when the Moon stays in one sign over the local day (00:00–23:59); null for every other entry"
+            "description": "Every entry of an unknown-time person (Sun … Mars): true when the factor is in the same sign at local 00:00 and 23:59; null for a known-time person. Treat false as not reliable (D16)"
           },
           "moon_range_deg": {
             "anyOf": [

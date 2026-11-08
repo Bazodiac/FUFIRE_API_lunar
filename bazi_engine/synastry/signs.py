@@ -10,7 +10,8 @@ from .policy import PERSON_A, PERSON_B, SIGN_LAYER_FACTORS, SIGN_RELATIONS, ZODI
 _COMPLEMENTARY = (frozenset({"Feuer", "Luft"}), frozenset({"Erde", "Wasser"}))
 
 
-MoonBounds = Optional[Tuple[float, float]]
+# ``{planet: (longitude at local 00:00, at local 23:59)}`` of an unknown-time person, else None.
+DayRanges = Optional[Mapping[str, Tuple[float, float]]]
 
 
 def _norm(longitude: float) -> float:
@@ -32,11 +33,14 @@ def sign_entry(factor: str, longitude: float) -> Dict[str, Any]:
     }
 
 
-def moon_range(bounds: Tuple[float, float]) -> Tuple[List[float], bool]:
-    """``[start, end]`` (4 dp, in [0, 360), forward; end < start when crossing 0°) and sign certainty.
+def day_range(bounds: Tuple[float, float]) -> Tuple[List[float], bool]:
+    """``[start, end]`` (4 dp, in [0, 360)) and sign certainty over the local day.
 
-    The sign test runs on the rounded values, so ``sign_certain`` agrees with
-    the emitted range (same rule as the rounded orb, D7).
+    For the Moon the range is forward (end < start when crossing 0°). The sign
+    test runs on the rounded values, so ``sign_certain`` agrees with the
+    emitted Moon range (same rule as the rounded orb, D7). A sign is a convex
+    arc and a planet moves monotonically over one day (D16), so the same sign
+    at both bounds means the same sign over the whole day.
     """
     start, end = (_norm(round(_norm(b), 4)) for b in bounds)
     return [start, end], int(start // 30.0) == int(end // 30.0)
@@ -55,12 +59,13 @@ def element_relation(element_a: str, element_b: str) -> str:
     return "other"
 
 
-def _entries(factors: Mapping[str, float], moon_bounds: MoonBounds) -> List[Dict[str, Any]]:
+def _entries(factors: Mapping[str, float], day_ranges: DayRanges) -> List[Dict[str, Any]]:
     entries = [sign_entry(f, factors[f]) for f in SIGN_LAYER_FACTORS if f in factors]
-    if moon_bounds is not None:
+    if day_ranges is not None:
         for entry in entries:
+            rng, entry["sign_certain"] = day_range(day_ranges[entry["factor"]])
             if entry["factor"] == "Moon":
-                entry["moon_range_deg"], entry["sign_certain"] = moon_range(moon_bounds)
+                entry["moon_range_deg"] = rng
     return entries
 
 
@@ -68,17 +73,19 @@ def sign_layer(
     factors_a: Mapping[str, float],
     factors_b: Mapping[str, float],
     *,
-    moon_bounds_a: MoonBounds = None,
-    moon_bounds_b: MoonBounds = None,
+    day_ranges_a: DayRanges = None,
+    day_ranges_b: DayRanges = None,
 ) -> Dict[str, Any]:
     """Sign entries per person and every A×B sign pair.
 
-    ``moon_bounds_x`` (D15): Moon longitudes at local 00:00 and 23:59 for a
-    person with an unknown birth time; they fill ``sign_certain`` and
-    ``moon_range_deg`` on that Moon entry. Every other entry carries null.
+    ``day_ranges_x`` (D15, D16): planet longitudes at local 00:00 and 23:59 for
+    a person with an unknown birth time. They fill ``sign_certain`` on every
+    sign-layer entry of that person (Sun … Mars; an unknown-time person has no
+    Ascendant) and ``moon_range_deg`` on the Moon entry only. A known-time
+    person carries null for both.
     """
-    entries_a = _entries(factors_a, moon_bounds_a)
-    entries_b = _entries(factors_b, moon_bounds_b)
+    entries_a = _entries(factors_a, day_ranges_a)
+    entries_b = _entries(factors_b, day_ranges_b)
     pairs = [
         {
             "factor_a": a["factor"],

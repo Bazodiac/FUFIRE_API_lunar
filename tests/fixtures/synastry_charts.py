@@ -44,6 +44,15 @@ def make_chart(
     }
 
 
+def day_bounds(base: Dict[str, float], **ranges: Tuple[float, float]) -> Tuple[Dict[str, float], Dict[str, float]]:
+    """``SynastryPersonInput.day_bounds``: every planet at its ``base`` value at both
+    bounds (stationary) unless given as ``Factor=(start, end)``."""
+    start, end = dict(base), dict(base)
+    for factor, (lon_start, lon_end) in ranges.items():
+        start[factor], end[factor] = lon_start, lon_end
+    return start, end
+
+
 def _aspect_key(a: Dict[str, Any]) -> Tuple[Any, ...]:
     return (a["from_factor"], a["to_factor"], a["type"], a["orb"], a["tight"], a["time_sensitive"], a["weight"])
 

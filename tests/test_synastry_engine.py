@@ -8,7 +8,7 @@ import pytest
 from bazi_engine import __version__
 from bazi_engine.exc import CalculationError
 from bazi_engine.synastry import SynastryPersonInput, compute_synastry
-from tests.fixtures.synastry_charts import BASE_A, BASE_B, assert_mirrored, make_chart
+from tests.fixtures.synastry_charts import BASE_A, BASE_B, assert_mirrored, day_bounds, make_chart
 
 
 def _a(**kw: object) -> SynastryPersonInput:
@@ -58,7 +58,7 @@ def test_birth_time_gate_for_b() -> None:
 
 
 def test_moon_range_clause_only_with_bounds() -> None:
-    out = compute_synastry(_a(birth_time_known=True), _b(birth_time_known=False, moon_bounds=(183.0, 196.0)))
+    out = compute_synastry(_a(birth_time_known=True), _b(birth_time_known=False, day_bounds=day_bounds(BASE_B, Moon=(183.0, 196.0))))
     (warning,) = out["provenance"]["warnings"]
     assert warning["detail"] == (
         "Birth time unknown: computed at the assumed local time 12:00:00; Ascendant, MC and houses are not used; "
@@ -76,7 +76,7 @@ def test_known_time_rejects_unknown_time_extras() -> None:
     with pytest.raises(ValueError):
         _a(birth_time_known=True, time_discarded=True)
     with pytest.raises(ValueError):
-        _a(birth_time_known=True, moon_bounds=(1.0, 2.0))
+        _a(birth_time_known=True, day_bounds=day_bounds(BASE_A))
 
 
 def test_provenance() -> None:

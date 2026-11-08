@@ -11,12 +11,13 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple
 from .. import __version__
 from ..exc import CalculationError
 from ..wuxing.constants import WESTERN_MAPPING_ID, WESTERN_WEIGHTING_ID
-from .aspects import cross_aspects
-from .factors import extract_factors
+from .aspects import DayRanges, cross_aspects
+from .factors import extract_factors, normalize_longitude
 from .houses import house_overlays
 from .policy import (
     PERSON_A,
     PERSON_B,
+    PLANET_FACTORS,
     SYNASTRY_ORB_POLICY_ID,
     SYNASTRY_WEIGHTING_ID,
     UNKNOWN_TIME_ASSUMED_LOCAL,
@@ -29,9 +30,12 @@ _TIME_UNKNOWN_DETAIL = (
     f"Birth time unknown: computed at the assumed local time {UNKNOWN_TIME_ASSUMED_LOCAL}; "
     "Ascendant, MC and houses are not used"
 )
-# Only claimed when the Moon bounds were actually supplied (D15).
+# Only claimed when the day bounds were actually supplied (D15, D16).
 _MOON_RANGE_DETAIL = "; the Moon range over the local day is in sign_layer"
 _TIME_DISCARDED_DETAIL = " The supplied clock time was discarded."
+
+
+FactorBounds = Tuple[Mapping[str, float], Mapping[str, float]]
 
 
 @dataclass(frozen=True)
@@ -40,27 +44,44 @@ class SynastryPersonInput:
 
     For an unknown birth time the chart is the one at local 12:00:00 (D14);
     ``time_discarded`` says a supplied clock time was replaced, and
-    ``moon_bounds`` holds the Moon longitudes at local 00:00 and 23:59 (D15).
+    ``day_bounds`` holds the ten planet longitudes at local 00:00 and 23:59
+    (start, end) of the calendar day (D15, D16).
     """
 
     chart: Mapping[str, Any]
     birth_time_known: bool
     time_discarded: bool = False
-    moon_bounds: Optional[Tuple[float, float]] = None
+    day_bounds: Optional[FactorBounds] = None
 
     def __post_init__(self) -> None:
-        if self.birth_time_known and (self.time_discarded or self.moon_bounds is not None):
-            raise ValueError("time_discarded and moon_bounds apply only to an unknown birth time")
+        if self.birth_time_known and (self.time_discarded or self.day_bounds is not None):
+            raise ValueError("time_discarded and day_bounds apply only to an unknown birth time")
+
+
+def _day_ranges(person: SynastryPersonInput) -> DayRanges:
+    """``{planet: (start, end)}`` from ``day_bounds``; a planet missing from a bound fails loudly."""
+    if person.day_bounds is None:
+        return None
+    start, end = person.day_bounds
+    ranges: Dict[str, Tuple[float, float]] = {}
+    for name in PLANET_FACTORS:
+        if name not in start or name not in end:
+            raise CalculationError(
+                f"Synastry factor {name} is missing from a day-bound chart", detail={"factor": name},
+            )
+        ranges[name] = (normalize_longitude(float(start[name])), normalize_longitude(float(end[name])))
+    return ranges
 
 
 def compute_synastry(person_a: SynastryPersonInput, person_b: SynastryPersonInput) -> Dict[str, Any]:
     factors_a = extract_factors(person_a.chart, birth_time_known=person_a.birth_time_known)
     factors_b = extract_factors(person_b.chart, birth_time_known=person_b.birth_time_known)
-    signs = sign_layer(factors_a, factors_b, moon_bounds_a=person_a.moon_bounds, moon_bounds_b=person_b.moon_bounds)
+    ranges_a, ranges_b = _day_ranges(person_a), _day_ranges(person_b)
+    signs = sign_layer(factors_a, factors_b, day_ranges_a=ranges_a, day_ranges_b=ranges_b)
     return {
         "aspects": cross_aspects(
             factors_a, factors_b, from_person=PERSON_A, to_person=PERSON_B,
-            from_moon_bounds=person_a.moon_bounds, to_moon_bounds=person_b.moon_bounds,
+            from_day_ranges=ranges_a, to_day_ranges=ranges_b,
         ),
         "house_overlays": {
             "a_in_b": house_overlays(factors_a, person_b.chart, host_time_known=person_b.birth_time_known),
@@ -89,7 +110,7 @@ def _warnings(person_a: SynastryPersonInput, person_b: SynastryPersonInput) -> L
     warnings: List[Dict[str, str]] = []
     for label, person in ((PERSON_A, person_a), (PERSON_B, person_b)):
         if not person.birth_time_known:
-            detail = _TIME_UNKNOWN_DETAIL + (_MOON_RANGE_DETAIL if person.moon_bounds is not None else "") + "."
+            detail = _TIME_UNKNOWN_DETAIL + (_MOON_RANGE_DETAIL if person.day_bounds is not None else "") + "."
             detail += _TIME_DISCARDED_DETAIL if person.time_discarded else ""
             warnings.append({"code": "birth_time_unknown", "person": label, "detail": detail})
         elif person.chart["quality_flags"]["house_system_fallback"]:
