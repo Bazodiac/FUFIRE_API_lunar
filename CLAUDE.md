@@ -128,6 +128,7 @@ Level 4: bazi.py                   # compute_bazi() — main 9-step pipeline
                                    #   hard rule: no silent noon default for unknown birth time
          wuxing/                   # constants, vector, analysis, calibration, zones, ke_cycle
          match/                    # BaZi-Hehun pair analysis — imports Levels 0–4 only
+         synastry/                 # Western pair facts (REL-G1): aspects, overlays, sign layer, Wu-Xing translation — FORBIDDEN_EDGES bans bazi/zwds/match/impact/fusion
          dayun/                    # DaYun luck-cycle SUBPACKAGE (start_age, direction, jiazi, dates,
                                    #   interpretation, …) — routers/dayun.py is only the HTTP layer;
                                    #   zwds/decadal.py also imports dayun.direction
@@ -174,6 +175,7 @@ Level 5: app.py                    # Thin factory: assert_runtime_config → app
 | `chart.py` | `/chart` — legacy-only, no `/v1` alias |
 | `admin.py` | `/v1`-only, `protected=False` — NOT behind `require_api_key`; has its own `X-Admin-Token` gate and feature flag `key_issuance` (`FUFIRE_ENABLE_KEY_ISSUANCE`, default off; 503 when unconfigured) |
 | `match.py` | `/v1/match/bazi-hehun` — `/v1`-only per DECISION-001 (`docs/plans/2026-07-02-bazi-hehun.md`) |
+| `relationship.py` | `/v1/relationship/synastry` — `/v1`-only, consent-gated like Hehun; HTTP layer over `synastry/` (no score, no interpretation) |
 | `zwds.py` | `/v1`-only + feature flag `zwds` (`FUFIRE_ENABLE_ZWDS`, default off): `POST /v1/calculate/zwds`, `GET /v1/metadata/zwds/rulesets/{ruleset_id}`. Their absence from `openapi.json` is intentional (flag off), not drift |
 | `astronomy.py` | `POST /v2/astronomy/lunar-state` — the ONLY `/v2` mount, deliberately `/v2`-only: its UTC-root and corrected eight-phase semantics must NEVER get a `/v1` or legacy alias (`docs/api/03_lunar_state_v2.md`) |
 | `info.py` | `/`, `/health`, `/ready`, `/build`, `/api`, `/info/wuxing-mapping` — `protected=False`, no API key even under `/v1` |
@@ -265,6 +267,7 @@ Mechanics:
   env -u SE_EPHE_PATH UPDATE_SNAPSHOTS=1 pytest -q tests/test_snapshot_stability.py tests/test_snapshot_math_endpoints.py
   python scripts/minimize_snapshot_diff.py --backend moseph --report
   SE_EPHE_PATH=/tmp/ephe pytest -q tests/test_snapshot_stability.py tests/test_snapshot_math_endpoints.py   # verify, no update
+  SE_EPHE_PATH=/tmp/ephe python scripts/gen_synastry_example.py   # regenerate the synastry example (it embeds engine_version)
   ```
   `--report` lists the JSON paths that still differ — every one of them must be explained by the change (and the engine build label bump). The manual `update-swieph-snapshots.yml` workflow (review-only patch artifact) remains available as an alternative for the swieph baselines.
 - TLST reference corpus: `tests/fixtures/tlst_reference_corpus_v1.json` is generated from Swiss Ephemeris (`swe.time_equ`, `swe.lmt_to_lat`) by `scripts/gen_tlst_reference_corpus.py`; CI lint runs its `--check`. Add cases to the script's `CASES` table and regenerate — never hand-edit the fixture.
