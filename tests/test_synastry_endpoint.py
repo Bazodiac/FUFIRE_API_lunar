@@ -93,3 +93,23 @@ def test_nonexistent_local_time_is_a_422() -> None:
 def test_real_ephemeris_is_attested() -> None:
     out = _post(VALID_SYNASTRY_REQUEST)
     assert out["provenance"]["ephemeris_mode"] == "SWIEPH"
+
+
+def test_date_without_time_is_rejected_when_birth_time_known() -> None:
+    resp = client.post(SYNASTRY_PATH, json=request_with(person_b={"date": "1992-11-03"}))
+    assert resp.status_code == 422
+    assert resp.json()["error"] == "validation_error"
+    assert "1992-11-03" not in resp.text
+
+
+def test_date_only_is_accepted_when_birth_time_unknown() -> None:
+    resp = client.post(SYNASTRY_PATH, json=request_with(person_b={"date": "1992-11-03", "birth_time_known": False}))
+    assert resp.status_code == 200, resp.text
+
+
+def test_swapping_persons_mirrors_the_response_with_unknown_birth_time() -> None:
+    body = request_with(person_b={"birth_time_known": False})
+    ab = _post(body)
+    ba = _post(swapped(body))
+    assert ab["provenance"]["warnings"]
+    assert_mirrored(ab, ba)

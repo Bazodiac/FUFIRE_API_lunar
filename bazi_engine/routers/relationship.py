@@ -11,11 +11,12 @@ Decisions: docs/superpowers/specs/2026-11-08-synastry-g1-design.md.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import timezone
 from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from starlette.requests import Request
 
 from ..exc import BaziEngineError
@@ -31,6 +32,8 @@ router = APIRouter(prefix="/relationship", tags=["Relationship"])
 
 # Letters with single inner separators; no digits, no "@" (first name or initial only).
 _LABEL_PATTERN = r"^[^\W\d_]+(?:[ .'\-][^\W\d_]+)*\.?$"
+
+_DATE_ONLY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 _CONSENT_DESCRIPTION = (
     "Confirms the second person has agreed to their birth data being used for this "
@@ -64,6 +67,11 @@ class SynastryPerson(BaseModel):
         None, min_length=1, max_length=40, pattern=_LABEL_PATTERN,
         description="Optional first name or initial, echoed in `subjects`. Never logged.",
     )
+    @model_validator(mode="after")
+    def _time_part_required_when_birth_time_known(self) -> "SynastryPerson":
+        if self.birth_time_known and _DATE_ONLY.match(self.date.strip()):
+            raise ValueError("date needs a time part when birth_time_known is true")
+        return self
 
 class SynastryOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
