@@ -1,0 +1,1257 @@
+{
+  "aspects": [
+    {
+      "from_person": "person_a",
+      "from_factor": "Sun",
+      "to_person": "person_b",
+      "to_factor": "Moon",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 3.0212,
+      "exact": false,
+      "from_weight": 1.0,
+      "to_weight": 1.0,
+      "weight": 1.0
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Sun",
+      "to_person": "person_b",
+      "to_factor": "Venus",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 6.4878,
+      "exact": false,
+      "from_weight": 1.0,
+      "to_weight": 0.3,
+      "weight": 0.3
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Moon",
+      "to_person": "person_b",
+      "to_factor": "Sun",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 4.5089,
+      "exact": false,
+      "from_weight": 1.0,
+      "to_weight": 1.0,
+      "weight": 1.0
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Moon",
+      "to_person": "person_b",
+      "to_factor": "Venus",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 2.0252,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 0.3,
+      "weight": 0.3
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Moon",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 0.8769,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 0.027,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Moon",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 0.9119,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 0.027,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Moon",
+      "to_person": "person_b",
+      "to_factor": "MC",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 1.2391,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 1.0,
+      "weight": 1.0
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Mercury",
+      "to_person": "person_b",
+      "to_factor": "Mercury",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 1.2432,
+      "exact": true,
+      "from_weight": 0.3,
+      "to_weight": 0.3,
+      "weight": 0.09
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Mercury",
+      "to_person": "person_b",
+      "to_factor": "Jupiter",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 0.8913,
+      "exact": true,
+      "from_weight": 0.3,
+      "to_weight": 0.09,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Venus",
+      "to_person": "person_b",
+      "to_factor": "Sun",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 7.6745,
+      "exact": false,
+      "from_weight": 0.3,
+      "to_weight": 1.0,
+      "weight": 0.3
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Venus",
+      "to_person": "person_b",
+      "to_factor": "Moon",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 2.3262,
+      "exact": true,
+      "from_weight": 0.3,
+      "to_weight": 1.0,
+      "weight": 0.3
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Venus",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 4.0425,
+      "exact": false,
+      "from_weight": 0.3,
+      "to_weight": 0.027,
+      "weight": 0.0081
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Venus",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 2.2537,
+      "exact": true,
+      "from_weight": 0.3,
+      "to_weight": 0.027,
+      "weight": 0.0081
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Venus",
+      "to_person": "person_b",
+      "to_factor": "Pluto",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 3.5975,
+      "exact": true,
+      "from_weight": 0.3,
+      "to_weight": 0.027,
+      "weight": 0.0081
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Venus",
+      "to_person": "person_b",
+      "to_factor": "MC",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 1.9265,
+      "exact": true,
+      "from_weight": 0.3,
+      "to_weight": 1.0,
+      "weight": 0.3
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Mars",
+      "to_person": "person_b",
+      "to_factor": "Jupiter",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 6.2212,
+      "exact": false,
+      "from_weight": 0.3,
+      "to_weight": 0.09,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Mars",
+      "to_person": "person_b",
+      "to_factor": "Saturn",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 1.0448,
+      "exact": true,
+      "from_weight": 0.3,
+      "to_weight": 0.09,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Mars",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 3.7033,
+      "exact": false,
+      "from_weight": 0.3,
+      "to_weight": 0.027,
+      "weight": 0.0081
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Mars",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 5.4921,
+      "exact": false,
+      "from_weight": 0.3,
+      "to_weight": 0.027,
+      "weight": 0.0081
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Jupiter",
+      "to_person": "person_b",
+      "to_factor": "Sun",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 4.7664,
+      "exact": false,
+      "from_weight": 0.09,
+      "to_weight": 1.0,
+      "weight": 0.09
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Jupiter",
+      "to_person": "person_b",
+      "to_factor": "Mars",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 7.7296,
+      "exact": false,
+      "from_weight": 0.09,
+      "to_weight": 0.3,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Jupiter",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 1.1344,
+      "exact": true,
+      "from_weight": 0.09,
+      "to_weight": 0.027,
+      "weight": 0.00243
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Jupiter",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 0.6544,
+      "exact": true,
+      "from_weight": 0.09,
+      "to_weight": 0.027,
+      "weight": 0.00243
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Jupiter",
+      "to_person": "person_b",
+      "to_factor": "MC",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 0.9816,
+      "exact": true,
+      "from_weight": 0.09,
+      "to_weight": 1.0,
+      "weight": 0.09
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Saturn",
+      "to_person": "person_b",
+      "to_factor": "Mars",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 0.4072,
+      "exact": true,
+      "from_weight": 0.09,
+      "to_weight": 0.3,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Saturn",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 7.4823,
+      "exact": false,
+      "from_weight": 0.09,
+      "to_weight": 0.027,
+      "weight": 0.00243
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Saturn",
+      "to_person": "person_b",
+      "to_factor": "Pluto",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 1.6311,
+      "exact": true,
+      "from_weight": 0.09,
+      "to_weight": 0.027,
+      "weight": 0.00243
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Saturn",
+      "to_person": "person_b",
+      "to_factor": "Ascendant",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 2.8907,
+      "exact": false,
+      "from_weight": 0.09,
+      "to_weight": 1.0,
+      "weight": 0.09
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Uranus",
+      "to_person": "person_b",
+      "to_factor": "Sun",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 2.9632,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 1.0,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Uranus",
+      "to_person": "person_b",
+      "to_factor": "Jupiter",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 3.3293,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 0.09,
+      "weight": 0.00243
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Uranus",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 6.5952,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 0.027,
+      "weight": 0.000729
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Neptune",
+      "to_person": "person_b",
+      "to_factor": "Sun",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 2.5889,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 1.0,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Neptune",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 1.0431,
+      "exact": true,
+      "from_weight": 0.027,
+      "to_weight": 0.027,
+      "weight": 0.000729
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Neptune",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 2.8318,
+      "exact": true,
+      "from_weight": 0.027,
+      "to_weight": 0.027,
+      "weight": 0.000729
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Neptune",
+      "to_person": "person_b",
+      "to_factor": "MC",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 3.1591,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 1.0,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Pluto",
+      "to_person": "person_b",
+      "to_factor": "Sun",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 4.2735,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 1.0,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Pluto",
+      "to_person": "person_b",
+      "to_factor": "Moon",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 5.7272,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 1.0,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Pluto",
+      "to_person": "person_b",
+      "to_factor": "Saturn",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 3.3,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 0.09,
+      "weight": 0.00243
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Pluto",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 0.6415,
+      "exact": true,
+      "from_weight": 0.027,
+      "to_weight": 0.027,
+      "weight": 0.000729
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Pluto",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 1.1473,
+      "exact": true,
+      "from_weight": 0.027,
+      "to_weight": 0.027,
+      "weight": 0.000729
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Pluto",
+      "to_person": "person_b",
+      "to_factor": "Pluto",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 6.9986,
+      "exact": false,
+      "from_weight": 0.027,
+      "to_weight": 0.027,
+      "weight": 0.000729
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Pluto",
+      "to_person": "person_b",
+      "to_factor": "MC",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 1.4745,
+      "exact": true,
+      "from_weight": 0.027,
+      "to_weight": 1.0,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Ascendant",
+      "to_person": "person_b",
+      "to_factor": "Jupiter",
+      "type": "conjunction",
+      "exact_angle": 0.0,
+      "orb": 5.211,
+      "exact": false,
+      "from_weight": 1.0,
+      "to_weight": 0.09,
+      "weight": 0.09
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Ascendant",
+      "to_person": "person_b",
+      "to_factor": "Saturn",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 2.055,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 0.09,
+      "weight": 0.09
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "Ascendant",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "square",
+      "exact_angle": 90.0,
+      "orb": 4.7135,
+      "exact": false,
+      "from_weight": 1.0,
+      "to_weight": 0.027,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "MC",
+      "to_person": "person_b",
+      "to_factor": "Sun",
+      "type": "trine",
+      "exact_angle": 120.0,
+      "orb": 2.1619,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 1.0,
+      "weight": 1.0
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "MC",
+      "to_person": "person_b",
+      "to_factor": "Uranus",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 1.4701,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 0.027,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "MC",
+      "to_person": "person_b",
+      "to_factor": "Neptune",
+      "type": "opposition",
+      "exact_angle": 180.0,
+      "orb": 3.2588,
+      "exact": true,
+      "from_weight": 1.0,
+      "to_weight": 0.027,
+      "weight": 0.027
+    },
+    {
+      "from_person": "person_a",
+      "from_factor": "MC",
+      "to_person": "person_b",
+      "to_factor": "MC",
+      "type": "sextile",
+      "exact_angle": 60.0,
+      "orb": 3.5861,
+      "exact": false,
+      "from_weight": 1.0,
+      "to_weight": 1.0,
+      "weight": 1.0
+    }
+  ],
+  "house_overlays": {
+    "a_in_b": [
+      {
+        "factor": "Sun",
+        "house": 7,
+        "status": "ok"
+      },
+      {
+        "factor": "Moon",
+        "house": 3,
+        "status": "ok"
+      },
+      {
+        "factor": "Mercury",
+        "house": 7,
+        "status": "ok"
+      },
+      {
+        "factor": "Venus",
+        "house": 6,
+        "status": "ok"
+      },
+      {
+        "factor": "Mars",
+        "house": 4,
+        "status": "ok"
+      },
+      {
+        "factor": "Jupiter",
+        "house": 8,
+        "status": "ok"
+      },
+      {
+        "factor": "Saturn",
+        "house": 2,
+        "status": "ok"
+      },
+      {
+        "factor": "Uranus",
+        "house": 2,
+        "status": "ok"
+      },
+      {
+        "factor": "Neptune",
+        "house": 2,
+        "status": "ok"
+      },
+      {
+        "factor": "Pluto",
+        "house": 12,
+        "status": "ok"
+      }
+    ],
+    "b_in_a": [
+      {
+        "factor": "Sun",
+        "house": 2,
+        "status": "ok"
+      },
+      {
+        "factor": "Moon",
+        "house": 5,
+        "status": "ok"
+      },
+      {
+        "factor": "Mercury",
+        "house": 2,
+        "status": "ok"
+      },
+      {
+        "factor": "Venus",
+        "house": 3,
+        "status": "ok"
+      },
+      {
+        "factor": "Mars",
+        "house": 10,
+        "status": "ok"
+      },
+      {
+        "factor": "Jupiter",
+        "house": 12,
+        "status": "ok"
+      },
+      {
+        "factor": "Saturn",
+        "house": 4,
+        "status": "ok"
+      },
+      {
+        "factor": "Uranus",
+        "house": 4,
+        "status": "ok"
+      },
+      {
+        "factor": "Neptune",
+        "house": 4,
+        "status": "ok"
+      },
+      {
+        "factor": "Pluto",
+        "house": 2,
+        "status": "ok"
+      }
+    ]
+  },
+  "sign_layer": {
+    "factors": {
+      "person_a": [
+        {
+          "factor": "Sun",
+          "sign": "Zwillinge",
+          "sign_index": 2,
+          "west_element": "Luft",
+          "degree": 24.1495
+        },
+        {
+          "factor": "Moon",
+          "sign": "Fische",
+          "sign_index": 11,
+          "west_element": "Wasser",
+          "degree": 15.6365
+        },
+        {
+          "factor": "Mercury",
+          "sign": "Zwillinge",
+          "sign_index": 2,
+          "west_element": "Luft",
+          "degree": 5.7265
+        },
+        {
+          "factor": "Venus",
+          "sign": "Stier",
+          "sign_index": 1,
+          "west_element": "Erde",
+          "degree": 18.8021
+        },
+        {
+          "factor": "Mars",
+          "sign": "Widder",
+          "sign_index": 0,
+          "west_element": "Feuer",
+          "degree": 11.0563
+        },
+        {
+          "factor": "Ascendant",
+          "sign": "Waage",
+          "sign_index": 6,
+          "west_element": "Luft",
+          "degree": 10.0461
+        }
+      ],
+      "person_b": [
+        {
+          "factor": "Sun",
+          "sign": "Skorpion",
+          "sign_index": 7,
+          "west_element": "Wasser",
+          "degree": 11.1276
+        },
+        {
+          "factor": "Moon",
+          "sign": "Wassermann",
+          "sign_index": 10,
+          "west_element": "Luft",
+          "degree": 21.1283
+        },
+        {
+          "factor": "Mercury",
+          "sign": "Schütze",
+          "sign_index": 8,
+          "west_element": "Feuer",
+          "degree": 4.4832
+        },
+        {
+          "factor": "Venus",
+          "sign": "Schütze",
+          "sign_index": 8,
+          "west_element": "Feuer",
+          "degree": 17.6617
+        },
+        {
+          "factor": "Mars",
+          "sign": "Krebs",
+          "sign_index": 3,
+          "west_element": "Wasser",
+          "degree": 23.6236
+        },
+        {
+          "factor": "Ascendant",
+          "sign": "Skorpion",
+          "sign_index": 7,
+          "west_element": "Wasser",
+          "degree": 26.9214
+        }
+      ]
+    },
+    "pairs": [
+      {
+        "factor_a": "Sun",
+        "factor_b": "Sun",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Sun",
+        "factor_b": "Moon",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Sun",
+        "factor_b": "Mercury",
+        "sign_relation": "opposition",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Sun",
+        "factor_b": "Venus",
+        "sign_relation": "opposition",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Sun",
+        "factor_b": "Mars",
+        "sign_relation": "semi_sextile",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Sun",
+        "factor_b": "Ascendant",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Moon",
+        "factor_b": "Sun",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Moon",
+        "factor_b": "Moon",
+        "sign_relation": "semi_sextile",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Moon",
+        "factor_b": "Mercury",
+        "sign_relation": "square",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Moon",
+        "factor_b": "Venus",
+        "sign_relation": "square",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Moon",
+        "factor_b": "Mars",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Moon",
+        "factor_b": "Ascendant",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Mercury",
+        "factor_b": "Sun",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Mercury",
+        "factor_b": "Moon",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Mercury",
+        "factor_b": "Mercury",
+        "sign_relation": "opposition",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Mercury",
+        "factor_b": "Venus",
+        "sign_relation": "opposition",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Mercury",
+        "factor_b": "Mars",
+        "sign_relation": "semi_sextile",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Mercury",
+        "factor_b": "Ascendant",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Venus",
+        "factor_b": "Sun",
+        "sign_relation": "opposition",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Venus",
+        "factor_b": "Moon",
+        "sign_relation": "square",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Venus",
+        "factor_b": "Mercury",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Venus",
+        "factor_b": "Venus",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Venus",
+        "factor_b": "Mars",
+        "sign_relation": "sextile",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Venus",
+        "factor_b": "Ascendant",
+        "sign_relation": "opposition",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Mars",
+        "factor_b": "Sun",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Mars",
+        "factor_b": "Moon",
+        "sign_relation": "sextile",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Mars",
+        "factor_b": "Mercury",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Mars",
+        "factor_b": "Venus",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Mars",
+        "factor_b": "Mars",
+        "sign_relation": "square",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Mars",
+        "factor_b": "Ascendant",
+        "sign_relation": "quincunx",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Ascendant",
+        "factor_b": "Sun",
+        "sign_relation": "semi_sextile",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Ascendant",
+        "factor_b": "Moon",
+        "sign_relation": "trine",
+        "element_relation": "same"
+      },
+      {
+        "factor_a": "Ascendant",
+        "factor_b": "Mercury",
+        "sign_relation": "sextile",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Ascendant",
+        "factor_b": "Venus",
+        "sign_relation": "sextile",
+        "element_relation": "complementary"
+      },
+      {
+        "factor_a": "Ascendant",
+        "factor_b": "Mars",
+        "sign_relation": "square",
+        "element_relation": "other"
+      },
+      {
+        "factor_a": "Ascendant",
+        "factor_b": "Ascendant",
+        "sign_relation": "semi_sextile",
+        "element_relation": "other"
+      }
+    ]
+  },
+  "wuxing_pair_factors": {
+    "order": [
+      "Holz",
+      "Feuer",
+      "Erde",
+      "Metall",
+      "Wasser"
+    ],
+    "person_a": {
+      "factors": [
+        {
+          "factor": "Sun",
+          "west_element": "Luft",
+          "weight": 1.0,
+          "vector": [
+            0.348,
+            0.252,
+            0.4,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "factor": "Moon",
+          "west_element": "Wasser",
+          "weight": 1.0,
+          "vector": [
+            0.0,
+            0.0,
+            0.306,
+            0.101,
+            0.593
+          ]
+        },
+        {
+          "factor": "Mercury",
+          "west_element": "Luft",
+          "weight": 0.3,
+          "vector": [
+            0.348,
+            0.252,
+            0.4,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "factor": "Venus",
+          "west_element": "Erde",
+          "weight": 0.3,
+          "vector": [
+            0.0,
+            0.0,
+            0.095,
+            0.699,
+            0.206
+          ]
+        },
+        {
+          "factor": "Mars",
+          "west_element": "Feuer",
+          "weight": 0.3,
+          "vector": [
+            0.452,
+            0.548,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "factor": "Ascendant",
+          "west_element": "Luft",
+          "weight": 1.0,
+          "vector": [
+            0.348,
+            0.252,
+            0.4,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "vector": [
+        0.24,
+        0.190769,
+        0.321667,
+        0.079667,
+        0.167897
+      ]
+    },
+    "person_b": {
+      "factors": [
+        {
+          "factor": "Sun",
+          "west_element": "Wasser",
+          "weight": 1.0,
+          "vector": [
+            0.0,
+            0.0,
+            0.306,
+            0.101,
+            0.593
+          ]
+        },
+        {
+          "factor": "Moon",
+          "west_element": "Luft",
+          "weight": 1.0,
+          "vector": [
+            0.348,
+            0.252,
+            0.4,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "factor": "Mercury",
+          "west_element": "Feuer",
+          "weight": 0.3,
+          "vector": [
+            0.452,
+            0.548,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "factor": "Venus",
+          "west_element": "Feuer",
+          "weight": 0.3,
+          "vector": [
+            0.452,
+            0.548,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "factor": "Mars",
+          "west_element": "Wasser",
+          "weight": 0.3,
+          "vector": [
+            0.0,
+            0.0,
+            0.306,
+            0.101,
+            0.593
+          ]
+        },
+        {
+          "factor": "Ascendant",
+          "west_element": "Wasser",
+          "weight": 1.0,
+          "vector": [
+            0.0,
+            0.0,
+            0.306,
+            0.101,
+            0.593
+          ]
+        }
+      ],
+      "vector": [
+        0.158769,
+        0.148923,
+        0.283026,
+        0.059564,
+        0.349718
+      ]
+    },
+    "mapping_version": "sign-element-consensus-v1"
+  },
+  "provenance": {
+    "engine_version": "1.0.0-rc10-20261107",
+    "ephemeris_mode": "SWIEPH",
+    "zodiac_mode": "tropical",
+    "house_system_used": {
+      "person_a": "placidus",
+      "person_b": "placidus"
+    },
+    "orb_policy_id": "synastry-orbs-v1",
+    "weighting_id": "synastry-weights-v1",
+    "base_weighting_id": "body-tier-q0.3-v1",
+    "mapping_version": "sign-element-consensus-v1",
+    "warnings": []
+  },
+  "subjects": {
+    "person_a": {
+      "display_label": "A.",
+      "birth_time_known": true
+    },
+    "person_b": {
+      "display_label": "B.",
+      "birth_time_known": true
+    }
+  }
+}
