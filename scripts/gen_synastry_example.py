@@ -6,6 +6,9 @@ label:
 
     SE_EPHE_PATH=/tmp/ephe python scripts/gen_synastry_example.py
     SE_EPHE_PATH=/tmp/ephe python scripts/gen_synastry_example.py --check   # exit 1 when stale
+
+Exit codes: 0 = written / up to date, 1 = stale (--check), 2 = no SWIEPH,
+3 = the request to the app failed (not the same as stale).
 """
 from __future__ import annotations
 
@@ -17,6 +20,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # scripts/ is sys.path[0]; the package need not be installed
+
 EXAMPLES = ROOT / "docs" / "relationship" / "examples"
 REQUEST_FILE = EXAMPLES / "synastry_example_request.json"
 RESPONSE_FILE = EXAMPLES / "synastry_example_response.json"
@@ -31,6 +36,10 @@ REQUEST: Dict[str, Any] = {
 }
 
 
+class BuildError(Exception):
+    """The live app did not return 200 for the example request."""
+
+
 def _dump(obj: Any) -> str:
     return json.dumps(obj, indent=2, ensure_ascii=False) + "\n"
 
@@ -42,7 +51,7 @@ def build_response() -> str:
 
     resp = TestClient(app).post("/v1/relationship/synastry", json=REQUEST)
     if resp.status_code != 200:
-        raise SystemExit(f"synastry request failed: {resp.status_code} {resp.text}")
+        raise BuildError(f"synastry request failed: {resp.status_code} {resp.text}")
     return _dump(resp.json())
 
 
@@ -53,7 +62,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not os.environ.get("SE_EPHE_PATH") or os.environ.get("EPHEMERIS_MODE", "SWIEPH").upper() != "SWIEPH":
         print("needs SE_EPHE_PATH and SWIEPH (the example documents the real ephemeris)", file=sys.stderr)
         return 2
-    request_text, response_text = _dump(REQUEST), build_response()
+    try:
+        request_text, response_text = _dump(REQUEST), build_response()
+    except BuildError as exc:
+        print(str(exc), file=sys.stderr)
+        return 3
     if args.check:
         stale = [p.name for p, text in ((REQUEST_FILE, request_text), (RESPONSE_FILE, response_text))
                  if not p.exists() or p.read_text(encoding="utf-8") != text]

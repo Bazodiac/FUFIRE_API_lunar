@@ -20,8 +20,7 @@ Code: `bazi_engine/synastry/` (Level 4, pure) and `bazi_engine/routers/relations
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `person_a`, `person_b` | object, required | `date` (local ISO 8601), `tz` (IANA), `lon`, `lat` — all **required**, no Berlin default; `ambiguousTime` (`earlier`/`later`), `nonexistentTime` (`error`/`shift_forward`), `birth_time_known` (default `true`), optional `display_label` |
-| `display_label` | string, optional | first name or initial, max 40 characters, letters with single inner `space . ' -`; no digits, no `@`. Echoed in `subjects`, never logged |
+| `person_a`, `person_b` | object, required | `date` (local ISO 8601), `tz` (IANA), `lon`, `lat` — all **required**, no Berlin default; `ambiguousTime` (`earlier`/`later`), `nonexistentTime` (`error`/`shift_forward`), `birth_time_known` (default `true`), optional `display_label` (first name or initial, max 40 characters, letters with single inner `space . ' -`; no digits, no `@`; echoed in `subjects`, never logged) |
 | `options.second_person_consent_confirmed` | bool, required | absent → 422 `validation_error`; `false` → 422 `consent_required`. The decision is logged as a hash with the request id only |
 
 Unknown keys anywhere (e.g. `zodiac_mode`) are rejected with 422.
@@ -96,6 +95,8 @@ Both are generated, never hand-edited:
 SE_EPHE_PATH=/tmp/ephe python scripts/gen_synastry_example.py          # write
 SE_EPHE_PATH=/tmp/ephe python scripts/gen_synastry_example.py --check  # exit 1 when stale
 ```
+
+Exit codes: 0 ok, 1 stale, 2 no SWIEPH, 3 the request to the app failed.
 
 `tests/test_synastry_example.py` (swieph) fails when the example drifts from the live
 output — regenerate after any synastry change or engine build-label bump.
