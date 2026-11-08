@@ -18,9 +18,10 @@ Two engines live here: the mature BaZi/Western fusion engine, and a second, inde
 ### Repo Lineage & Branches
 
 - This repo (DYAI2025/FUFIRE_API_lunar) is a fresh "Lunar" cut of the canonical DYAI2025/FuFirE repo. Git history starts at `fe8f019` ("Initial commit" — the `bootstrap-sha` in `release-please-config.json`). CHANGELOG entries ≤ 1.5.0 link to commits in the **upstream** repo; those SHAs do not exist here — a failing `git show` on them is not corruption.
-- **`master` is the default branch; deployment is not branch-driven.** CI runs on both master and main (commit 9d19a3e). `main` is a periodically synced mirror, currently behind master.
-- **Observed runtime (read 2026-10-18):** the only reachable live engine is a Docker container on the Hostinger VPS, `https://srv1308064.hstgr.cloud/lunar` (nginx `/lunar/` → `127.0.0.1:8110`). It reports engine label `1.0.0-rc1-20260220`, has no `source_revision` in `/build`, and serves the pre-ETBZ-35 OpenAPI (SHA-256 `6c1db672…f8da`), i.e. code older than #45 and without the TLST fixes #56–#64. It is rebuilt from an exact SHA behind human gates (Confluence ETBZ page 60784641, Gate B cutover not authorized). All known Railway hostnames (`bafe-production`, `fufireapilive-production`, `api.fufire.space`) return Railway's `Application not found` edge 404, the same as a made-up host. **Decided 2026-10-19 (REC-2026-10-18-01 = A, `docs/adr/ADR-006-deployment-target-vps.md`): the VPS is the only deployment target; Railway is not a target.** A merge or push deploys nothing; promotion to the VPS runs through the ETBZ human gates and is verified by readback.
-- The master→main normalization is TASK-002 (`docs/plans/2026-07-21-fufire-api-lunar-release-readiness.md`); its three-phase procedure (repo PR → GitHub admin switch, no runtime step per ADR-006 → cleanup PR) is `docs/runbooks/default-branch-migration.md`, and `tests/test_release_workflow_contract.py` pins the transitional wiring (`CANONICAL_BRANCH`/`TRANSITIONAL_BRANCHES`). Next release is fixed at 1.6.0.
+- **`master` is the default branch and the deploy branch.** Every push to `master` is built and deployed to production by Northflank (next bullet). CI runs on both master and main (commit 9d19a3e). `main` is a periodically synced mirror, currently behind master.
+- **Live target (verified 2026-11-08): Northflank** — team `dyai2026s-team`, project `fufireapi`, service `fufire-api-lunar`. The service builds and deploys every push to `master` automatically (Northflank UI: "Always deploying latest builds from the branch master"; `GET /build` reports `source_revision_provider=northflank`). **A push or merge to `master` is a production deploy:** never push to `master` without Ben's explicit approval, and verify the live commit afterwards via `GET /build` → `source_revision`.
+- **Superseded runtime notes:** on 2026-10-18 the only reachable engine was a Docker container on the Hostinger VPS (`https://srv1308064.hstgr.cloud/lunar`, nginx `/lunar/` → `127.0.0.1:8110`, engine label `1.0.0-rc1-20260220`, rebuilt from an exact SHA behind the ETBZ human gates, Confluence ETBZ 60784641); its current state was not re-checked. `docs/adr/ADR-006-deployment-target-vps.md` (decided 2026-10-19, REC-2026-10-18-01 = A) still names that VPS as the only target; it predates the Northflank evidence and has not been updated yet — on conflict, the verified Northflank behaviour above wins. Railway is not a target: all known Railway hostnames (`bafe-production`, `fufireapilive-production`, `api.fufire.space`) return Railway's `Application not found` edge 404, the same as a made-up host.
+- The master→main normalization is TASK-002 (`docs/plans/2026-07-21-fufire-api-lunar-release-readiness.md`); its three-phase procedure (repo PR → GitHub admin switch → cleanup PR; Northflank builds from `master`, so a default-branch switch must move the Northflank build branch in the same step) is `docs/runbooks/default-branch-migration.md`, and `tests/test_release_workflow_contract.py` pins the transitional wiring (`CANONICAL_BRANCH`/`TRANSITIONAL_BRANCHES`). Next release is fixed at 1.6.0.
 
 ### Versioning (two independent axes)
 
@@ -35,7 +36,7 @@ Task-progress source of truth: **`3-code/tasks.md`** (TASK-* and FBP-* status ta
 - **BAZI-PRECISION-V2** (44 tasks, phased, test-first, review-gated): Phase 0 ✅ 8/8; Phase 1 ✅ 5/5 (Effective Time Model CIVIL/LMT/TLST); Phase 2 — 2/8 (FBP-02-002/003/007 need domain reviewer — DEV-2026-004); Phase 3 — 5/6 done (only FBP-03-006 open); Phases 4–7 not started.
 - Recently shipped (CHANGELOG 1.1.0–1.5.0, July 2026): dayun solar-years + interpretation, ZWDS core-seed natal engine, natal-analysis endpoint, canonical BaZi Wu-Xing endpoint, release-readiness work toward 1.6.0.
 
-> ⚠️ **Stale sibling docs:** `AGENTS.md`, `SDLC.md`, and `ARCHITECTURE_DE.md` are outdated snapshots (Fly.io deploy targets, pre-router-refactor architecture, wrong webhook paths, 3-of-4 ephemeris files). Fly.io is decommissioned. `railway.toml`, `CNAME` and Railway wording in code and docs are leftovers; Railway is not a deployment target (ADR-006). On any conflict, this file plus the repo itself win.
+> ⚠️ **Stale sibling docs:** `AGENTS.md`, `SDLC.md`, and `ARCHITECTURE_DE.md` are outdated snapshots (Fly.io deploy targets, pre-router-refactor architecture, wrong webhook paths, 3-of-4 ephemeris files). Fly.io is decommissioned. `railway.toml`, `CNAME` and Railway wording in code and docs are leftovers; Railway is not a deployment target — the live target is Northflank (see Repo Lineage & Branches). On any conflict, this file plus the repo itself win.
 
 ## Development Commands
 
@@ -78,11 +79,11 @@ SE_EPHE_PATH=/tmp/ephe python scripts/tlst_grid_check.py   # 18k-sample TLST gri
 # Docker — FUFIRE_ENV is mandatory (image bakes FUFIRE_REQUIRE_EXPLICIT_ENV=1; omitting it crashes startup)
 docker build -t bazi_engine . && docker run -e FUFIRE_ENV=dev -p 8080:8080 bazi_engine
 
-# Deploy: NOT a git push. The observed production engine (Hostinger VPS, see Repo Lineage & Branches) is
-# rebuilt from an exact SHA behind human gates (Confluence ETBZ 60784641); `git push origin master` deploys
-# nothing. railway.toml is a leftover: Railway is not a deployment target (ADR-006).
+# Deploy: a push to master IS a production deploy. Northflank (team dyai2026s-team, project fufireapi,
+# service fufire-api-lunar) builds and deploys every push to master automatically (verified 2026-11-08).
+# Never push or merge to master without Ben's explicit approval. railway.toml is a leftover: Railway is not a target.
 # Readiness probe = GET /ready (503 when a required dependency is degraded); /health = liveness only
-# Verify the live commit after deploy: GET /build → `source_revision` (since #45; the current VPS build predates it)
+# Verify the live commit after deploy: GET /build → `source_revision` (and `source_revision_provider=northflank`)
 ```
 
 ### Dependency & Toolchain Lock Contract (fail-closed)
@@ -280,7 +281,7 @@ Mechanics:
 
 ## Deployment Runtime
 
-- `start.py` (repo root) is the Docker `CMD` entrypoint. Whether the VPS container overrides the command is not evidenced in this repository. `railway.toml`'s inline uvicorn `startCommand` is a leftover (ADR-006); keep it equivalent until the Railway cleanup slice removes it.
+- `start.py` (repo root) is the Docker `CMD` entrypoint. Whether the Northflank service overrides the command is not evidenced in this repository. `railway.toml`'s inline uvicorn `startCommand` is a leftover (Railway is not a target); keep it equivalent until the Railway cleanup slice removes it.
 - 3-stage Dockerfile: **ephe** (fetch + SHA-verify ephemeris) → **builder** (compiles pyswisseph from sdist, installs `uv export --frozen --require-hashes` deps, builds the wheel, gates it with `verify_distribution.py`) → **runtime** (source-free, non-root uid 10001: only site-packages, ephemeris, the lock, and start.py). There is no repo checkout in the image — anything needed at runtime must be package-data under `bazi_engine/` and pass `verify_distribution.py`.
 - The top-level `config/` directory is Plumbline SDLC gate tooling, **not** runtime/deployment configuration — nothing in `bazi_engine` or the Docker build reads it.
 

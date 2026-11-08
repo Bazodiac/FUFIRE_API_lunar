@@ -1,6 +1,6 @@
 # ADR-006: Deployment target for the Lunar engine is the Hostinger VPS only
 
-- Status: accepted
+- Status: Superseded (2026-11-08) – Live-Ziel ist Northflank, siehe CLAUDE.md
 - Date: 2026-10-19
 - Decided by: Product Owner (Ben), answer "alles VPS" to REC-2026-10-18-01
 - Related: TASK-002 (`docs/runbooks/default-branch-migration.md`), LR-001, FUF-107, Confluence ETBZ page 60784641
