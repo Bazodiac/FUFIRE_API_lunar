@@ -4,6 +4,7 @@ Level 4. Pure functions over two ``compute_western_chart`` results: no
 ephemeris calls, no BaZi, no routers. No interpretation and no score.
 Decisions: docs/superpowers/specs/2026-11-08-synastry-g1-design.md.
 """
+from .engine import SynastryPersonInput, compute_synastry
 from .factors import extract_factors
 from .policy import (
     FACTOR_ORDER,
@@ -20,6 +21,8 @@ __all__ = [
     "SYNASTRY_ASPECTS",
     "SYNASTRY_ORB_POLICY_ID",
     "SYNASTRY_WEIGHTING_ID",
+    "SynastryPersonInput",
+    "compute_synastry",
     "extract_factors",
     "factor_weight",
 ]
