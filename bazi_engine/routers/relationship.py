@@ -61,14 +61,21 @@ class SynastryPerson(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    date: str = Field(..., description="Local ISO8601 datetime")
+    date: str = Field(..., description=(
+        "Local ISO 8601 datetime. With birth_time_known=false only the calendar date (YYYY-MM-DD) is used: "
+        "the chart is computed at local 12:00:00 and any time part is discarded."
+    ))
     tz: str = Field(..., description="IANA timezone name")
     lon: float = Field(..., ge=-180.0, le=180.0, description="Longitude in degrees")
     lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude in degrees")
     ambiguousTime: AmbiguousTimeChoice = Field("earlier")
     nonexistentTime: NonexistentTimePolicy = Field("error")
     birth_time_known: bool = Field(
-        True, description="False if the birth time is unknown: no ascendant, MC or houses for this person.",
+        True, description=(
+            "False if the birth time is unknown: the chart uses the assumed local time 12:00:00 "
+            "(subjects.*.assumed_local_time); no ascendant, MC or houses for this person; "
+            "the Moon's day range is reported."
+        ),
     )
     display_label: Optional[str] = Field(
         None, min_length=1, max_length=40, pattern=_LABEL_PATTERN,
@@ -216,18 +223,19 @@ class SynastryResponse(BaseModel):
     subjects: SynastrySubjects
 
 # ── Handler ──────────────────────────────────────────────────────────────────
-def _chart_at(local_iso: str, person: SynastryPerson) -> Dict[str, Any]:
-    dt_local, _ = resolve_local_iso(
-        local_iso, person.tz, ambiguous=person.ambiguousTime, nonexistent=person.nonexistentTime,
-    )
+def _chart_at(local_iso: str, person: SynastryPerson, *, nonexistent: NonexistentTimePolicy) -> Dict[str, Any]:
+    dt_local, _ = resolve_local_iso(local_iso, person.tz, ambiguous=person.ambiguousTime, nonexistent=nonexistent)
     return compute_western_chart(dt_local.astimezone(timezone.utc), person.lat, person.lon)
 
 def _person_input(person: SynastryPerson) -> SynastryPersonInput:
     if person.birth_time_known:
-        return SynastryPersonInput(chart=_chart_at(person.date, person), birth_time_known=True)
+        chart = _chart_at(person.date, person, nonexistent=person.nonexistentTime)
+        return SynastryPersonInput(chart=chart, birth_time_known=True)
     # D14: the calendar day is authoritative; the supplied clock time is never used.
     day, time_discarded = unknown_time_day(person.date)
-    chart = _chart_at(f"{day}T{UNKNOWN_TIME_ASSUMED_LOCAL}", person)
+    # When local 12:00:00 does not exist (e.g. a skipped calendar day), shifting it
+    # would make assumed_local_time false: always a DST error, whatever nonexistentTime says.
+    chart = _chart_at(f"{day}T{UNKNOWN_TIME_ASSUMED_LOCAL}", person, nonexistent="error")
     start, end = (
         _moon_at(f"{day}T{hms}", person, ambiguous=amb, nonexistent=gap)
         for hms, (amb, gap) in zip(MOON_RANGE_LOCAL_TIMES, MOON_RANGE_DST_POLICIES)

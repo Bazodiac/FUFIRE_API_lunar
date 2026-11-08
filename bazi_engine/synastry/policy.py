@@ -11,6 +11,8 @@ tier 1 like the ascendant (D2). The Fusion table itself is not changed.
 from __future__ import annotations
 
 import re
+from datetime import date as _date
+from datetime import datetime as _datetime
 from typing import Dict, Final, Tuple
 
 from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy
@@ -86,10 +88,20 @@ _DAY_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 def unknown_time_day(date: str) -> Tuple[str, bool]:
     """Calendar day ``YYYY-MM-DD`` of ``date`` and whether a time part followed it.
 
-    The error message never contains the value (it is birth data).
+    The day must be a real calendar date; a time part, although discarded, must
+    still be a valid ISO 8601 datetime (an offset or ``Z`` is allowed). The error
+    message never contains the value (it is birth data), and the parser's own
+    message (which quotes the input) is not chained.
     """
     text = date.strip()
     day = text[:10]
-    if not _DAY_PREFIX.match(day):
-        raise ValueError("date must start with YYYY-MM-DD")
+    try:
+        if not _DAY_PREFIX.match(day):
+            raise ValueError
+        _date.fromisoformat(day)
+        if len(text) > 10:
+            # Python 3.10's fromisoformat does not read a trailing "Z".
+            _datetime.fromisoformat(text[:-1] + "+00:00" if text[-1] in "Zz" else text)
+    except ValueError:
+        raise ValueError("date must be YYYY-MM-DD, optionally followed by a valid ISO 8601 time part") from None
     return day, len(text) > 10

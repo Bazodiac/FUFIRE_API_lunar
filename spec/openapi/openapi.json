@@ -13243,7 +13243,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "Local ISO8601 datetime"
+            "description": "Local ISO 8601 datetime. With birth_time_known=false only the calendar date (YYYY-MM-DD) is used: the chart is computed at local 12:00:00 and any time part is discarded."
           },
           "tz": {
             "type": "string",
@@ -13285,7 +13285,7 @@
           "birth_time_known": {
             "type": "boolean",
             "title": "Birth Time Known",
-            "description": "False if the birth time is unknown: no ascendant, MC or houses for this person.",
+            "description": "False if the birth time is unknown: the chart uses the assumed local time 12:00:00 (subjects.*.assumed_local_time); no ascendant, MC or houses for this person; the Moon's day range is reported.",
             "default": true
           },
           "display_label": {

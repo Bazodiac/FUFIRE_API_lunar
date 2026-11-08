@@ -55,10 +55,21 @@ def test_unknown_time_day(date: str, expected: tuple) -> None:
     assert unknown_time_day(date) == expected
 
 
-@pytest.mark.parametrize("date", ["15.06.1990", "1990-1-5", "", "19900105"])
+@pytest.mark.parametrize("date, expected", [
+    ("1990-01-05T23:50:00+05:00", ("1990-01-05", True)),
+    ("1990-01-05T23:50:00Z", ("1990-01-05", True)),
+])
+def test_unknown_time_day_accepts_offset_and_utc_suffixes(date: str, expected: tuple) -> None:
+    assert unknown_time_day(date) == expected
+
+
+@pytest.mark.parametrize("date", [
+    "15.06.1990", "1990-1-5", "", "19900105", "1990-02-30", "1990-01-05XYZ", "1990-01-05T99:99",
+])
 def test_unknown_time_day_rejects_a_date_without_the_day_prefix(date: str) -> None:
-    with pytest.raises(ValueError, match="date must start with YYYY-MM-DD"):
+    with pytest.raises(ValueError) as excinfo:
         unknown_time_day(date)
+    assert date == "" or date not in str(excinfo.value)
 
 
 # ── HTTP boundary ────────────────────────────────────────────────────────────
@@ -115,10 +126,41 @@ def test_subjects_carry_the_assumption() -> None:
     assert out["subjects"]["person_a"]["assumption_reason"] is None
 
 
-@pytest.mark.parametrize("date", ["15.06.1990", "1990-6-15T10:00:00"])
+@pytest.mark.parametrize("date", [
+    "15.06.1990", "1990-6-15T10:00:00", "1990-02-30", "1990-01-05XYZ", "1990-01-05T99:99",
+])
 def test_malformed_date_with_unknown_time_is_a_validation_error(date: str) -> None:
     resp = client.post(SYNASTRY_PATH, json=request_with(person_b={"date": date, "birth_time_known": False}))
     assert resp.status_code == 422
     assert resp.json()["error"] == "validation_error"
     assert date not in resp.text
     assert "1990" not in resp.text
+
+
+@pytest.mark.parametrize("suffix", ["T23:50:00+05:00", "T23:50:00Z"])
+def test_offset_and_utc_time_parts_are_discarded_like_any_other(suffix: str) -> None:
+    def moon_b(date: str) -> Dict[str, Any]:
+        return _moon_of(_post(request_with(person_b={**BERLIN, "date": date, "birth_time_known": False})), "person_b")
+    assert moon_b(DAY_CHANGE_DATE + suffix) == moon_b(DAY_CHANGE_DATE)
+
+
+def test_skipped_calendar_day_is_a_dst_error_whatever_the_policy() -> None:
+    # Samoa skipped 2011-12-30 entirely: local 12:00:00 of that day never existed.
+    person = {"date": "2011-12-30", "tz": "Pacific/Apia", "lon": -171.7513, "lat": -13.8333,
+              "birth_time_known": False, "nonexistentTime": "shift_forward"}
+    resp = client.post(SYNASTRY_PATH, json=request_with(person_b=person))
+    assert resp.status_code == 422
+    assert resp.json()["error"] == "dst_time_error"
+    assert "2011-12-30" not in resp.text and "Pacific/Apia" not in resp.text
+
+
+def test_request_schema_documents_the_noon_rule() -> None:
+    props = app.openapi()["components"]["schemas"]["SynastryPerson"]["properties"]
+    assert props["date"]["description"] == (
+        "Local ISO 8601 datetime. With birth_time_known=false only the calendar date (YYYY-MM-DD) is used: "
+        "the chart is computed at local 12:00:00 and any time part is discarded."
+    )
+    assert props["birth_time_known"]["description"] == (
+        "False if the birth time is unknown: the chart uses the assumed local time 12:00:00 "
+        "(subjects.*.assumed_local_time); no ascendant, MC or houses for this person; the Moon's day range is reported."
+    )
