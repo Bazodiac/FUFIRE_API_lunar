@@ -528,6 +528,14 @@
     true
   ],
   [
+    "/v1/relationship/synastry",
+    [
+      "POST"
+    ],
+    true,
+    true
+  ],
+  [
     "/v1/transit/narrative",
     [
       "POST"

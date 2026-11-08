@@ -7291,6 +7291,126 @@
         ]
       }
     },
+    "/v1/relationship/synastry": {
+      "post": {
+        "tags": [
+          "Relationship"
+        ],
+        "summary": "Synastry Endpoint",
+        "description": "Western synastry facts for two people: cross aspects (synastry-orbs-v1), house overlays, sign layer and its Wu-Xing translation (sign-element-consensus-v1). Deterministic; no interpretation and no compatibility rating of any kind. Second-person consent is required; birth data is never logged or persisted.",
+        "operationId": "synastry_endpoint_v1_relationship_synastry_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SynastryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SynastryResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "UUID correlation ID — client-provided value is echoed when present.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "X-API-Version": {
+                "description": "Engine build version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Response-Time-ms": {
+                "description": "Server processing time in milliseconds.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Requests per minute allowed for the key's tier. `unlimited` for enterprise.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining quota in the current window. Currently reflects the full tier limit (persistent per-key counters are not yet implemented).",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests — rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable — ephemeris or external dependency not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
     "/v2/astronomy/lunar-state": {
       "post": {
         "tags": [
@@ -12929,6 +13049,691 @@
         "title": "SuperglueProxyResponse",
         "description": "Open-ended response model for Superglue proxy endpoints.\n\nThe actual fields depend on the Superglue hook configuration and may vary.\nUsing ``extra=\"allow\"`` ensures all upstream fields pass through without\nfiltering while still producing a typed ``$ref`` in the OpenAPI schema."
       },
+      "SynastryAspect": {
+        "properties": {
+          "from_person": {
+            "type": "string",
+            "enum": [
+              "person_a",
+              "person_b"
+            ],
+            "title": "From Person"
+          },
+          "from_factor": {
+            "type": "string",
+            "title": "From Factor"
+          },
+          "to_person": {
+            "type": "string",
+            "enum": [
+              "person_a",
+              "person_b"
+            ],
+            "title": "To Person"
+          },
+          "to_factor": {
+            "type": "string",
+            "title": "To Factor"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "conjunction",
+              "sextile",
+              "square",
+              "trine",
+              "opposition"
+            ],
+            "title": "Type"
+          },
+          "exact_angle": {
+            "type": "number",
+            "title": "Exact Angle"
+          },
+          "orb": {
+            "type": "number",
+            "title": "Orb",
+            "description": "Deviation from the exact angle in degrees (4 dp)"
+          },
+          "exact": {
+            "type": "boolean",
+            "title": "Exact",
+            "description": "True when the orb is at most half the orb limit"
+          },
+          "from_weight": {
+            "type": "number",
+            "title": "From Weight"
+          },
+          "to_weight": {
+            "type": "number",
+            "title": "To Weight"
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight",
+            "description": "from_weight × to_weight (tier weights, synastry-weights-v1)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_person",
+          "from_factor",
+          "to_person",
+          "to_factor",
+          "type",
+          "exact_angle",
+          "orb",
+          "exact",
+          "from_weight",
+          "to_weight",
+          "weight"
+        ],
+        "title": "SynastryAspect"
+      },
+      "SynastryHouseOverlay": {
+        "properties": {
+          "factor": {
+            "type": "string",
+            "title": "Factor"
+          },
+          "house": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 12.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "House"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable_missing_time"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "factor",
+          "status"
+        ],
+        "title": "SynastryHouseOverlay"
+      },
+      "SynastryHouseOverlays": {
+        "properties": {
+          "a_in_b": {
+            "items": {
+              "$ref": "#/components/schemas/SynastryHouseOverlay"
+            },
+            "type": "array",
+            "title": "A In B"
+          },
+          "b_in_a": {
+            "items": {
+              "$ref": "#/components/schemas/SynastryHouseOverlay"
+            },
+            "type": "array",
+            "title": "B In A"
+          }
+        },
+        "type": "object",
+        "required": [
+          "a_in_b",
+          "b_in_a"
+        ],
+        "title": "SynastryHouseOverlays"
+      },
+      "SynastryHouseSystems": {
+        "properties": {
+          "person_a": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person A"
+          },
+          "person_b": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person B"
+          }
+        },
+        "type": "object",
+        "title": "SynastryHouseSystems"
+      },
+      "SynastryOptions": {
+        "properties": {
+          "second_person_consent_confirmed": {
+            "type": "boolean",
+            "title": "Second Person Consent Confirmed",
+            "description": "Confirms the second person has agreed to their birth data being used for this one-off synastry. Required: the request is rejected when this is false or absent. No data is persisted."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "second_person_consent_confirmed"
+        ],
+        "title": "SynastryOptions"
+      },
+      "SynastryPerson": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "description": "Local ISO8601 datetime"
+          },
+          "tz": {
+            "type": "string",
+            "title": "Tz",
+            "description": "IANA timezone name"
+          },
+          "lon": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Lon",
+            "description": "Longitude in degrees"
+          },
+          "lat": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Lat",
+            "description": "Latitude in degrees"
+          },
+          "ambiguousTime": {
+            "type": "string",
+            "enum": [
+              "earlier",
+              "later"
+            ],
+            "title": "Ambiguoustime",
+            "default": "earlier"
+          },
+          "nonexistentTime": {
+            "type": "string",
+            "enum": [
+              "error",
+              "shift_forward"
+            ],
+            "title": "Nonexistenttime",
+            "default": "error"
+          },
+          "birth_time_known": {
+            "type": "boolean",
+            "title": "Birth Time Known",
+            "description": "False if the birth time is unknown: no ascendant, MC or houses for this person.",
+            "default": true
+          },
+          "display_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1,
+                "pattern": "^[^\\W\\d_]+(?:[ .'\\-][^\\W\\d_]+)*\\.?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Label",
+            "description": "Optional first name or initial, echoed in `subjects`. Never logged."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "tz",
+          "lon",
+          "lat"
+        ],
+        "title": "SynastryPerson",
+        "description": "One person — the /calculate/western birth fields, but date/tz/lon/lat are required (D5)."
+      },
+      "SynastryProvenance": {
+        "properties": {
+          "engine_version": {
+            "type": "string",
+            "title": "Engine Version"
+          },
+          "ephemeris_mode": {
+            "type": "string",
+            "title": "Ephemeris Mode"
+          },
+          "zodiac_mode": {
+            "type": "string",
+            "const": "tropical",
+            "title": "Zodiac Mode"
+          },
+          "house_system_used": {
+            "$ref": "#/components/schemas/SynastryHouseSystems"
+          },
+          "orb_policy_id": {
+            "type": "string",
+            "title": "Orb Policy Id"
+          },
+          "weighting_id": {
+            "type": "string",
+            "title": "Weighting Id"
+          },
+          "base_weighting_id": {
+            "type": "string",
+            "title": "Base Weighting Id"
+          },
+          "mapping_version": {
+            "type": "string",
+            "title": "Mapping Version"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/SynastryWarning"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "engine_version",
+          "ephemeris_mode",
+          "zodiac_mode",
+          "house_system_used",
+          "orb_policy_id",
+          "weighting_id",
+          "base_weighting_id",
+          "mapping_version",
+          "warnings"
+        ],
+        "title": "SynastryProvenance"
+      },
+      "SynastryRequest": {
+        "properties": {
+          "person_a": {
+            "$ref": "#/components/schemas/SynastryPerson"
+          },
+          "person_b": {
+            "$ref": "#/components/schemas/SynastryPerson"
+          },
+          "options": {
+            "$ref": "#/components/schemas/SynastryOptions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "person_a",
+          "person_b",
+          "options"
+        ],
+        "title": "SynastryRequest",
+        "example": {
+          "options": {
+            "second_person_consent_confirmed": true
+          },
+          "person_a": {
+            "date": "1990-06-15T14:30:00",
+            "display_label": "A.",
+            "lat": 52.52,
+            "lon": 13.405,
+            "tz": "Europe/Berlin"
+          },
+          "person_b": {
+            "date": "1992-11-03T08:15:00",
+            "display_label": "B.",
+            "lat": 48.2082,
+            "lon": 16.3738,
+            "tz": "Europe/Vienna"
+          }
+        }
+      },
+      "SynastryResponse": {
+        "properties": {
+          "aspects": {
+            "items": {
+              "$ref": "#/components/schemas/SynastryAspect"
+            },
+            "type": "array",
+            "title": "Aspects"
+          },
+          "house_overlays": {
+            "$ref": "#/components/schemas/SynastryHouseOverlays"
+          },
+          "sign_layer": {
+            "$ref": "#/components/schemas/SynastrySignLayer"
+          },
+          "wuxing_pair_factors": {
+            "$ref": "#/components/schemas/SynastryWuXingPairFactors"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/SynastryProvenance"
+          },
+          "subjects": {
+            "$ref": "#/components/schemas/SynastrySubjects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "aspects",
+          "house_overlays",
+          "sign_layer",
+          "wuxing_pair_factors",
+          "provenance",
+          "subjects"
+        ],
+        "title": "SynastryResponse"
+      },
+      "SynastrySignFactor": {
+        "properties": {
+          "factor": {
+            "type": "string",
+            "title": "Factor"
+          },
+          "sign": {
+            "type": "string",
+            "title": "Sign"
+          },
+          "sign_index": {
+            "type": "integer",
+            "maximum": 11.0,
+            "minimum": 0.0,
+            "title": "Sign Index"
+          },
+          "west_element": {
+            "type": "string",
+            "enum": [
+              "Feuer",
+              "Erde",
+              "Luft",
+              "Wasser"
+            ],
+            "title": "West Element"
+          },
+          "degree": {
+            "type": "number",
+            "title": "Degree"
+          }
+        },
+        "type": "object",
+        "required": [
+          "factor",
+          "sign",
+          "sign_index",
+          "west_element",
+          "degree"
+        ],
+        "title": "SynastrySignFactor"
+      },
+      "SynastrySignFactors": {
+        "properties": {
+          "person_a": {
+            "items": {
+              "$ref": "#/components/schemas/SynastrySignFactor"
+            },
+            "type": "array",
+            "title": "Person A"
+          },
+          "person_b": {
+            "items": {
+              "$ref": "#/components/schemas/SynastrySignFactor"
+            },
+            "type": "array",
+            "title": "Person B"
+          }
+        },
+        "type": "object",
+        "required": [
+          "person_a",
+          "person_b"
+        ],
+        "title": "SynastrySignFactors"
+      },
+      "SynastrySignLayer": {
+        "properties": {
+          "factors": {
+            "$ref": "#/components/schemas/SynastrySignFactors"
+          },
+          "pairs": {
+            "items": {
+              "$ref": "#/components/schemas/SynastrySignPair"
+            },
+            "type": "array",
+            "title": "Pairs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "factors",
+          "pairs"
+        ],
+        "title": "SynastrySignLayer"
+      },
+      "SynastrySignPair": {
+        "properties": {
+          "factor_a": {
+            "type": "string",
+            "title": "Factor A"
+          },
+          "factor_b": {
+            "type": "string",
+            "title": "Factor B"
+          },
+          "sign_relation": {
+            "type": "string",
+            "enum": [
+              "same_sign",
+              "semi_sextile",
+              "sextile",
+              "square",
+              "trine",
+              "quincunx",
+              "opposition"
+            ],
+            "title": "Sign Relation"
+          },
+          "element_relation": {
+            "type": "string",
+            "enum": [
+              "same",
+              "complementary",
+              "other"
+            ],
+            "title": "Element Relation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "factor_a",
+          "factor_b",
+          "sign_relation",
+          "element_relation"
+        ],
+        "title": "SynastrySignPair"
+      },
+      "SynastrySubject": {
+        "properties": {
+          "display_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Label"
+          },
+          "birth_time_known": {
+            "type": "boolean",
+            "title": "Birth Time Known"
+          }
+        },
+        "type": "object",
+        "required": [
+          "birth_time_known"
+        ],
+        "title": "SynastrySubject"
+      },
+      "SynastrySubjects": {
+        "properties": {
+          "person_a": {
+            "$ref": "#/components/schemas/SynastrySubject"
+          },
+          "person_b": {
+            "$ref": "#/components/schemas/SynastrySubject"
+          }
+        },
+        "type": "object",
+        "required": [
+          "person_a",
+          "person_b"
+        ],
+        "title": "SynastrySubjects"
+      },
+      "SynastryWarning": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "birth_time_unknown",
+              "house_system_fallback"
+            ],
+            "title": "Code"
+          },
+          "person": {
+            "type": "string",
+            "enum": [
+              "person_a",
+              "person_b"
+            ],
+            "title": "Person"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "person",
+          "detail"
+        ],
+        "title": "SynastryWarning"
+      },
+      "SynastryWuXingFactor": {
+        "properties": {
+          "factor": {
+            "type": "string",
+            "title": "Factor"
+          },
+          "west_element": {
+            "type": "string",
+            "enum": [
+              "Feuer",
+              "Erde",
+              "Luft",
+              "Wasser"
+            ],
+            "title": "West Element"
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight"
+          },
+          "vector": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Vector"
+          }
+        },
+        "type": "object",
+        "required": [
+          "factor",
+          "west_element",
+          "weight",
+          "vector"
+        ],
+        "title": "SynastryWuXingFactor"
+      },
+      "SynastryWuXingPairFactors": {
+        "properties": {
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Order"
+          },
+          "person_a": {
+            "$ref": "#/components/schemas/SynastryWuXingPerson"
+          },
+          "person_b": {
+            "$ref": "#/components/schemas/SynastryWuXingPerson"
+          },
+          "mapping_version": {
+            "type": "string",
+            "title": "Mapping Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order",
+          "person_a",
+          "person_b",
+          "mapping_version"
+        ],
+        "title": "SynastryWuXingPairFactors"
+      },
+      "SynastryWuXingPerson": {
+        "properties": {
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/SynastryWuXingFactor"
+            },
+            "type": "array",
+            "title": "Factors"
+          },
+          "vector": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Vector",
+            "description": "Tier-weighted mean, sums to 1"
+          }
+        },
+        "type": "object",
+        "required": [
+          "factors",
+          "vector"
+        ],
+        "title": "SynastryWuXingPerson"
+      },
       "SystemViews": {
         "properties": {
           "raw": {
@@ -15364,6 +16169,10 @@
     {
       "name": "Hehun",
       "description": "Deterministic BaZi-Hehun pair-chart analysis (合婚). Returns raw, source-labelled facts — the three MVP pair layers (day-master comparison, spouse-palace/day-branch, Wu-Xing vector comparison), per-person individual analysis and an evidence ledger. No compatibility rating of any kind is computed or returned; server-side consent is required and birth data is never echoed or persisted."
+    },
+    {
+      "name": "Relationship",
+      "description": "Western synastry for two people: cross aspects (orb policy synastry-orbs-v1), house overlays gated on the house owner's birth time, the sign layer and its Wu-Xing translation via the consensus matrix sign-element-consensus-v1. Deterministic raw facts — no interpretation and no compatibility rating of any kind; second-person consent is required and birth data is never logged or persisted."
     },
     {
       "name": "ZWDS",
