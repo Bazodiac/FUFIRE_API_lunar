@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc10-20261107"
+    "version": "1.0.0-rc11-20261111"
   },
   "paths": {
     "/": {
@@ -10191,7 +10191,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc10-20261107"
+          "version": "1.0.0-rc11-20261111"
         }
       },
       "HourDerivationTrace": {

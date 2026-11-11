@@ -196,7 +196,7 @@ def _patch_validate_routes(schema: dict[str, Any]) -> None:
 
 def _add_response_examples(all_schemas: dict[str, Any]) -> None:
     examples = {
-        "HealthResponse": {"status": "ok", "version": "1.0.0-rc10-20261107"},
+        "HealthResponse": {"status": "ok", "version": "1.0.0-rc11-20261111"},
         "ErrorEnvelope": {
             "error": "validation_error",
             "message": "Request validation failed",
