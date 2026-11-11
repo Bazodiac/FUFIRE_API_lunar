@@ -1,8 +1,17 @@
-"""Da-Yun jieqi anchor resolver.
+"""Da-Yun jie (节) anchor resolver.
 
 Thin adapter over :mod:`bazi_engine.jieqi` (solar-term crossing engine) that
-returns the nearest jieqi anchor in a requested flow direction from a birth
+returns the nearest jie (节) anchor in a requested flow direction from a birth
 datetime, along with the time delta from birth to that anchor.
+
+Anchor rule
+-----------
+The Da-Yun start age (3 days = 1 year) counts from birth forward to the next
+jie (节) or backward to the previous jie.  The 12 jie are the month-opening
+terms that bound the month pillar (Li Chun 315°, Jing Zhe 345°, Qing Ming 15°,
+... every 30°; the even indices of the table below).  The 12 zhongqi (中气,
+mid-month terms such as Yu Shui or Chun Fen; the odd indices) never anchor
+the count.
 
 The adapter exists for the `/calculate/bazi/dayun` endpoint and is consumed
 by the start-age converter (TASK-DY-008) and the endpoint handler
@@ -43,12 +52,18 @@ _JIEQI_NAMES_SCHEMA_FORM = [
     "Da Xue", "Dong Zhi", "Xiao Han", "Da Han",
 ]
 
+# Indices of the 12 jie (节) in `_JIEQI_NAMES_SCHEMA_FORM`: the even indices
+# (Li Chun, Jing Zhe, Qing Ming, ...).  Only these can anchor Da Yun; the odd
+# indices are the zhongqi (中气) and are never an anchor.
+_JIE_INDICES = tuple(range(0, len(_JIEQI_NAMES_SCHEMA_FORM), 2))
+
 # Bisection accuracy for the underlying ephemeris crossing solver.
 _ACCURACY_SECONDS = 1.0
 
-# Half-window (days) for the local jieqi scan around birth.  Maximum gap
-# between consecutive jieqi is ~16 days, so 30 days is a safe envelope.
-_WINDOW_HALF_DAYS = 30.0
+# Half-window (days) for the local jie scan around birth.  Consecutive jie
+# are up to ~31.5 days apart, so a jie always lies within 35 days before and
+# within 35 days after any birth.
+_WINDOW_HALF_DAYS = 35.0
 
 
 def resolve_jieqi_anchor(
@@ -57,18 +72,21 @@ def resolve_jieqi_anchor(
     *,
     backend: Optional[EphemerisBackend] = None,
 ) -> dict:
-    """Return the nearest jieqi anchor in the given direction from ``birth_local``.
+    """Return the nearest jie (节) anchor in the given direction from ``birth_local``.
+
+    Only the 12 jie (month-opening terms) are candidates; the 12 zhongqi
+    (中气) are never returned.
 
     Args:
         birth_local: Birth datetime; MUST be tz-aware.
-        direction:   ``"forward"`` (nearest jieqi strictly AFTER birth) or
-                     ``"backward"`` (nearest jieqi strictly BEFORE birth).
+        direction:   ``"forward"`` (nearest jie strictly AFTER birth) or
+                     ``"backward"`` (nearest jie strictly BEFORE birth).
         backend:     Optional :class:`EphemerisBackend`; defaults to
                      :class:`SwissEphBackend`.
 
     Returns:
         ``{"name": str, "direction": str, "local_dt": str, "delta": {...}}``
-        where ``name`` is the schema-form Pinyin (``"Xiao Shu"``),
+        where ``name`` is the schema-form Pinyin of a jie (``"Xiao Shu"``),
         ``direction`` is ``"next"``/``"previous"`` mirroring the input,
         ``local_dt`` is the anchor ISO 8601 datetime in ``birth_local``'s
         timezone, and ``delta`` contains non-negative ``days``/``hours``/
@@ -96,17 +114,19 @@ def resolve_jieqi_anchor(
     birth_utc = birth_local.astimezone(timezone.utc)
     birth_jd = datetime_utc_to_jd_ut(birth_utc)
 
-    # Scan a ±_WINDOW_HALF_DAYS window around birth for all 24 jieqi
-    # longitude crossings.  For each target longitude we ask `find_crossing`
-    # for the first crossing on/after the window start.  Because consecutive
-    # jieqi for a given longitude are ~365 days apart, each longitude yields
-    # at most one crossing inside the window.
+    # Scan a ±_WINDOW_HALF_DAYS window around birth for the 12 jie (节)
+    # longitude crossings; the zhongqi (中气) are skipped because they never
+    # anchor Da Yun.  For each target longitude we ask `find_crossing` for the
+    # first crossing on/after the window start.  Because crossings of a given
+    # longitude are ~365 days apart, each longitude yields at most one
+    # crossing inside the window.
     window_start_jd = birth_jd - _WINDOW_HALF_DAYS
     window_end_jd = birth_jd + _WINDOW_HALF_DAYS
 
     crossings: list[tuple[int, float]] = []  # (phase_idx, jd_ut)
-    for phase_idx, name in enumerate(_JIEQI_NAMES_SCHEMA_FORM):
-        # Target longitude for this phase: Li Chun=315°, then +15° each step.
+    for phase_idx in _JIE_INDICES:
+        # Target longitude for this phase: Li Chun=315°, then +15° per index
+        # (+30° per jie).
         target_lon = (315.0 + 15.0 * phase_idx) % 360.0
         try:
             jd = find_crossing(
@@ -125,11 +145,11 @@ def resolve_jieqi_anchor(
             crossings.append((phase_idx, jd))
 
     if not crossings:
-        # Shouldn't happen — within ~30 days of any date there's always at
-        # least one jieqi crossing.  Surface as InputError so callers see a
+        # Shouldn't happen — within 35 days on either side of any date there
+        # is always a jie crossing.  Surface as InputError so callers see a
         # clean envelope rather than a swallowed engine failure.
         raise InputError(
-            "no jieqi crossing found in ±30-day window around birth",
+            "no jie (节) crossing found in ±35-day window around birth",
             detail={"birth_jd_ut": birth_jd},
         )
 
@@ -138,7 +158,7 @@ def resolve_jieqi_anchor(
         candidates = [(idx, jd) for (idx, jd) in crossings if jd > birth_jd]
         if not candidates:
             raise InputError(
-                "no jieqi crossing found strictly after birth in the search window",
+                "no jie (节) crossing found strictly after birth in the search window",
                 detail={"birth_jd_ut": birth_jd},
             )
         anchor_idx, anchor_jd = min(candidates, key=lambda x: x[1])
@@ -147,7 +167,7 @@ def resolve_jieqi_anchor(
         candidates = [(idx, jd) for (idx, jd) in crossings if jd < birth_jd]
         if not candidates:
             raise InputError(
-                "no jieqi crossing found strictly before birth in the search window",
+                "no jie (节) crossing found strictly before birth in the search window",
                 detail={"birth_jd_ut": birth_jd},
             )
         anchor_idx, anchor_jd = max(candidates, key=lambda x: x[1])

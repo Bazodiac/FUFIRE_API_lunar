@@ -320,6 +320,15 @@ Other BaZi routes share `BaziRequest`:
 | `standard` | `CIVIL`\|`LMT`\|`TLST` | | |
 | `start_age_method` | string | | Only `three_days_one_year` is implemented. |
 
+**Start rule.** The start age counts from birth forward to the next jie (节)
+when the flow is `forward`, or back to the previous jie when it is
+`backward`, at 3 days = 1 year. The jie are the 12 month-opening solar terms
+that bound the month pillar (Li Chun, Jing Zhe, Qing Ming, Li Xia, Mang Zhong,
+Xiao Shu, Li Qiu, Bai Lu, Han Lu, Li Dong, Da Xue, Xiao Han). The 12 zhongqi
+(中气: Yu Shui, Chun Fen, …) are never the anchor. `start.anchor_term.name` is
+therefore always one of the 12 jie, even though the response schema's
+`JieqiEnum` lists all 24 terms.
+
 > Two inconsistencies to code around: the `boundary` enum differs from every
 > other endpoint (`zi_hour` vs `zi`), and the conditional requirement is not
 > expressible in JSON Schema, so a wrong combination fails at runtime with 422

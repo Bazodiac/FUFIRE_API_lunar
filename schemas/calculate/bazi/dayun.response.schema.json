@@ -184,7 +184,7 @@
         "direction": {
           "type": "string",
           "enum": ["next", "previous"],
-          "description": "Whether the anchor is the next or previous jieqi relative to birth."
+          "description": "Whether the anchor is the next or previous jie (节, month-opening term) relative to birth."
         },
         "local_dt": { "type": "string", "format": "date-time" }
       }

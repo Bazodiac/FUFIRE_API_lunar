@@ -12,7 +12,7 @@
   "julian_day_number": 2448058,
   "longitude_correction_minutes": 53.62,
   "precision": {
-    "algorithm_version": "1.0.0-rc10-20261107",
+    "algorithm_version": "1.0.0-rc11-20261111",
     "grade": "exact",
     "warnings": []
   },

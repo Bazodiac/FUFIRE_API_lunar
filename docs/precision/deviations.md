@@ -495,3 +495,49 @@ Residual, by design: the Meeus EoT differs from `swe.time_equ` by ≤ 0.038 min
 within a second of a minute edge may render one minute earlier than a
 swisseph-derived string (Hannover reference 14:17:00.5 → `14:16`). The
 independent review loop (S-4, decision E8-R3) is tracked in the sprint plan.
+
+---
+
+## DEV-2026-013 — Da-Yun start age anchored on zhongqi (中气) as well as jie (节)
+
+- Component: `bazi_engine/dayun/jieqi.py::resolve_jieqi_anchor` (consumed only by
+  `bazi_engine/routers/dayun.py`, `POST /calculate/bazi/dayun` and `/v1/…`).
+- Expected: the start age (3 days = 1 year) counts to the next (forward) or
+  previous (backward) jie (节), one of the 12 month-opening terms that bound
+  the month pillar. Zhongqi (中气) are never an anchor.
+- Actual (through engine `1.0.0-rc10-20261107`, commit `011d938`): the resolver
+  scanned all 24 solar terms and took the nearest one, so a zhongqi between birth
+  and the governing jie became the anchor. Example: 1987-02-17 12:00
+  Europe/Berlin, forward → `Yu Shui`, 1 d 17 h 49 min, start age 0.58 y; correct is
+  `Jing Zhe`, 16 d 15 h 53 min, 5.55 y.
+- Evidence: `tests/test_dayun_jieqi.py::test_forward_anchor_skips_zhongqi_yu_shui`,
+  `::test_backward_anchor_skips_zhongqi_yu_shui`,
+  `::test_anchor_invariants_against_month_pillar_oracle` (every 7th day
+  1900–2100, both directions; oracles: the `compute_bazi` month pillar
+  changes exactly at the anchor, and Swiss Ephemeris' own `solcross_ut` puts
+  the Sun at the jie's longitude within 2 s of it), and
+  `tests/test_dayun_endpoint.py::test_start_anchor_is_jie_not_zhongqi`. All four
+  failed before the fix.
+- Severity: P0: precision directly at risk. `start.anchor_term`,
+  `start.delta`, `start.start_age`, every `cycles[].age_*` / `date_*` and possibly
+  `current` were wrong whenever a zhongqi lay between birth and the governing
+  jie: 10 486 of 20 972 samples (50.0 %; every 7th day 1900–2100, both
+  directions) got a different anchor.
+- Affected endpoints: `POST /calculate/bazi/dayun`, `POST /v1/calculate/bazi/dayun`.
+  Not affected: flow direction, `cycles[].pillar` (60-cycle walk from the month
+  pillar), Ten Gods.
+- Affected tests: see Evidence; the control case
+  `::test_control_jie_anchor_unchanged_by_jie_only_rule` pins a jie anchor that
+  is unchanged.
+- User-visible impact: start ages and decade dates shift by up to 5.25 years
+  (maximum in the sample above) for affected births. The response shape is unchanged.
+- Migration impact: none on the schema; values change. Stored Da-Yun results
+  computed before the fix may be wrong.
+- Owner: Ben.
+- Decision: candidates restricted to the 12 jie (even indices of the
+  Li-Chun-based term table); search window widened from ±30 to ±35 days
+  because consecutive jie are 29.46–31.44 days apart (measured 1900–2100).
+- Status: **In Review**: fix on branch `fix/dayun-anchor-jie-only` (PR, not merged or deployed);
+  fixed from engine build label `1.0.0-rc11-20261111`, so Da-Yun data computed under
+  `1.0.0-rc10-20261107` or older can be told apart by `engine_version`.
+- Review gate: PO approval for merge (= production deploy via Northflank) and a live smoke test.

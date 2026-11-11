@@ -232,7 +232,7 @@
     "tz": "America/New_York"
   },
   "provenance": {
-    "engine_version": "1.0.0-rc10-20261107",
+    "engine_version": "1.0.0-rc11-20261111",
     "ephemeris_id": "swieph_sepl18",
     "house_system": "placidus",
     "parameter_set": {

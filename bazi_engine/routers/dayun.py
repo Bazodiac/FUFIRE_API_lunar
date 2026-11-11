@@ -6,7 +6,8 @@ helpers into one route:
 
   1. compute_bazi() — natal four pillars (year/month/day/hour stems & branches).
   2. resolve_direction_for_request() — forward / backward flow direction.
-  3. resolve_jieqi_anchor() — nearest jieqi crossing in the resolved direction.
+  3. resolve_jieqi_anchor() — nearest jie (节) crossing in the resolved direction
+     (never a zhongqi 中气).
   4. compute_start_age() — calendar delta → life-years (3 days = 1 year rule).
   5. jiazi_at() — month-pillar position in the 60-cycle, walked N steps.
   6. select_current() — which decade brackets ``as_of_date``.
@@ -216,7 +217,7 @@ def calculate_dayun_endpoint(request: Request, req: DayunRequest) -> Dict[str, A
             request_dict, bazi_result.pillars.year
         )
 
-        # 3. Jieqi anchor in the resolved direction (relative to birth_local).
+        # 3. Jie (节) anchor in the resolved direction (relative to birth_local).
         birth_local_dt = bazi_result.birth_local_dt
         anchor = resolve_jieqi_anchor(birth_local_dt, direction)
 
