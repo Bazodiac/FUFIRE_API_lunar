@@ -221,3 +221,17 @@ def test_response_validates_against_response_schema():
     assert not errors, "Response schema violations: " + "; ".join(
         f"{list(e.path)}: {e.message}" for e in errors[:5]
     )
+
+
+def test_start_anchor_is_jie_not_zhongqi():
+    """Regression: 1987-02-17 12:00 Berlin, forward.  The next term after birth
+    is the zhongqi Yu Shui; Da Yun must count to the next jie, Jing Zhe, which
+    gives a start age of 5 years (not 0).  Neutral synthetic birth data."""
+    payload = dict(ARTICLE_PAYLOAD)
+    payload["date"] = "1987-02-17T12:00:00"
+    res = client.post("/calculate/bazi/dayun", json=payload)
+    assert res.status_code == 200, res.text
+    start = res.json()["dayun"]["start"]
+    assert start["anchor_term"]["name"] == "Jing Zhe"
+    assert start["anchor_term"]["direction"] == "next"
+    assert start["start_age"]["years"] == 5
