@@ -518,7 +518,7 @@ independent review loop (S-4, decision E8-R3) is tracked in the sprint plan.
   the Sun at the jie's longitude within 2 s of it), and
   `tests/test_dayun_endpoint.py::test_start_anchor_is_jie_not_zhongqi`. All four
   failed before the fix.
-- Severity: P0 (proposed): precision directly at risk. `start.anchor_term`,
+- Severity: P0: precision directly at risk. `start.anchor_term`,
   `start.delta`, `start.start_age`, every `cycles[].age_*` / `date_*` and possibly
   `current` were wrong whenever a zhongqi lay between birth and the governing
   jie: 10 486 of 20 972 samples (50.0 %; every 7th day 1900–2100, both
@@ -533,9 +533,11 @@ independent review loop (S-4, decision E8-R3) is tracked in the sprint plan.
   (maximum in the sample above) for affected births. The response shape is unchanged.
 - Migration impact: none on the schema; values change. Stored Da-Yun results
   computed before the fix may be wrong.
-- Owner: open (PO to assign).
+- Owner: Ben.
 - Decision: candidates restricted to the 12 jie (even indices of the
   Li-Chun-based term table); search window widened from ±30 to ±35 days
   because consecutive jie are 29.46–31.44 days apart (measured 1900–2100).
-- Status: **In Review**: fix on branch `fix/dayun-anchor-jie-only`, not merged or deployed.
-- Review gate: PO approval for push/PR and deploy; engine build-label bump undecided.
+- Status: **In Review**: fix on branch `fix/dayun-anchor-jie-only` (PR, not merged or deployed);
+  fixed from engine build label `1.0.0-rc11-20261111`, so Da-Yun data computed under
+  `1.0.0-rc10-20261107` or older can be told apart by `engine_version`.
+- Review gate: PO approval for merge (= production deploy via Northflank) and a live smoke test.

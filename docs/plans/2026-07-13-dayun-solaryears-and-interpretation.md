@@ -16,6 +16,8 @@ touched. **DL** (Deutungslayer) adds a new pure module `bazi_engine/dayun/interp
 unchanged in both — only field *values* / array *contents* change, so the frozen-endpoint
 contract (`schemas/calculate/bazi/dayun.response.schema.json`) holds without a schema edit.
 
+> Correction 2026-11-11: the jieqi anchor called evidence-correct above also anchored on zhongqi (中气); see DEV-2026-013 in `docs/precision/deviations.md`.
+
 **Tech stack:** Python 3.10+, stdlib `datetime` only (no new deps — `python-dateutil` is
 deliberately NOT added; calendar-year addition is done by hand). Existing Swiss-Ephemeris
 path is reused unchanged.
