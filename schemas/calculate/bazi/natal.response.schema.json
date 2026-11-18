@@ -242,7 +242,12 @@
         "provisional_fields": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "['hour'] when birth_time_known=false — the hour pillar (and its Ten Gods / hidden stems) is provisional."
+          "description": "Empty when birth_time_known=true. Otherwise ['hour'] (the hour pillar and its Ten Gods / hidden stems) followed by every pillar of year/month/day whose boundary falls inside the civil day of the birth date."
+        },
+        "reference_time_policy": {
+          "type": "string",
+          "enum": ["date_only_noon"],
+          "description": "Present only when the request date had no time part: the chart was computed at 12:00 civil local time of that date. Absent when a time was supplied."
         }
       }
     },

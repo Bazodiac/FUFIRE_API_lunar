@@ -14,7 +14,7 @@ Own functions:
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 # ── Re-exports for backwards compatibility ────────────────────────────────────
 from .solar_time import equation_of_time, true_solar_time  # noqa: F401
@@ -23,6 +23,7 @@ from .wuxing import (  # noqa: F401
     WUXING_INDEX,
     WUXING_ORDER,
     WuXingVector,
+    ascendant_ledger_entry,
     calculate_harmony_index,
     calculate_wuxing_from_bazi,
     calculate_wuxing_from_bazi_with_ledger,
@@ -46,6 +47,7 @@ def compute_fusion_analysis(
     ascendant: Optional[float] = None,
     *,
     strict: bool = False,
+    exclude_time_dependent: bool = False,
 ) -> Dict[str, Any]:
     """Complete Fusion Astrology Analysis.
 
@@ -65,13 +67,33 @@ def compute_fusion_analysis(
                         classification. Use at router-layer call sites that
                         always have a real ascendant (from
                         western['angles']['Ascendant']).
+        exclude_time_dependent:
+                        When True, every contribution that depends on the
+                        birth clock time is left out: the ascendant on the
+                        western side (the MC never contributes) and the hour
+                        pillar (stem and hidden stems) on the BaZi side, also
+                        when the caller supplied the pillars. All derived
+                        values, the calibration cell included, come from the
+                        reduced inputs. The left-out contributions are listed
+                        under ``contribution_ledger.excluded`` with reason
+                        ``time_dependent``; chart_type_quality is
+                        ``time_excluded``.
 
     Returns:
         Dict with wu_xing_vectors, harmony_index, calibration,
         elemental_comparison, cosmic_state, and fusion_interpretation.
     """
+    excluded: List[Dict[str, Any]] = []
+    if exclude_time_dependent:
+        bazi_pillars, removed_pillars = split_time_dependent_pillars(bazi_pillars)
+        if ascendant is not None:
+            excluded.append(_excluded_entry(ascendant_ledger_entry(ascendant), "western"))
+        if removed_pillars:
+            _, removed_ledger = calculate_wuxing_from_bazi_with_ledger(removed_pillars)
+            excluded.extend(_excluded_entry(e, "bazi") for e in removed_ledger)
     western_wuxing, western_ledger = calculate_wuxing_vector_from_planets_with_ledger(
         western_bodies, ascendant=ascendant, strict=strict,
+        include_ascendant=not exclude_time_dependent,
     )
     bazi_wuxing, bazi_ledger = calculate_wuxing_from_bazi_with_ledger(bazi_pillars)
     harmony = calculate_harmony_index(western_wuxing, bazi_wuxing)
@@ -126,11 +148,48 @@ def compute_fusion_analysis(
             harmony["harmony_index"], elemental_comparison, western_wuxing, bazi_wuxing,
             calibration=cal,
         ),
-        "contribution_ledger": {
+        "contribution_ledger": _contribution_ledger(
+            western_ledger, bazi_ledger, ascendant, exclude_time_dependent, excluded,
+        ),
+    }
+
+
+# Pillars whose value depends on the birth clock time.
+TIME_DEPENDENT_PILLARS = ("hour",)
+TIME_DEPENDENT_REASON = "time_dependent"
+
+
+def split_time_dependent_pillars(
+    pillars: Dict[str, Dict[str, str]],
+) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, str]]]:
+    """(kept, removed): the pillars without and with a clock-time dependency."""
+    kept = {k: v for k, v in pillars.items() if k not in TIME_DEPENDENT_PILLARS}
+    removed = {k: v for k, v in pillars.items() if k in TIME_DEPENDENT_PILLARS}
+    return kept, removed
+
+
+def _excluded_entry(entry: Dict[str, Any], system: str) -> Dict[str, Any]:
+    return {**entry, "system": system, "reason": TIME_DEPENDENT_REASON}
+
+
+def _contribution_ledger(
+    western_ledger: List[Dict[str, Any]],
+    bazi_ledger: List[Dict[str, Any]],
+    ascendant: Optional[float],
+    exclude_time_dependent: bool,
+    excluded: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not exclude_time_dependent:
+        return {
             "western": western_ledger,
             "bazi": bazi_ledger,
             "chart_type_quality": "exact" if ascendant is not None else "assumed_day",
-        },
+        }
+    return {
+        "western": western_ledger,
+        "bazi": bazi_ledger,
+        "chart_type_quality": "time_excluded",
+        "excluded": excluded,
     }
 
 

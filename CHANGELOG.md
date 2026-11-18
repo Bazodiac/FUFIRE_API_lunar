@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased — engine build `1.0.0-rc12-20261118`
+
+Hand-written note (release-please has not cut a release in this repository yet; fold this
+into the next release entry, 1.6.0).
+
+### Behaviour change for date-only clients
+
+* **birth input:** a `date` without a time part is now computed at **12:00 civil local
+  time** instead of 00:00 on `/calculate/bazi`, `/bazi/trace`, `/bazi/natal`,
+  `/bazi/wuxing`, `/calculate/western`, `/calculate/fusion`, `/fusion/vector-map` and
+  `/bazi/dayun`. Under the TLST default 00:00 was usually the previous true-solar day, so
+  date-only requests got the previous day's day pillar (Munich 1985-08-02: 壬申, now 癸酉).
+  Such responses report `birth_time_known: false`, `reference_time_policy:
+  "date_only_noon"` and the warning `BIRTH_TIME_UNKNOWN`; a skipped local noon is a `422`.
+  Clients that relied on the old midnight reading must send `T00:00:00` explicitly.
+  Requests with a time are unchanged. See `docs/precision/date-only-birth-input.md`.
+* **precision:** `provisional_fields` now names the pillars and western bodies that change
+  during the civil day when the birth time is unknown; `/bazi/dayun` takes
+  `birth_time_known` and no longer reports a known time unconditionally.
+
+### Features
+
+* **fusion:** `exclude_time_dependent` on `/calculate/fusion` and `/fusion/vector-map`
+  leaves the ascendant and the hour pillar out of both vectors (default: on when the birth
+  time is unknown). New ledger list `excluded`, new `chart_type_quality` value
+  `time_excluded`, `provenance.parameter_set.time_dependent_excluded`. See
+  `docs/fusion/13_exclude_time_dependent.md`.
+
 ## [1.5.0](https://github.com/DYAI2025/FuFirE/compare/v1.4.0...v1.5.0) (2026-07-21)
 
 ### Features

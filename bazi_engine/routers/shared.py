@@ -5,12 +5,15 @@ Extracted from app.py to avoid duplication. Imported by individual routers.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Literal, Optional
+from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..constants import BRANCHES, STEMS
 from ..types import Pillar
+
+if TYPE_CHECKING:
+    from ..birth_time import BirthTimeInput
 
 ZODIAC_SIGNS_DE = [
     "Widder", "Stier", "Zwillinge", "Krebs", "Löwe", "Jungfrau",
@@ -72,9 +75,41 @@ class ProvenanceResponse(BaseModel):
     parameter_set: Optional[Dict[str, Any]] = None
 
 
+def _is_none(value: Any) -> bool:
+    return value is None
+
+
+REFERENCE_TIME_POLICY_DESCRIPTION = (
+    "Present only when the request `date` had no time part: `date_only_noon` = "
+    "the chart was computed at 12:00 civil local time of that date "
+    "(docs/precision/date-only-birth-input.md). Absent when a time was supplied."
+)
+
+
+def absent_if_none(description: str) -> Any:
+    """Optional response field that is left out (not ``null``) when unset.
+
+    Used for fields added after a response shape was frozen: responses that do
+    not need them stay byte-identical to the earlier ones.
+    """
+    return Field(None, exclude_if=_is_none, description=description)
+
+
 class PrecisionBlock(BaseModel):
     birth_time_known: bool
     provisional_fields: list[str] = Field(default_factory=list)
+    reference_time_policy: Optional[Literal["date_only_noon"]] = absent_if_none(
+        REFERENCE_TIME_POLICY_DESCRIPTION
+    )
+
+
+WARNINGS_DESCRIPTION = (
+    "Stable warning codes. Present only when there is one: `BIRTH_TIME_UNKNOWN` "
+    "when the birth time is unknown (`birth_time_known=false`, or a `date` without "
+    "a time part)."
+)
+
+ChartTypeQuality = Literal["exact", "assumed_day", "time_excluded"]
 
 
 class QualityFlags(BaseModel):
@@ -93,7 +128,15 @@ class QualityFlags(BaseModel):
     house_system_requested: str
     house_system_used: str
     ephemeris_mode: Literal["SWIEPH", "MOSEPH"]
-    chart_type_quality: Optional[Literal["exact", "assumed_day"]] = None
+    chart_type_quality: Optional[ChartTypeQuality] = Field(
+        None,
+        description=(
+            "exact: the ascendant (from the given time) is counted; assumed_day: no "
+            "ascendant available; time_excluded: the time-dependent contributions "
+            "(ascendant, hour pillar) were left out on request "
+            "(`exclude_time_dependent`)."
+        ),
+    )
 
     model_config = ConfigDict(extra="forbid")
 
@@ -149,3 +192,23 @@ def current_ephemeris_mode(ephe_path: Optional[str] = None) -> Literal["SWIEPH",
     from ..ephemeris import SwissEphBackend
 
     return SwissEphBackend(ephe_path=ephe_path).mode  # type: ignore[return-value]
+
+
+def precision_block(
+    birth_time: "BirthTimeInput", unknown_time_fields: list[str],
+) -> Dict[str, Any]:
+    """Precision block for a birth-input endpoint.
+
+    ``unknown_time_fields`` is used only when the birth time is unknown: the
+    endpoint's fixed time-dependent fields followed by the ones measured over the
+    civil day (pillar boundaries, sign changes).
+    """
+    if birth_time.birth_time_known:
+        return {"birth_time_known": True, "provisional_fields": []}
+    block: Dict[str, Any] = {
+        "birth_time_known": False,
+        "provisional_fields": list(dict.fromkeys(unknown_time_fields)),
+    }
+    if birth_time.reference_time_policy is not None:
+        block["reference_time_policy"] = birth_time.reference_time_policy
+    return block

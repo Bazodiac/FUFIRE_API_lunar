@@ -288,7 +288,13 @@
         },
         "provisional_fields": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string" },
+          "description": "Empty when birth_time_known=true. Otherwise start, cycles.age_start, cycles.age_end, cycles.date_start, cycles.date_end, current; plus cycles.pillar on a jie day and direction on the Li Chun day (direction_method=year_stem_yinyang_and_sex)."
+        },
+        "reference_time_policy": {
+          "type": "string",
+          "enum": ["date_only_noon"],
+          "description": "Present only when the request date had no time part: the chart was computed at 12:00 civil local time of that date. Absent when a time was supplied."
         }
       }
     },

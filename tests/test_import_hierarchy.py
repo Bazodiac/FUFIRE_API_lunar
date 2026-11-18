@@ -49,6 +49,7 @@ LAYERS: Dict[str, int] = {
     "bazi":        4,
     "western":     4,
     "fusion":      4,
+    "birth_time":  4,  # date-only rule + unknown-time precision (imports bazi, western)
     # wuxing sub-modules are Level 4 peers of fusion
     "wuxing":                4,
     "wuxing.constants":      4,

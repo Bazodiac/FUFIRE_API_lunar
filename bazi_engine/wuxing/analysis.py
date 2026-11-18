@@ -134,6 +134,7 @@ def calculate_wuxing_vector_from_planets_with_ledger(
     ascendant: Optional[float] = None,
     *,
     strict: bool = False,
+    include_ascendant: bool = True,
 ) -> tuple[WuXingVector, list[dict[str, Any]]]:
     """Like calculate_wuxing_vector_from_planets but also returns per-planet ledger.
 
@@ -144,6 +145,11 @@ def calculate_wuxing_vector_from_planets_with_ledger(
         strict:                 When True, propagate to is_night_chart() so
                                 a missing ascendant raises ValueError instead
                                 of silently degrading to assumed_day.
+        include_ascendant:      False leaves the ascendant out of the vector
+                                (time-dependent contributions excluded). The
+                                ascendant still feeds the day/night evaluation,
+                                so ``strict`` keeps working; chart_type_quality
+                                on the Mercury entry is then ``time_excluded``.
     """
     values = [0.0, 0.0, 0.0, 0.0, 0.0]
     ledger: list[dict[str, Any]] = []
@@ -153,14 +159,17 @@ def calculate_wuxing_vector_from_planets_with_ledger(
     # the name-based mapping). It is still evaluated so that strict callers keep
     # failing loudly on a missing ascendant and chart_type_quality stays reported.
     is_night_chart(sun_lon, ascendant, strict=strict)
-    chart_type_quality = "exact" if ascendant is not None else "assumed_day"
+    if not include_ascendant:
+        chart_type_quality = "time_excluded"
+    else:
+        chart_type_quality = "exact" if ascendant is not None else "assumed_day"
 
     points: list[tuple[str, float, bool]] = [
         (planet, float(data["longitude"]), bool(data.get("is_retrograde", False)))
         for planet, data in bodies.items()
         if "error" not in data and "longitude" in data and planet not in WESTERN_EXCLUDED_BODIES
     ]
-    if ascendant is not None:
+    if ascendant is not None and include_ascendant:
         points.append(("Ascendant", float(ascendant), False))
 
     for planet, longitude, is_retrograde in points:
@@ -172,6 +181,11 @@ def calculate_wuxing_vector_from_planets_with_ledger(
         ledger.append(entry)
 
     return WuXingVector(*values), ledger
+
+
+def ascendant_ledger_entry(ascendant: float) -> dict[str, Any]:
+    """The ledger entry the ascendant contributes when it is counted (tier 1)."""
+    return _western_ledger_entry("Ascendant", float(ascendant), False, False)
 
 
 _TRADITIONAL_POINTS = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Ascendant"}

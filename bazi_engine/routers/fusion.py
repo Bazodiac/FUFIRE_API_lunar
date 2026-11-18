@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timezone
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
@@ -18,11 +18,18 @@ from starlette.requests import Request
 
 from .. import __version__ as ENGINE_VERSION
 from ..bazi import compute_bazi
+from ..birth_time import (
+    BirthTimeInput,
+    provisional_bodies,
+    provisional_pillars,
+    resolve_birth_time_input,
+)
 from ..exc import BaziEngineError
 from ..fusion import (
     calculate_wuxing_from_bazi_with_ledger,
     calculate_wuxing_vector_from_planets_with_ledger,
     compute_fusion_analysis,
+    split_time_dependent_pillars,
 )
 from ..limiter import limiter, tier_limit
 from ..provenance import build_provenance, normalize_house_system
@@ -32,11 +39,14 @@ from ..types import BaziInput, Fold
 from ..western import compute_western_chart
 from ..wuxing.vector import WuXingVector
 from .shared import (
+    WARNINGS_DESCRIPTION,
     MinimalQualityFlags,
     PrecisionBlock,
     ProvenanceResponse,
     QualityFlags,
+    absent_if_none,
     format_pillar,
+    precision_block,
 )
 from .western import HouseQuality
 
@@ -68,18 +78,34 @@ class FusionRequest(BaseModel):
         }
     })
 
-    date: str = Field(..., description="ISO 8601 local date time")
+    date: str = Field(..., description=(
+        "ISO 8601 local date time. A date without a time part (YYYY-MM-DD) is computed "
+        "at 12:00 civil local time and reported as birth_time_known=false "
+        "(precision.reference_time_policy=date_only_noon)."
+    ))
     tz: str = Field("Europe/Berlin", description="Timezone name")
     lon: float = Field(..., ge=-180.0, le=180.0, description="Longitude in degrees")
     lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude in degrees")
     ambiguousTime: AmbiguousTimeChoice = "earlier"
     nonexistentTime: NonexistentTimePolicy = "error"
-    birth_time_known: bool = Field(True, description="False if birth time is uncertain — flags hour/signature/ascendant/houses as provisional")
+    birth_time_known: bool = Field(True, description="False if birth time is uncertain — the given time is still computed; flags hour/signature/ascendant/houses plus the pillars and bodies that change within the civil day as provisional, and (by default) excludes the time-dependent contributions")
     standard: Literal["CIVIL", "LMT", "TLST"] = Field(
         "TLST", description="Time standard for the BaZi pillars. Default TLST (true local solar time at the birthplace, since 2026-11-06); CIVIL keeps clock time. Used only when bazi_pillars is omitted."
     )
     bazi_pillars: Optional[Dict[str, Dict[str, str]]] = Field(
         None, description="BaZi pillars (auto-computed if omitted)"
+    )
+    exclude_time_dependent: Optional[bool] = Field(
+        None,
+        description=(
+            "Leave every contribution that depends on the birth clock time out of the "
+            "Fusion: the ascendant on the western side (the MC never contributes) and the "
+            "hour pillar (stem and hidden stems) on the BaZi side, also when bazi_pillars "
+            "is supplied. All derived values (vectors, elemental_comparison, harmony_index, "
+            "cosmic_state, calibration, interpretation) come from the reduced inputs. "
+            "Default null follows birth_time_known (false → excluded); an explicit "
+            "true/false wins."
+        ),
     )
 
 
@@ -96,40 +122,78 @@ class FusionResponse(BaseModel):
     quality_flags: QualityFlags
     provenance: ProvenanceResponse
     precision: PrecisionBlock
+    warnings: Optional[List[str]] = absent_if_none(WARNINGS_DESCRIPTION)
+
+
+def _exclusion(req_flag: Optional[bool], birth_time: BirthTimeInput) -> bool:
+    """exclude_time_dependent: an explicit value wins, null follows birth_time_known."""
+    return (not birth_time.birth_time_known) if req_flag is None else req_flag
+
+
+def _fusion_pillars(
+    req_pillars: Optional[Dict[str, Dict[str, str]]],
+    dt_local: Any,
+    req: Any,
+) -> Tuple[Dict[str, Dict[str, str]], Optional[BaziInput]]:
+    """Pillars for the Fusion: the caller's, or computed like /calculate/bazi
+    (requested standard, midnight boundary). Also returns the engine input when
+    the pillars were computed (None for caller-supplied pillars)."""
+    if req_pillars is not None:
+        return req_pillars, None
+    fold: Fold = 0 if req.ambiguousTime == "earlier" else 1
+    inp = BaziInput(
+        birth_local=dt_local.replace(tzinfo=None).isoformat(),
+        timezone=req.tz,
+        longitude_deg=req.lon,
+        latitude_deg=req.lat,
+        time_standard=req.standard,
+        day_boundary="midnight",
+        strict_local_time=True,
+        fold=fold,
+    )
+    bazi_result = compute_bazi(inp)
+    return {
+        "year":  format_pillar(bazi_result.pillars.year),
+        "month": format_pillar(bazi_result.pillars.month),
+        "day":   format_pillar(bazi_result.pillars.day),
+        "hour":  format_pillar(bazi_result.pillars.hour),
+    }, inp
+
+
+def _fusion_unknown_time_fields(
+    birth_time: BirthTimeInput, inp: Optional[BaziInput], dt_local: Any, req: Any,
+) -> List[str]:
+    if birth_time.birth_time_known:
+        return []
+    day = dt_local.date()
+    pillars = provisional_pillars(inp, day) if inp is not None else []
+    return [
+        "signature", "hour", "ascendant", "houses",
+        *pillars,
+        *provisional_bodies(day, req.tz, req.lat, req.lon),
+    ]
 
 
 @router.post("/fusion", response_model=FusionResponse)
 @limiter.limit(tier_limit)
 def calculate_fusion_endpoint(request: Request, req: FusionRequest) -> Dict[str, Any]:
-    """Wu-Xing + Western harmony analysis."""
+    """Wu-Xing + Western harmony analysis.
+
+    A date without a time part is computed at 12:00 civil local time
+    (birth_time_known=false). ``exclude_time_dependent`` (default: follows
+    birth_time_known) leaves the ascendant and the hour pillar out of both
+    vectors and of every value derived from them."""
     try:
+        birth_time = resolve_birth_time_input(req.date, req.birth_time_known, req.nonexistentTime)
+        exclude = _exclusion(req.exclude_time_dependent, birth_time)
         dt_local, _ = resolve_local_iso(
-            req.date, req.tz,
-            ambiguous=req.ambiguousTime, nonexistent=req.nonexistentTime,
+            birth_time.local_iso, req.tz,
+            ambiguous=req.ambiguousTime, nonexistent=birth_time.nonexistent,
         )
         dt_utc = dt_local.astimezone(timezone.utc)
         western_chart = compute_western_chart(dt_utc, req.lat, req.lon)
 
-        pillars = req.bazi_pillars
-        if pillars is None:
-            fold: Fold = 0 if req.ambiguousTime == "earlier" else 1
-            inp = BaziInput(
-                birth_local=dt_local.replace(tzinfo=None).isoformat(),
-                timezone=req.tz,
-                longitude_deg=req.lon,
-                latitude_deg=req.lat,
-                time_standard=req.standard,
-                day_boundary="midnight",
-                strict_local_time=True,
-                fold=fold,
-            )
-            bazi_result = compute_bazi(inp)
-            pillars = {
-                "year":  format_pillar(bazi_result.pillars.year),
-                "month": format_pillar(bazi_result.pillars.month),
-                "day":   format_pillar(bazi_result.pillars.day),
-                "hour":  format_pillar(bazi_result.pillars.hour),
-            }
+        pillars, inp = _fusion_pillars(req.bazi_pillars, dt_local, req)
 
         ascendant = western_chart.get("angles", {}).get("Ascendant")
         fusion = compute_fusion_analysis(
@@ -140,6 +204,7 @@ def calculate_fusion_endpoint(request: Request, req: FusionRequest) -> Dict[str,
             western_bodies=western_chart["bodies"],
             ascendant=ascendant,
             strict=True,  # router-layer: ascendant must be wired through
+            exclude_time_dependent=exclude,
         )
 
         # Merge the western chart's quality_flags with the natal fusion's
@@ -151,11 +216,20 @@ def calculate_fusion_endpoint(request: Request, req: FusionRequest) -> Dict[str,
         western_qf = dict(western_chart.get("quality_flags") or {})
         fusion_ledger = fusion.get("contribution_ledger") or {}
         chart_type_quality = fusion_ledger.get("chart_type_quality")
-        if chart_type_quality not in ("exact", "assumed_day"):
+        if chart_type_quality not in ("exact", "assumed_day", "time_excluded"):
             chart_type_quality = "exact" if ascendant is not None else "assumed_day"
         western_qf["chart_type_quality"] = chart_type_quality
 
-        return {
+        provenance = build_provenance(
+            house_system=normalize_house_system(western_chart.get("house_system")),
+        )
+        if exclude:
+            provenance["parameter_set"] = {
+                **(provenance.get("parameter_set") or {}),
+                "time_dependent_excluded": True,
+            }
+
+        response = {
             "input": {"date": req.date, "tz": req.tz, "lon": req.lon, "lat": req.lat},
             "wu_xing_vectors":      fusion["wu_xing_vectors"],
             "harmony_index":        fusion["harmony_index"],
@@ -166,14 +240,14 @@ def calculate_fusion_endpoint(request: Request, req: FusionRequest) -> Dict[str,
             "contribution_ledger": fusion["contribution_ledger"],
             "house_quality": western_chart.get("house_quality"),
             "quality_flags": western_qf,
-            "provenance": build_provenance(
-                house_system=normalize_house_system(western_chart.get("house_system")),
+            "provenance": provenance,
+            "precision": precision_block(
+                birth_time, _fusion_unknown_time_fields(birth_time, inp, dt_local, req),
             ),
-            "precision": {
-                "birth_time_known": req.birth_time_known,
-                "provisional_fields": [] if req.birth_time_known else ["signature", "hour", "ascendant", "houses"],
-            },
         }
+        if birth_time.warnings:
+            response["warnings"] = birth_time.warnings
+        return response
     except BaziEngineError:
         raise
     except ValueError as exc:
@@ -388,7 +462,11 @@ class VectorMapRequest(BaseModel):
         }
     })
 
-    date: str = Field(..., description="ISO 8601 local date time")
+    date: str = Field(..., description=(
+        "ISO 8601 local date time. A date without a time part (YYYY-MM-DD) is computed "
+        "at 12:00 civil local time and reported as birth_time_known=false "
+        "(precision.reference_time_policy=date_only_noon)."
+    ))
     tz: str = Field("Europe/Berlin", description="Timezone name")
     lon: float = Field(..., ge=-180.0, le=180.0, description="Longitude in degrees")
     lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude in degrees")
@@ -399,6 +477,26 @@ class VectorMapRequest(BaseModel):
     )
     bazi_pillars: Optional[Dict[str, Dict[str, str]]] = Field(
         None, description="BaZi pillars (auto-computed if omitted)"
+    )
+    birth_time_known: bool = Field(
+        True,
+        description=(
+            "False if birth time is uncertain — the given time is still computed; the "
+            "response then carries a precision block and, by default, the time-dependent "
+            "contributions are excluded (see exclude_time_dependent)."
+        ),
+    )
+    exclude_time_dependent: Optional[bool] = Field(
+        None,
+        description=(
+            "Leave every contribution that depends on the birth clock time out of the "
+            "Fusion: the ascendant on the western side (the MC never contributes) and the "
+            "hour pillar (stem and hidden stems) on the BaZi side, also when bazi_pillars "
+            "is supplied. All derived values (vectors, elemental_comparison, harmony_index, "
+            "cosmic_state, calibration, interpretation) come from the reduced inputs. "
+            "Default null follows birth_time_known (false → excluded); an explicit "
+            "true/false wins."
+        ),
     )
 
 
@@ -430,6 +528,10 @@ class HarmonyComponents(BaseModel):
 class VectorMapMetadata(BaseModel):
     mapping_version: str = Field(..., description="Wu-Xing mapping policy version")
     algorithm_version: str = Field(..., description="Engine build version (bazi_engine.__version__)")
+    time_dependent_excluded: Optional[bool] = absent_if_none(
+        "true when the ascendant and the hour pillar were left out of both vectors "
+        "(exclude_time_dependent). Absent otherwise."
+    )
 
 
 class VectorMapResponse(BaseModel):
@@ -438,6 +540,11 @@ class VectorMapResponse(BaseModel):
     vector_map: VectorMapBlock
     harmony: HarmonyComponents
     metadata: VectorMapMetadata
+    precision: Optional[PrecisionBlock] = absent_if_none(
+        "Present only when the birth time is unknown (birth_time_known=false or a date "
+        "without a time part)."
+    )
+    warnings: Optional[List[str]] = absent_if_none(WARNINGS_DESCRIPTION)
 
 
 def _system_views(raw: WuXingVector) -> Dict[str, Dict[str, float]]:
@@ -470,42 +577,29 @@ def calculate_fusion_vector_map_endpoint(
     ``l2_cosine`` view equals ``compute_fusion_analysis``'s ``wu_xing_vectors``.
     """
     try:
+        birth_time = resolve_birth_time_input(req.date, req.birth_time_known, req.nonexistentTime)
+        exclude = _exclusion(req.exclude_time_dependent, birth_time)
         dt_local, _ = resolve_local_iso(
-            req.date, req.tz,
-            ambiguous=req.ambiguousTime, nonexistent=req.nonexistentTime,
+            birth_time.local_iso, req.tz,
+            ambiguous=req.ambiguousTime, nonexistent=birth_time.nonexistent,
         )
         dt_utc = dt_local.astimezone(timezone.utc)
         western_chart = compute_western_chart(dt_utc, req.lat, req.lon)
 
-        pillars = req.bazi_pillars
-        if pillars is None:
-            fold: Fold = 0 if req.ambiguousTime == "earlier" else 1
-            inp = BaziInput(
-                birth_local=dt_local.replace(tzinfo=None).isoformat(),
-                timezone=req.tz,
-                longitude_deg=req.lon,
-                latitude_deg=req.lat,
-                time_standard=req.standard,
-                day_boundary="midnight",
-                strict_local_time=True,
-                fold=fold,
-            )
-            bazi_result = compute_bazi(inp)
-            pillars = {
-                "year":  format_pillar(bazi_result.pillars.year),
-                "month": format_pillar(bazi_result.pillars.month),
-                "day":   format_pillar(bazi_result.pillars.day),
-                "hour":  format_pillar(bazi_result.pillars.hour),
-            }
+        pillars, inp = _fusion_pillars(req.bazi_pillars, dt_local, req)
 
         ascendant = western_chart.get("angles", {}).get("Ascendant")
 
         # RAW (un-normalized) vectors — the SAME inputs compute_fusion_analysis
-        # uses internally — built BEFORE any normalization.
+        # uses internally — built BEFORE any normalization. With the exclusion
+        # both sides lose their time-dependent terms, as in the engine.
         raw_west, _ = calculate_wuxing_vector_from_planets_with_ledger(
             western_chart["bodies"], ascendant=ascendant, strict=True,
+            include_ascendant=not exclude,
         )
-        raw_bazi, _ = calculate_wuxing_from_bazi_with_ledger(pillars)
+        raw_bazi, _ = calculate_wuxing_from_bazi_with_ledger(
+            split_time_dependent_pillars(pillars)[0] if exclude else pillars,
+        )
 
         # Reuse the engine for cosine_similarity (== cosmic_state, GT2) — do
         # NOT reimplement the metric. Same pillars/bodies/ascendant/strict.
@@ -517,6 +611,7 @@ def calculate_fusion_vector_map_endpoint(
             western_bodies=western_chart["bodies"],
             ascendant=ascendant,
             strict=True,
+            exclude_time_dependent=exclude,
         )
 
         west_l1 = raw_west.sum_l1_normalize()
@@ -525,7 +620,13 @@ def calculate_fusion_vector_map_endpoint(
             w * b for w, b in zip(west_l1.to_list(), bazi_l1.to_list())
         )
 
-        return {
+        metadata: Dict[str, Any] = {
+            "mapping_version":   FUSION_MAPPING_VERSION,
+            "algorithm_version": ENGINE_VERSION,
+        }
+        if exclude:
+            metadata["time_dependent_excluded"] = True
+        response = {
             "request_id": getattr(request.state, "request_id", "unknown"),
             "input": {"date": req.date, "tz": req.tz, "lon": req.lon, "lat": req.lat},
             "vector_map": {
@@ -537,11 +638,14 @@ def calculate_fusion_vector_map_endpoint(
                 # cosine_similarity = the engine's cosmic_state (GT2 — reused).
                 "cosine_similarity":   fusion["cosmic_state"],
             },
-            "metadata": {
-                "mapping_version":   FUSION_MAPPING_VERSION,
-                "algorithm_version": ENGINE_VERSION,
-            },
+            "metadata": metadata,
         }
+        if not birth_time.birth_time_known:
+            response["precision"] = precision_block(
+                birth_time, _fusion_unknown_time_fields(birth_time, inp, dt_local, req),
+            )
+            response["warnings"] = birth_time.warnings
+        return response
     except BaziEngineError:
         raise
     except ValueError as exc:

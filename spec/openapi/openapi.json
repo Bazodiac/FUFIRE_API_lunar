@@ -11,7 +11,7 @@
       "name": "Proprietary",
       "identifier": "LicenseRef-proprietary"
     },
-    "version": "1.0.0-rc11-20261111"
+    "version": "1.0.0-rc12-20261118"
   },
   "paths": {
     "/": {
@@ -1035,7 +1035,7 @@
           "Western Astrology"
         ],
         "summary": "Calculate Western Endpoint",
-        "description": "Western astrology chart. Returns planetary positions, house cusps, Ascendant/MC angles, and aspects using Swiss Ephemeris. Supports tropical and sidereal zodiac systems (Lahiri, Fagan-Bradley, Raman). Houses use Placidus with automatic fallback for extreme latitudes. When `birth_time_known=false`, ascendant and houses are flagged provisional.",
+        "description": "Western astrology chart. Returns planetary positions, house cusps, Ascendant/MC angles, and aspects using Swiss Ephemeris. Supports tropical and sidereal zodiac systems (Lahiri, Fagan-Bradley, Raman). Houses use Placidus with automatic fallback for extreme latitudes. When `birth_time_known=false`, ascendant, houses, MC and every body that changes sign during the civil day are flagged provisional. A date without a time part is computed at 12:00 civil local time.",
         "operationId": "calculate_western_endpoint_calculate_western_post",
         "requestBody": {
           "content": {
@@ -1144,7 +1144,7 @@
           "Fusion / Wu-Xing"
         ],
         "summary": "Calculate Fusion Endpoint",
-        "description": "Wu-Xing + Western harmony analysis.",
+        "description": "Wu-Xing + Western harmony analysis.\n\nA date without a time part is computed at 12:00 civil local time\n(birth_time_known=false). ``exclude_time_dependent`` (default: follows\nbirth_time_known) leaves the ascendant and the hour pillar out of both\nvectors and of every value derived from them.",
         "operationId": "calculate_fusion_endpoint_calculate_fusion_post",
         "requestBody": {
           "content": {
@@ -4613,7 +4613,7 @@
           "Western Astrology"
         ],
         "summary": "Calculate Western Endpoint",
-        "description": "Western astrology chart. Returns planetary positions, house cusps, Ascendant/MC angles, and aspects using Swiss Ephemeris. Supports tropical and sidereal zodiac systems (Lahiri, Fagan-Bradley, Raman). Houses use Placidus with automatic fallback for extreme latitudes. When `birth_time_known=false`, ascendant and houses are flagged provisional.",
+        "description": "Western astrology chart. Returns planetary positions, house cusps, Ascendant/MC angles, and aspects using Swiss Ephemeris. Supports tropical and sidereal zodiac systems (Lahiri, Fagan-Bradley, Raman). Houses use Placidus with automatic fallback for extreme latitudes. When `birth_time_known=false`, ascendant, houses, MC and every body that changes sign during the civil day are flagged provisional. A date without a time part is computed at 12:00 civil local time.",
         "operationId": "calculate_western_endpoint_v1_calculate_western_post",
         "requestBody": {
           "content": {
@@ -4733,7 +4733,7 @@
           "Fusion / Wu-Xing"
         ],
         "summary": "Calculate Fusion Endpoint",
-        "description": "Wu-Xing + Western harmony analysis.",
+        "description": "Wu-Xing + Western harmony analysis.\n\nA date without a time part is computed at 12:00 civil local time\n(birth_time_known=false). ``exclude_time_dependent`` (default: follows\nbirth_time_known) leaves the ascendant and the hour pillar out of both\nvectors and of every value derived from them.",
         "operationId": "calculate_fusion_endpoint_v1_calculate_fusion_post",
         "requestBody": {
           "content": {
@@ -7893,7 +7893,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "Local ISO8601 datetime"
+            "description": "Local ISO8601 datetime. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (reference_time_policy=date_only_noon)."
           },
           "tz": {
             "type": "string",
@@ -7958,7 +7958,7 @@
           "birth_time_known": {
             "type": "boolean",
             "title": "Birth Time Known",
-            "description": "False if birth time is uncertain — flags time-dependent outputs as provisional",
+            "description": "False if birth time is uncertain — the given time is still computed exactly; precision.provisional_fields then lists the hour pillar plus every pillar whose boundary falls inside the civil day.",
             "default": true
           },
           "include_trace": {
@@ -8069,6 +8069,21 @@
                 "type": "null"
               }
             ]
+          },
+          "warnings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warnings",
+            "description": "Stable warning codes. Present only when there is one: `BIRTH_TIME_UNKNOWN` when the birth time is unknown (`birth_time_known=false`, or a `date` without a time part)."
           }
         },
         "type": "object",
@@ -8272,6 +8287,21 @@
           },
           "precision": {
             "$ref": "#/components/schemas/PrecisionBlock"
+          },
+          "warnings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warnings",
+            "description": "Stable warning codes. Present only when there is one: `BIRTH_TIME_UNKNOWN` when the birth time is unknown (`birth_time_known=false`, or a `date` without a time part)."
           }
         },
         "type": "object",
@@ -9464,6 +9494,19 @@
             },
             "type": "array",
             "title": "Provisional Fields"
+          },
+          "reference_time_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "date_only_noon"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Time Policy",
+            "description": "Present only when the request `date` had no time part: `date_only_noon` = the chart was computed at 12:00 civil local time of that date (docs/precision/date-only-birth-input.md). Absent when a time was supplied."
           }
         },
         "type": "object",
@@ -9507,7 +9550,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "Local ISO 8601 datetime of birth."
+            "description": "Local ISO 8601 datetime of birth. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (precision.reference_time_policy=date_only_noon)."
           },
           "tz": {
             "type": "string",
@@ -9527,6 +9570,12 @@
             "minimum": -180.0,
             "title": "Lon",
             "description": "Birth longitude in decimal degrees."
+          },
+          "birth_time_known": {
+            "type": "boolean",
+            "title": "Birth Time Known",
+            "description": "False if birth time is uncertain — the given time is still computed exactly; the start age, the cycle ages/dates and the current cycle are then flagged provisional (plus the decade pillars on a jie day and the direction on the Li Chun day when it follows from the year stem).",
+            "default": true
           },
           "as_of_date": {
             "anyOf": [
@@ -9868,7 +9917,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "ISO 8601 local date time"
+            "description": "ISO 8601 local date time. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (precision.reference_time_policy=date_only_noon)."
           },
           "tz": {
             "type": "string",
@@ -9911,7 +9960,7 @@
           "birth_time_known": {
             "type": "boolean",
             "title": "Birth Time Known",
-            "description": "False if birth time is uncertain — flags hour/signature/ascendant/houses as provisional",
+            "description": "False if birth time is uncertain — the given time is still computed; flags hour/signature/ascendant/houses plus the pillars and bodies that change within the civil day as provisional, and (by default) excludes the time-dependent contributions",
             "default": true
           },
           "standard": {
@@ -9942,6 +9991,18 @@
             ],
             "title": "Bazi Pillars",
             "description": "BaZi pillars (auto-computed if omitted)"
+          },
+          "exclude_time_dependent": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclude Time Dependent",
+            "description": "Leave every contribution that depends on the birth clock time out of the Fusion: the ascendant on the western side (the MC never contributes) and the hour pillar (stem and hidden stems) on the BaZi side, also when bazi_pillars is supplied. All derived values (vectors, elemental_comparison, harmony_index, cosmic_state, calibration, interpretation) come from the reduced inputs. Default null follows birth_time_known (false → excluded); an explicit true/false wins."
           }
         },
         "type": "object",
@@ -10041,6 +10102,21 @@
           },
           "precision": {
             "$ref": "#/components/schemas/PrecisionBlock"
+          },
+          "warnings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warnings",
+            "description": "Stable warning codes. Present only when there is one: `BIRTH_TIME_UNKNOWN` when the birth time is unknown (`birth_time_known=false`, or a `date` without a time part)."
           }
         },
         "type": "object",
@@ -10191,7 +10267,7 @@
         "title": "HealthResponse",
         "example": {
           "status": "ok",
-          "version": "1.0.0-rc11-20261111"
+          "version": "1.0.0-rc12-20261118"
         }
       },
       "HourDerivationTrace": {
@@ -10941,7 +11017,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "Local ISO8601 datetime"
+            "description": "Local ISO8601 datetime. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (reference_time_policy=date_only_noon)."
           },
           "tz": {
             "type": "string",
@@ -11006,7 +11082,7 @@
           "birth_time_known": {
             "type": "boolean",
             "title": "Birth Time Known",
-            "description": "False if birth time is uncertain — flags time-dependent outputs as provisional",
+            "description": "False if birth time is uncertain — the given time is still computed exactly; precision.provisional_fields then lists the hour pillar plus every pillar whose boundary falls inside the civil day.",
             "default": true
           },
           "include_trace": {
@@ -11575,6 +11651,19 @@
             },
             "type": "array",
             "title": "Provisional Fields"
+          },
+          "reference_time_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "date_only_noon"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Time Policy",
+            "description": "Present only when the request `date` had no time part: `date_only_noon` = the chart was computed at 12:00 civil local time of that date (docs/precision/date-only-birth-input.md). Absent when a time was supplied."
           }
         },
         "type": "object",
@@ -11617,7 +11706,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "Local ISO 8601 datetime of birth."
+            "description": "Local ISO 8601 datetime of birth. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (precision.reference_time_policy=date_only_noon)."
           },
           "tz": {
             "type": "string",
@@ -11682,7 +11771,7 @@
           "birth_time_known": {
             "type": "boolean",
             "title": "Birth Time Known",
-            "description": "False if birth time is uncertain — flags the hour pillar as provisional.",
+            "description": "False if birth time is uncertain — the given time is still computed exactly; flags the hour pillar plus every pillar whose boundary falls inside the civil day as provisional.",
             "default": true
           }
         },
@@ -12169,6 +12258,19 @@
             },
             "type": "array",
             "title": "Provisional Fields"
+          },
+          "reference_time_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "date_only_noon"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Time Policy",
+            "description": "Present only when the request `date` had no time part: `date_only_noon` = the chart was computed at 12:00 civil local time of that date (docs/precision/date-only-birth-input.md). Absent when a time was supplied."
           }
         },
         "type": "object",
@@ -12361,14 +12463,16 @@
                 "type": "string",
                 "enum": [
                   "exact",
-                  "assumed_day"
+                  "assumed_day",
+                  "time_excluded"
                 ]
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Chart Type Quality"
+            "title": "Chart Type Quality",
+            "description": "exact: the ascendant (from the given time) is counted; assumed_day: no ascendant available; time_excluded: the time-dependent contributions (ascendant, hour pillar) were left out on request (`exclude_time_dependent`)."
           }
         },
         "additionalProperties": false,
@@ -14022,6 +14126,19 @@
           "effective_standard": {
             "type": "string",
             "title": "Effective Standard"
+          },
+          "reference_time_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "date_only_noon"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Time Policy",
+            "description": "Present only when the request `date` had no time part: `date_only_noon` = the chart was computed at 12:00 civil local time of that date (docs/precision/date-only-birth-input.md). Absent when a time was supplied."
           }
         },
         "additionalProperties": false,
@@ -14643,6 +14760,18 @@
             "type": "string",
             "title": "Algorithm Version",
             "description": "Engine build version (bazi_engine.__version__)"
+          },
+          "time_dependent_excluded": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Dependent Excluded",
+            "description": "true when the ascendant and the hour pillar were left out of both vectors (exclude_time_dependent). Absent otherwise."
           }
         },
         "type": "object",
@@ -14657,7 +14786,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "ISO 8601 local date time"
+            "description": "ISO 8601 local date time. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (precision.reference_time_policy=date_only_noon)."
           },
           "tz": {
             "type": "string",
@@ -14725,6 +14854,24 @@
             ],
             "title": "Bazi Pillars",
             "description": "BaZi pillars (auto-computed if omitted)"
+          },
+          "birth_time_known": {
+            "type": "boolean",
+            "title": "Birth Time Known",
+            "description": "False if birth time is uncertain — the given time is still computed; the response then carries a precision block and, by default, the time-dependent contributions are excluded (see exclude_time_dependent).",
+            "default": true
+          },
+          "exclude_time_dependent": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclude Time Dependent",
+            "description": "Leave every contribution that depends on the birth clock time out of the Fusion: the ascendant on the western side (the MC never contributes) and the hour pillar (stem and hidden stems) on the BaZi side, also when bazi_pillars is supplied. All derived values (vectors, elemental_comparison, harmony_index, cosmic_state, calibration, interpretation) come from the reduced inputs. Default null follows birth_time_known (false → excluded); an explicit true/false wins."
           }
         },
         "type": "object",
@@ -14760,6 +14907,32 @@
           },
           "metadata": {
             "$ref": "#/components/schemas/VectorMapMetadata"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrecisionBlock"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present only when the birth time is unknown (birth_time_known=false or a date without a time part)."
+          },
+          "warnings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warnings",
+            "description": "Stable warning codes. Present only when there is one: `BIRTH_TIME_UNKNOWN` when the birth time is unknown (`birth_time_known=false`, or a `date` without a time part)."
           }
         },
         "type": "object",
@@ -14943,7 +15116,7 @@
           "date": {
             "type": "string",
             "title": "Date",
-            "description": "Local ISO8601 datetime"
+            "description": "Local ISO8601 datetime. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (precision.reference_time_policy=date_only_noon)."
           },
           "tz": {
             "type": "string",
@@ -14988,7 +15161,7 @@
           "birth_time_known": {
             "type": "boolean",
             "title": "Birth Time Known",
-            "description": "False if birth time is uncertain — flags ascendant/houses/mc as provisional",
+            "description": "False if birth time is uncertain — the given time is still computed exactly; flags ascendant/houses/mc plus every body that changes sign during the civil day (name as in bodies) as provisional.",
             "default": true
           },
           "zodiac_mode": {
@@ -15083,6 +15256,21 @@
           },
           "precision": {
             "$ref": "#/components/schemas/PrecisionBlock"
+          },
+          "warnings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warnings",
+            "description": "Stable warning codes. Present only when there is one: `BIRTH_TIME_UNKNOWN` when the birth time is unknown (`birth_time_known=false`, or a `date` without a time part)."
           }
         },
         "type": "object",

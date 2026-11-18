@@ -14,8 +14,7 @@
   "properties": {
     "date": {
       "type": "string",
-      "format": "date-time",
-      "description": "Local civil date-time of birth in ISO 8601 form (e.g. 1990-06-15T14:30:00). Interpreted in the IANA timezone given by `tz`."
+      "description": "Local civil date-time of birth in ISO 8601 form (e.g. 1990-06-15T14:30:00). Interpreted in the IANA timezone given by `tz`. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (precision.reference_time_policy=date_only_noon)."
     },
     "tz": {
       "type": "string",

@@ -47,7 +47,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
@@ -55,6 +55,7 @@ from starlette.requests import Request
 
 from ..bazi import compute_bazi
 from ..bazi_rules import load_default_ruleset
+from ..birth_time import BirthTimeInput, provisional_pillars, resolve_birth_time_input
 from ..constants import BRANCHES, STEMS
 from ..dayun.jiazi import BRANCHES_CN, STEM_ELEMENT, STEM_POLARITY, STEMS_CN
 from ..dayun.relation import compute_relation_to_day_master
@@ -66,6 +67,7 @@ from ..match.ten_gods import ten_god_for_stems
 from ..match.types import NormalizedChart, StemSource, WuxingLedgerEntry
 from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy, resolve_local_iso
 from ..types import BaziInput, BaziResult, Fold
+from .shared import REFERENCE_TIME_POLICY_DESCRIPTION, absent_if_none, precision_block
 
 _log = logging.getLogger(__name__)
 
@@ -111,7 +113,11 @@ class NatalRequest(BaseModel):
         }
     })
 
-    date: str = Field(..., description="Local ISO 8601 datetime of birth.")
+    date: str = Field(..., description=(
+        "Local ISO 8601 datetime of birth. A date without a time part (YYYY-MM-DD) is "
+        "computed at 12:00 civil local time and reported as birth_time_known=false "
+        "(precision.reference_time_policy=date_only_noon)."
+    ))
     tz: str = Field(..., description="IANA timezone identifier, e.g. 'Europe/Berlin'.")
     lat: float = Field(..., ge=-90.0, le=90.0, description="Birth latitude in decimal degrees.")
     lon: float = Field(..., ge=-180.0, le=180.0, description="Birth longitude in decimal degrees.")
@@ -129,7 +135,11 @@ class NatalRequest(BaseModel):
     )
     birth_time_known: bool = Field(
         True,
-        description="False if birth time is uncertain — flags the hour pillar as provisional.",
+        description=(
+            "False if birth time is uncertain — the given time is still computed exactly; "
+            "flags the hour pillar plus every pillar whose boundary falls inside the civil "
+            "day as provisional."
+        ),
     )
 
 
@@ -146,6 +156,9 @@ class NatalProvenance(BaseModel):
 class NatalPrecision(BaseModel):
     birth_time_known: bool
     provisional_fields: List[str] = Field(default_factory=list)
+    reference_time_policy: Optional[Literal["date_only_noon"]] = absent_if_none(
+        REFERENCE_TIME_POLICY_DESCRIPTION
+    )
 
 
 class NatalResponse(BaseModel):
@@ -292,7 +305,7 @@ def _month_command_block(analysis: IndividualAnalysis) -> Dict[str, Any]:
 
 
 def _assemble_response(
-    req: NatalRequest,
+    precision: Dict[str, Any],
     chart: NormalizedChart,
     analysis: IndividualAnalysis,
     ruleset: Dict[str, Any],
@@ -309,21 +322,20 @@ def _assemble_response(
             "ruleset_version": str(ruleset.get("ruleset_version", "MISSING")),
             "computed_at": _utc_now_iso_z(),
         },
-        "precision": {
-            "birth_time_known": req.birth_time_known,
-            "provisional_fields": [] if req.birth_time_known else ["hour"],
-        },
+        "precision": precision,
         # Stable warning codes from the normalized chart (AC-004c), surfaced
         # dayun-style as a flat string array.
         "warnings": [w.code.value for w in chart.warnings],
     }
 
 
-def _compute_natal_chart(req: NatalRequest) -> BaziResult:
-    """Natal four pillars — same input shaping as ``routers/bazi.py``."""
+def _compute_natal_chart(
+    req: NatalRequest, birth_time: BirthTimeInput,
+) -> Tuple[BaziResult, Dict[str, Any]]:
+    """Natal four pillars and precision block — same input shaping as ``routers/bazi.py``."""
     dt_local, _ = resolve_local_iso(
-        req.date, req.tz,
-        ambiguous=req.ambiguousTime, nonexistent=req.nonexistentTime,
+        birth_time.local_iso, req.tz,
+        ambiguous=req.ambiguousTime, nonexistent=birth_time.nonexistent,
     )
     fold: Fold = 0 if req.ambiguousTime == "earlier" else 1
     inp = BaziInput(
@@ -336,7 +348,12 @@ def _compute_natal_chart(req: NatalRequest) -> BaziResult:
         strict_local_time=True,
         fold=fold,
     )
-    return compute_bazi(inp)
+    result = compute_bazi(inp)
+    if birth_time.birth_time_known:
+        return result, precision_block(birth_time, [])
+    return result, precision_block(
+        birth_time, ["hour", *provisional_pillars(inp, dt_local.date())],
+    )
 
 
 # ── Route ─────────────────────────────────────────────────────────────────────
@@ -349,16 +366,19 @@ def calculate_natal_endpoint(request: Request, req: NatalRequest) -> Dict[str, A
     (pillar stems and hidden stems), and the month command — purely additive
     exposure of facts the engine already computes for the pair matcher."""
     try:
-        result = _compute_natal_chart(req)
+        birth_time = resolve_birth_time_input(
+            req.date, req.birth_time_known, req.nonexistentTime,
+        )
+        result, precision = _compute_natal_chart(req, birth_time)
         ruleset = load_default_ruleset()
         chart = normalize_chart(
             result,
-            birth_time_known=req.birth_time_known,
+            birth_time_known=birth_time.birth_time_known,
             subject="natal",
             ruleset=ruleset,
         )
         analysis = analyze_individual(chart, subject="natal", ruleset=ruleset)
-        return _assemble_response(req, chart, analysis, ruleset)
+        return _assemble_response(precision, chart, analysis, ruleset)
     except BaziEngineError:
         # DST/time-resolution errors etc. — the global handler renders the
         # ErrorEnvelope shape with the right status.

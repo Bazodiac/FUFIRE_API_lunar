@@ -5,6 +5,7 @@ Re-exports everything for backwards compatibility with
 ``from bazi_engine.fusion import WuXingVector, PLANET_TO_WUXING, ...``
 """
 from .analysis import (
+    ascendant_ledger_entry,
     calculate_harmony_index,
     calculate_wuxing_from_bazi,
     calculate_wuxing_from_bazi_with_ledger,
@@ -64,6 +65,7 @@ __all__ = [
     "planet_to_wuxing",
     "calculate_wuxing_vector_from_planets",
     "calculate_wuxing_vector_from_planets_with_ledger",
+    "ascendant_ledger_entry",
     "is_night_chart",
     "calculate_wuxing_from_bazi",
     "calculate_wuxing_from_bazi_with_ledger",
