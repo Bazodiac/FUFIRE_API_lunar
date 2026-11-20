@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timezone as _tz
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,6 +13,12 @@ from starlette.requests import Request
 
 from ..bazi import compute_bazi, jdn_gregorian, sexagenary_day_index_from_date
 from ..bazi_rules import day_offset_from_ruleset, load_default_ruleset
+from ..birth_time import (
+    BirthTimeInput,
+    ReferenceTimePolicy,
+    provisional_pillars,
+    resolve_birth_time_input,
+)
 from ..constants import ANIMALS, BRANCHES, STEMS
 from ..exc import BaziEngineError
 from ..limiter import limiter, tier_limit
@@ -22,11 +28,15 @@ from ..time_utils import AmbiguousTimeChoice, NonexistentTimePolicy, apply_day_b
 from ..types import BaziInput, BaziResult, Fold
 from ..wuxing.analysis import calculate_wuxing_from_bazi_with_ledger
 from .shared import (
+    REFERENCE_TIME_POLICY_DESCRIPTION,
+    WARNINGS_DESCRIPTION,
     MinimalQualityFlags,
     PrecisionBlock,
     ProvenanceResponse,
+    absent_if_none,
     current_ephemeris_mode,
     format_pillar,
+    precision_block,
 )
 
 _log = logging.getLogger(__name__)
@@ -49,7 +59,11 @@ class BaziRequest(BaseModel):
         }
     })
 
-    date: str = Field(..., description="Local ISO8601 datetime")
+    date: str = Field(..., description=(
+        "Local ISO8601 datetime. A date without a time part (YYYY-MM-DD) is computed at "
+        "12:00 civil local time and reported as birth_time_known=false "
+        "(reference_time_policy=date_only_noon)."
+    ))
     tz: str = Field("Europe/Berlin", description="IANA timezone name")
     lon: float = Field(13.4050, ge=-180.0, le=180.0, description="Longitude in degrees")
     lat: float = Field(52.52, ge=-90.0, le=90.0, description="Latitude in degrees")
@@ -57,7 +71,11 @@ class BaziRequest(BaseModel):
     boundary: Literal["midnight", "zi"] = Field("midnight")
     ambiguousTime: AmbiguousTimeChoice = Field("earlier")
     nonexistentTime: NonexistentTimePolicy = Field("error")
-    birth_time_known: bool = Field(True, description="False if birth time is uncertain — flags time-dependent outputs as provisional")
+    birth_time_known: bool = Field(True, description=(
+        "False if birth time is uncertain — the given time is still computed exactly; "
+        "precision.provisional_fields then lists the hour pillar plus every pillar whose "
+        "boundary falls inside the civil day."
+    ))
     # ADR-1: opt-out for the derivation trace. Default True preserves the
     # current behaviour (trace always present → zero snapshot churn) while
     # giving callers a real opt-out (False → derivation_trace = null).
@@ -206,6 +224,9 @@ class TimeResolutionTrace(BaseModel):
     tlst_date_rollover: int  # TLST calendar date − civil date, days (−2…+1)
     tz_offset_minutes: int  # civil UTC offset in integer minutes
     effective_standard: str  # CIVIL | LMT | TLST
+    reference_time_policy: Optional[Literal["date_only_noon"]] = absent_if_none(
+        REFERENCE_TIME_POLICY_DESCRIPTION
+    )
 
 
 class BaziDerivationTrace(BaseModel):
@@ -228,6 +249,7 @@ class BaziResponse(BaseModel):
     quality_flags: MinimalQualityFlags
     precision: PrecisionBlock
     derivation_trace: Optional[BaziDerivationTrace] = None
+    warnings: Optional[List[str]] = absent_if_none(WARNINGS_DESCRIPTION)
 
 
 def _day_anchor_evidence(ruleset: dict) -> DayAnchorEvidence:
@@ -250,6 +272,7 @@ def _build_derivation_trace(
     res: BaziResult,
     inp: BaziInput,
     requested_standard: Optional[str] = None,
+    reference_time_policy: Optional[ReferenceTimePolicy] = None,
 ) -> BaziDerivationTrace:
     """Build typed derivation trace from computed BaziResult intermediate values.
 
@@ -351,12 +374,18 @@ def _build_derivation_trace(
             tlst_date_rollover=time_ctx.date_rollover,
             tz_offset_minutes=time_ctx.tz_offset_minutes,
             effective_standard=inp.time_standard,
+            reference_time_policy=reference_time_policy,
         ),
         provenance_ids=prov_ids,
     )
 
 
-def _compute_bazi_response(req: BaziRequest, *, force_trace: bool = False) -> Dict[str, Any]:
+def _compute_bazi_response(
+    req: BaziRequest,
+    *,
+    force_trace: bool = False,
+    birth_time: Optional[BirthTimeInput] = None,
+) -> Dict[str, Any]:
     """Build the full BaZi response dict for ``req``.
 
     Single source of truth shared by ``/calculate/bazi`` and the alias
@@ -366,11 +395,18 @@ def _compute_bazi_response(req: BaziRequest, *, force_trace: bool = False) -> Di
     ``force_trace=True`` (used by the alias) always attaches the trace,
     overriding ``req.include_trace``; otherwise ``req.include_trace``
     decides (default True → present; False → null).
+
+    ``birth_time`` (from ``resolve_birth_time_input``) applies the date-only
+    rule and the unknown-time precision block. The public endpoints always
+    pass it; without it (``/personalize``) a bare date keeps the legacy 00:00
+    reading and the legacy ``["hour"]`` precision block.
     """
     try:
+        local_iso = birth_time.local_iso if birth_time else req.date
+        nonexistent = birth_time.nonexistent if birth_time else req.nonexistentTime
         dt_local, _ = resolve_local_iso(
-            req.date, req.tz,
-            ambiguous=req.ambiguousTime, nonexistent=req.nonexistentTime,
+            local_iso, req.tz,
+            ambiguous=req.ambiguousTime, nonexistent=nonexistent,
         )
         resolved_naive = dt_local.replace(tzinfo=None).isoformat()
         fold: Fold = 0 if req.ambiguousTime == "earlier" else 1
@@ -397,11 +433,14 @@ def _compute_bazi_response(req: BaziRequest, *, force_trace: bool = False) -> Di
         # same _build_derivation_trace — no duplicated trace math.
         attach_trace = force_trace or req.include_trace
         derivation_trace = (
-            _build_derivation_trace(res, inp, requested_standard=requested_standard)
+            _build_derivation_trace(
+                res, inp, requested_standard=requested_standard,
+                reference_time_policy=birth_time.reference_time_policy if birth_time else None,
+            )
             if attach_trace
             else None
         )
-        return {
+        response = {
             # ADR-1 "zero snapshot churn": echo every request field EXCEPT
             # the include_trace toggle (BaziResponse.input is typed as
             # BaziInputEcho, which omits it) — existing callers' responses
@@ -440,12 +479,19 @@ def _compute_bazi_response(req: BaziRequest, *, force_trace: bool = False) -> Di
             # scopes house_system_fallback to house-computing endpoints only,
             # so this carries the minimal, non-house attestation subset.
             "quality_flags": {"ephemeris_mode": current_ephemeris_mode()},
-            "precision": {
-                "birth_time_known": req.birth_time_known,
-                "provisional_fields": [] if req.birth_time_known else ["hour"],
-            },
+            "precision": (
+                _bazi_precision(birth_time, inp, dt_local.date())
+                if birth_time
+                else {
+                    "birth_time_known": req.birth_time_known,
+                    "provisional_fields": [] if req.birth_time_known else ["hour"],
+                }
+            ),
             "derivation_trace": derivation_trace,
         }
+        if birth_time and birth_time.warnings:
+            response["warnings"] = birth_time.warnings
+        return response
     except BaziEngineError:
         raise
     except Exception:
@@ -453,11 +499,22 @@ def _compute_bazi_response(req: BaziRequest, *, force_trace: bool = False) -> Di
         raise HTTPException(status_code=500, detail="Internal calculation error")
 
 
+def _bazi_precision(birth_time: BirthTimeInput, inp: BaziInput, day: Any) -> Dict[str, Any]:
+    """Precision block of the BaZi endpoints (bazi, bazi/trace, bazi/wuxing)."""
+    if birth_time.birth_time_known:
+        return precision_block(birth_time, [])
+    return precision_block(birth_time, ["hour", *provisional_pillars(inp, day)])
+
+
+def _birth_time(req: BaziRequest) -> BirthTimeInput:
+    return resolve_birth_time_input(req.date, req.birth_time_known, req.nonexistentTime)
+
+
 @router.post("/bazi", response_model=BaziResponse)
 @limiter.limit(tier_limit)
 def calculate_bazi_endpoint(request: Request, req: BaziRequest) -> Dict[str, Any]:
     """Four Pillars (BaZi) calculation. Computes Year, Month, Day, and Hour pillars using precise solar-term boundaries from Swiss Ephemeris. Year boundary is LiChun (~315° solar longitude, ~Feb 3–5), not January 1st. Supports Civil and Local Mean Time (LMT), midnight and zi-hour day boundaries, and DST disambiguation via `ambiguousTime`/`nonexistentTime`. Set `include_trace=false` to omit the derivation trace."""
-    return _compute_bazi_response(req)
+    return _compute_bazi_response(req, birth_time=_birth_time(req))
 
 
 @router.post(
@@ -499,7 +556,7 @@ def calculate_bazi_trace_endpoint(request: Request, req: BaziRequest) -> Dict[st
     engine made (TLST-aware late-Zi rollover included) — so it can never
     disagree with the headline day pillar.
     """
-    return _compute_bazi_response(req, force_trace=True)
+    return _compute_bazi_response(req, force_trace=True, birth_time=_birth_time(req))
 
 
 # ── /calculate/bazi/wuxing ────────────────────────────────────────────────────
@@ -538,6 +595,7 @@ class BaziWuXingResponse(BaseModel):
     provenance: ProvenanceResponse
     quality_flags: MinimalQualityFlags
     precision: PrecisionBlock
+    warnings: Optional[List[str]] = absent_if_none(WARNINGS_DESCRIPTION)
 
 
 @router.post(
@@ -561,8 +619,10 @@ class BaziWuXingResponse(BaseModel):
 def calculate_bazi_wuxing_endpoint(request: Request, req: BaziRequest) -> Dict[str, Any]:
     """BaZi Wu-Xing (Five Elements) distribution from the Four Pillars."""
     try:
+        birth_time = _birth_time(req)
         dt_local, _ = resolve_local_iso(
-            req.date, req.tz, ambiguous=req.ambiguousTime, nonexistent=req.nonexistentTime,
+            birth_time.local_iso, req.tz,
+            ambiguous=req.ambiguousTime, nonexistent=birth_time.nonexistent,
         )
         fold: Fold = 0 if req.ambiguousTime == "earlier" else 1
         inp = BaziInput(
@@ -585,7 +645,7 @@ def calculate_bazi_wuxing_endpoint(request: Request, req: BaziRequest) -> Dict[s
         }
         vec, ledger = calculate_wuxing_from_bazi_with_ledger(pillars)
         wx = vec.to_dict()
-        return {
+        response = {
             "input": req.model_dump(exclude={"include_trace"}),
             "wu_xing_vector":   wx,
             "dominant_element": max(wx, key=lambda k: wx[k]),
@@ -594,11 +654,11 @@ def calculate_bazi_wuxing_endpoint(request: Request, req: BaziRequest) -> Dict[s
             "contribution_ledger": {"bazi": ledger},
             "provenance":       build_provenance(),
             "quality_flags":    {"ephemeris_mode": current_ephemeris_mode()},
-            "precision": {
-                "birth_time_known": req.birth_time_known,
-                "provisional_fields": [] if req.birth_time_known else ["hour"],
-            },
+            "precision": _bazi_precision(birth_time, inp, dt_local.date()),
         }
+        if birth_time.warnings:
+            response["warnings"] = birth_time.warnings
+        return response
     except BaziEngineError:
         raise
     except Exception:

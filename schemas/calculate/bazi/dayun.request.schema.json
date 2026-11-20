@@ -15,8 +15,7 @@
   "properties": {
     "date": {
       "type": "string",
-      "format": "date-time",
-      "description": "Local civil date-time of birth in ISO 8601 form (e.g. 1987-07-04T21:30:00). Interpreted in the IANA timezone given by `tz`."
+      "description": "Local civil date-time of birth in ISO 8601 form (e.g. 1987-07-04T21:30:00). Interpreted in the IANA timezone given by `tz`. A date without a time part (YYYY-MM-DD) is computed at 12:00 civil local time and reported as birth_time_known=false (precision.reference_time_policy=date_only_noon)."
     },
     "tz": {
       "type": "string",
@@ -35,6 +34,11 @@
       "minimum": -180,
       "maximum": 180,
       "description": "Birth longitude in decimal degrees."
+    },
+    "birth_time_known": {
+      "type": "boolean",
+      "default": true,
+      "description": "False if birth time is uncertain: the given time is still computed exactly; start age, cycle ages/dates and the current cycle are flagged provisional (plus the decade pillars on a jie day, and the direction on the Li Chun day when it follows from the year stem). A date without a time part is always reported as birth_time_known=false."
     },
     "as_of_date": {
       "type": "string",

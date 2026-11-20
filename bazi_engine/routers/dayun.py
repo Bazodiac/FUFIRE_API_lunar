@@ -29,6 +29,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from starlette.requests import Request
 
 from ..bazi import compute_bazi
+from ..birth_time import BirthTimeInput, provisional_pillars, resolve_birth_time_input
 from ..dayun.current_cycle import select_current
 from ..dayun.dates import add_real_years
 from ..dayun.direction import resolve_direction_for_request
@@ -40,6 +41,7 @@ from ..dayun.start_age import compute_start_age
 from ..exc import BaziEngineError
 from ..limiter import limiter, tier_limit
 from ..types import BaziInput, DayBoundary
+from .shared import REFERENCE_TIME_POLICY_DESCRIPTION, absent_if_none, precision_block
 
 _log = logging.getLogger(__name__)
 
@@ -73,10 +75,23 @@ class DayunRequest(BaseModel):
         }
     })
 
-    date: str = Field(..., description="Local ISO 8601 datetime of birth.")
+    date: str = Field(..., description=(
+        "Local ISO 8601 datetime of birth. A date without a time part (YYYY-MM-DD) is "
+        "computed at 12:00 civil local time and reported as birth_time_known=false "
+        "(precision.reference_time_policy=date_only_noon)."
+    ))
     tz: str = Field(..., description="IANA timezone identifier, e.g. 'Europe/Berlin'.")
     lat: float = Field(..., ge=-90.0, le=90.0, description="Birth latitude in decimal degrees.")
     lon: float = Field(..., ge=-180.0, le=180.0, description="Birth longitude in decimal degrees.")
+    birth_time_known: bool = Field(
+        True,
+        description=(
+            "False if birth time is uncertain — the given time is still computed exactly; "
+            "the start age, the cycle ages/dates and the current cycle are then flagged "
+            "provisional (plus the decade pillars on a jie day and the direction on the "
+            "Li Chun day when it follows from the year stem)."
+        ),
+    )
     as_of_date: Optional[str] = Field(
         None,
         description="ISO date used to select the 'current' decade. Defaults to today (UTC) if omitted.",
@@ -130,6 +145,9 @@ class DayunPrecision(BaseModel):
     birth_time_known: bool
     direction_basis: Optional[Literal["explicit", "year_stem_yinyang_and_sex"]] = None
     provisional_fields: List[str] = Field(default_factory=list)
+    reference_time_policy: Optional[Literal["date_only_noon"]] = absent_if_none(
+        REFERENCE_TIME_POLICY_DESCRIPTION
+    )
 
 
 class DayunResponse(BaseModel):
@@ -186,6 +204,30 @@ def _utc_now_iso_z() -> str:
     )
 
 
+# Values that move with the birth instant inside one civil day: the distance to
+# the jie anchor (3 days = 1 year, so one day is about four months of start age)
+# and everything counted from it.
+_UNKNOWN_TIME_FIELDS = (
+    "start", "cycles.age_start", "cycles.age_end", "cycles.date_start", "cycles.date_end", "current",
+)
+
+
+def _dayun_precision(
+    birth_time: BirthTimeInput, bazi_input: BaziInput, birth_local_dt: datetime,
+    direction_method: str,
+) -> Dict[str, Any]:
+    """Precision block; ``direction_basis`` is added by the caller."""
+    if birth_time.birth_time_known:
+        return precision_block(birth_time, [])
+    pillars = provisional_pillars(bazi_input, birth_local_dt.date())
+    fields = list(_UNKNOWN_TIME_FIELDS)
+    if "month" in pillars:
+        fields.append("cycles.pillar")
+    if "year" in pillars and direction_method == "year_stem_yinyang_and_sex":
+        fields.append("direction")
+    return precision_block(birth_time, fields)
+
+
 # ── Route ─────────────────────────────────────────────────────────────────────
 
 
@@ -199,10 +241,12 @@ def calculate_dayun_endpoint(request: Request, req: DayunRequest) -> Dict[str, A
     'current' block for the decade that brackets ``as_of_date``.
     """
     try:
-        # 1. Natal four pillars via the existing engine.
+        # 1. Natal four pillars via the existing engine. A bare date is computed
+        # at 12:00 civil local time (date-only rule, birth_time.py).
+        birth_time = resolve_birth_time_input(req.date, req.birth_time_known, "error")
         engine_boundary = _engine_day_boundary(req.boundary)
         bazi_input = BaziInput(
-            birth_local=req.date,
+            birth_local=birth_time.local_iso,
             timezone=req.tz,
             longitude_deg=req.lon,
             latitude_deg=req.lat,
@@ -320,15 +364,10 @@ def calculate_dayun_endpoint(request: Request, req: DayunRequest) -> Dict[str, A
                 "computed_at": _utc_now_iso_z(),
             },
             "precision": {
-                # precision.birth_time_known is hardcoded True for V1 — the request schema has no
-                # birth-time-uncertain flag yet. When a later sprint adds birth_time_known to
-                # DayunRequest, thread it through here and clear `precision.provisional_fields`
-                # from any time-dependent outputs the schema lists.
-                "birth_time_known": True,
+                **_dayun_precision(birth_time, bazi_input, birth_local_dt, req.direction_method),
                 "direction_basis": req.direction_method,
-                "provisional_fields": [],
             },
-            "warnings": warnings_list,
+            "warnings": warnings_list + birth_time.warnings,
         }
     except BaziEngineError:
         # Direction-basis-missing, jieqi search failures, etc. — let the
